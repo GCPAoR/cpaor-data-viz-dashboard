@@ -22,7 +22,7 @@ services:
     container_name: data_processor
     volumes:
       - shared-volume:/data
-      - ./data_sources_processing_src/update_datasets.py:/app/update_datasets.py
+      - ./data_sources_processing_src/data_sources_processing/datasets_metadata.json:/data/datasets_metadata.json
       - ./data_sources_processing_src/crontab:/etc/cron.d/processing_cron
       - cron_logs:/var/log
     command: cron -f
