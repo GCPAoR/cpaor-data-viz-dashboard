@@ -55,7 +55,7 @@ def _load_protection_indicators_data(selected_country: str):
             )  # .reset_index()
             st.session_state[f"protection_df_{selected_country}"]["Source Date"] = (
                 pd.to_datetime(
-                    st.session_state[f"protection_df_{selected_country}"]["Source Date"]
+                    st.session_state[f"protection_df_{selected_country}"]["Source Date"], errors='coerce'
                 ).dt.strftime("%d %b %Y")
             )
 
