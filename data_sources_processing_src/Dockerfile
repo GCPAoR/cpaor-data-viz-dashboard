@@ -1,4 +1,4 @@
-FROM python:3.10-slim-buster
+FROM python:3.11.5-slim
 
 LABEL maintainer="CPAoR dev team"
 
@@ -8,10 +8,6 @@ WORKDIR /app
 
 RUN apt-get update && apt-get -y install --no-install-recommends \
     cron \
-    #gdal-bin \
-    #libgdal-dev \
-    #g++ \
-    #libproj-dev \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
@@ -20,8 +16,7 @@ COPY crontab /etc/cron.d/processing_cron
 RUN chmod 0644 /etc/cron.d/processing_cron
 COPY update_datasets.py /app/update_datasets.py
 RUN chmod +x /app/update_datasets.py
-
-RUN crontab /etc/cron.d/processing_cron
+COPY ./data_sources_processing/datasets_metadata.json /data/datasets_metadata.json
 
 # Upgrade pip and install python packages for app
 RUN pip install --upgrade --no-cache-dir pip poetry \
@@ -34,7 +29,5 @@ RUN pip install --upgrade --no-cache-dir pip poetry \
     && pip uninstall -y poetry virtualenv-clone virtualenv
 
 COPY . /app/
-
-#RUN touch /var/log/cron.log
 
 RUN python -m nltk.downloader punkt

@@ -5,7 +5,7 @@ description = ""
 authors = ["CPAoR developers"]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.9.7 || >3.9.7,<4.0"
+python = "^3.11"
 nltk = "^3.8.1"
 pandas = "^2.2.2"
 pytesseract = "*"
@@ -17,7 +17,7 @@ openpyxl = "^3.1.2"
 pymupdf = "^1.23.26"
 openai = "^1.14.1"
 beautifulsoup4 = "^4.12.3"
-torch = {url = "https://download.pytorch.org/whl/cpu/torch-2.0.1%2Bcpu-cp310-cp310-linux_x86_64.whl"}
+torch = {url = "https://download.pytorch.org/whl/cpu-cxx11-abi/torch-2.0.0%2Bcpu.cxx11.abi-cp311-cp311-linux_x86_64.whl"}
 aiohttp = "3.10.5"
 
 
