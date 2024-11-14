@@ -23,7 +23,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 datasets_metadata_path = os.path.join(
-    os.path.dirname(__file__), "data_sources_processing", "datasets_metadata.json"
+    "/data", "datasets_metadata.json"
 )
 
 time_format = "%d-%m-%Y"
