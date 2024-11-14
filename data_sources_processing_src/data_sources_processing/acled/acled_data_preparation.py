@@ -12,9 +12,10 @@ from data_sources_processing.acled.create_locations_mapping import \
 from tqdm import tqdm
 
 # API credentials
-env = dotenv.dotenv_values()
-api_key = env["ACLED_API_KEY"]
-email = env["CPAOR_EMAIL"]
+dotenv.load_dotenv()
+
+api_key = os.getenv("ACLED_API_KEY")
+email = os.getenv("CPAOR_EMAIL")
 
 needed_columns = [
     "year",
@@ -85,7 +86,7 @@ def _get_individual_events_targetting_civilians_df(
     # Define the columns to keep
     initial_number_of_fatalities_df = events_df.copy()[needed_columns]
 
-    if os.path.exists(mapping_acled_to_fieldmaps_path):
+    if os.path.exists(mapping_acled_to_fieldmaps_path) and os.path.getsize(mapping_acled_to_fieldmaps_path) != 0:
         with open(mapping_acled_to_fieldmaps_path) as f:
             acled_to_fieldmaps_one_country_mapping = json.load(f)
     else:
@@ -107,7 +108,7 @@ def _get_individual_events_targetting_civilians_df(
                 )
             )
             with open(mapping_acled_to_fieldmaps_path, "w") as f:
-                json.dump(acled_to_fieldmaps_one_country_mapping)
+                json.dump(acled_to_fieldmaps_one_country_mapping, f)
 
     if os.path.exists(save_path):
         past_number_of_fatalities_df = pd.read_csv(save_path)

@@ -1,3 +1,4 @@
+import os
 import asyncio
 import json
 import logging
@@ -12,8 +13,9 @@ import dotenv
 import pandas as pd
 from tqdm import tqdm
 
-env = dotenv.dotenv_values()
-openai_api_key = env["OPENAI_API_KEY"]
+dotenv.load_dotenv()
+
+openai_api_key = os.getenv("OPENAI_API_KEY")
 model_name = "gpt-4o"
 
 logging.basicConfig(

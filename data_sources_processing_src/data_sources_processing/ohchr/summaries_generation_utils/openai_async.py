@@ -1,3 +1,4 @@
+import os
 import asyncio
 import json
 import logging
@@ -17,8 +18,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-env = dotenv.dotenv_values()
-openai_api_key = env["OPENAI_API_KEY"]
+dotenv.load_dotenv()
+openai_api_key = os.getenv("OPENAI_API_KEY")
 
 
 def _extract_and_evaluate_first(string):

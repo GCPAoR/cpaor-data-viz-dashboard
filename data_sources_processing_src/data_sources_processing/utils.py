@@ -55,17 +55,18 @@ def _get_hdx_data(
         soup = BeautifulSoup(response.content, "html.parser")
 
         latest_file_info = _get_hdx_file_infos(soup, datasets_metadata["hdx_file_name"])
-
         if (
             latest_file_info["file_time"]
             != datasets_metadata["latest_file_info"]["file_time"]
         ):
+            dir_path = os.path.join(data_output_path, data_folder)
+            if not os.path.isdir(dir_path):
+                os.makedirs(dir_path)
 
             _dl_hdx_file(
                 latest_file_info["download_url"],
                 os.path.join(
-                    data_output_path,
-                    data_folder,
+                    dir_path,
                     datasets_metadata["saved_file_name"],
                 ),
             )

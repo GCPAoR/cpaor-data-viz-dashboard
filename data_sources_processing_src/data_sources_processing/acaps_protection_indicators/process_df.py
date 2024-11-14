@@ -361,33 +361,44 @@ def _get_final_results(
                     "Evidence": one_analytical_statement_relevant_entries,
                 }
             )
-    postprocessed_results = pd.DataFrame(postprocessed_results).explode("Evidence")
+    
+    postprocessed_results_df = pd.DataFrame(postprocessed_results)
+    if len(postprocessed_results_df):
+        postprocessed_results = postprocessed_results_df.explode("Evidence")
 
-    postprocessed_results["Source Original Text"] = postprocessed_results[
-        "Evidence"
-    ].apply(lambda x: x["text"].replace("\n", " "))
-    postprocessed_results["Source Name"] = postprocessed_results["Evidence"].apply(
-        lambda x: x["source_name"]
-    )
-    postprocessed_results["Source Date"] = postprocessed_results["Evidence"].apply(
-        lambda x: x["source_date"]
-    )
-    postprocessed_results["Source Link"] = postprocessed_results["Evidence"].apply(
-        lambda x: x["source_link"]
-    )
+        postprocessed_results["Source Original Text"] = postprocessed_results[
+            "Evidence"
+        ].apply(lambda x: x["text"].replace("\n", " "))
+        postprocessed_results["Source Name"] = postprocessed_results["Evidence"].apply(
+            lambda x: x["source_name"]
+        )
+        postprocessed_results["Source Date"] = postprocessed_results["Evidence"].apply(
+            lambda x: x["source_date"]
+        )
+        postprocessed_results["Source Link"] = postprocessed_results["Evidence"].apply(
+            lambda x: x["source_link"]
+        )
 
-    # new row value for rows where "Value" is "Country Wide"
-    postprocessed_results["Value"] = postprocessed_results.apply(
-        lambda x: "1 - General Summary" if x["Value"] == "Country Wide" else x["Value"],
-        axis=1,
-    )
-    postprocessed_results["Breakdown Column"] = postprocessed_results.apply(
-        lambda x: (
-            "1 - General Summary"
-            if x["Value"] == "1 - General Summary"
-            else x["Breakdown Column"]
-        ),
-        axis=1,
-    )
+        # new row value for rows where "Value" is "Country Wide"
+        postprocessed_results["Value"] = postprocessed_results.apply(
+            lambda x: "1 - General Summary" if x["Value"] == "Country Wide" else x["Value"],
+            axis=1,
+        )
+        postprocessed_results["Breakdown Column"] = postprocessed_results.apply(
+            lambda x: (
+                "1 - General Summary"
+                if x["Value"] == "1 - General Summary"
+                else x["Breakdown Column"]
+            ),
+            axis=1,
+        )
 
-    return postprocessed_results
+        return postprocessed_results
+    return pd.DataFrame({
+        "Country": [],
+        "Breakdown Column": [],
+        "Value": [],
+        "Last Date": [],
+        "Generated Text": [],
+        "Evidence": [],
+    })

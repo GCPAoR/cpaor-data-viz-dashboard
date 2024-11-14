@@ -1,3 +1,4 @@
+import os
 import json
 import logging
 import re
@@ -8,7 +9,7 @@ from typing import List
 from dotenv import load_dotenv
 from openai import OpenAI
 
-env = load_dotenv()
+load_dotenv()
 
 logging.basicConfig(
     level=logging.DEBUG,  # Set the logging level
@@ -20,7 +21,7 @@ system_prompt = (
     "I want to create a mapping between different geolocations in %s. "
     + "I will provide you with two lists of geolocations al slightly differnt one from another, "
     + "and you will need to create a mapping for items from the first to the second list so I can complete the database. "
-    + "Return the output as a JSON dict where the key comes from the first list and the value from the second list. "
+    + "Return the output as a JSON format where the key comes from the first list and the value from the second list. "
     + "If there is no match, return an empty dict."
 )
 
@@ -63,7 +64,7 @@ def _postprocess_json_string(s):
 def _ai_mapping_locations(
     country: str, acled_locations: List[str], fieldmaps_locations: List[str]
 ):
-    openai_api_key = env["OPENAI_API_KEY"]
+    openai_api_key = os.getenv("OPENAI_API_KEY")
     client = OpenAI(api_key=openai_api_key)
 
     if len(acled_locations) == 0 or len(fieldmaps_locations) == 0:

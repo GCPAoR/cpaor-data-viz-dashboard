@@ -6,10 +6,10 @@ import dotenv
 import pandas as pd
 import requests
 
-env = dotenv.dotenv_values()
+dotenv.load_dotenv()
 # API credentials
-username = env["CPAOR_EMAIL"]
-password = env["ACAPS_PASSWORD"]
+username = os.getenv("CPAOR_EMAIL")
+password = os.getenv("ACAPS_PASSWORD")
 
 logging.basicConfig(
     level=logging.DEBUG,  # Set the logging level
