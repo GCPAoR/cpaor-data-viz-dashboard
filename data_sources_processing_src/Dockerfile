@@ -18,6 +18,8 @@ COPY update_datasets.py /app/update_datasets.py
 RUN chmod +x /app/update_datasets.py
 COPY ./data_sources_processing/datasets_metadata.json /data/datasets_metadata.json
 
+RUN crontab /etc/cron.d/processing_cron
+
 # Upgrade pip and install python packages for app
 RUN pip install --upgrade --no-cache-dir pip poetry \
     && poetry --version \
