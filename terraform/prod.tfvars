@@ -9,7 +9,7 @@ availability_zones = ["eu-central-1a", "eu-central-1b"]
 # ecs
 streamlit_app_image      = "cpaor_streamlit"
 streamlit_app_port       = 8501
-streamlit_fargate_cpu    = "2048"
+streamlit_fargate_cpu    = "1024"
 streamlit_fargate_memory = "4096"
 
 data_processing_app_image      = "cpaor_data_processing"
