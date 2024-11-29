@@ -115,7 +115,8 @@ def main_page():
                 box-shadow: 0 2px 4px 0 rgba(0,0,0,0.2);
                 transition: 0.3s;">
                 <h2 style="color: #333333; font-size: 30px; margin: 0;">{ratio_children_targeted_to_children_in_need}</h2>
-                <p style="color: #333333; font-size: 16px; margin: 0;">% CP targeted vs in need ({n_countries_ratio_children_targeted_to_children_in_need} Countries)</p>  # noqa
+                <p style="color: #333333; font-size: 16px; margin: 0;">% CP targeted vs in need
+                ({n_countries_ratio_children_targeted_to_children_in_need} Countries)</p>
             </div>
             """
 
