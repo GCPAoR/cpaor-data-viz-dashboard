@@ -1,11 +1,20 @@
 import os
 from typing import Any, Dict
-
-import pandas as pd
 import requests
+import logging
 from tqdm import tqdm
+from datetime import datetime
+import pandas as pd
 
+logging.basicConfig(
+    level=logging.DEBUG,  # Set the logging level
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",  # Log message format
+)
+logger = logging.getLogger(__name__)
+
+current_year = datetime.now().year
 treated_years = [2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027]
+treated_years = list(filter(lambda x: x <= current_year, treated_years))
 
 countries_mapping = {
     # "Central African Republic": "CAR",
@@ -80,7 +89,7 @@ def _get_key_pin_informations_all_years():
     return final_dataset
 
 
-def _get_key_informations_project_one_year(treated_year: int):
+def _get_key_informations_project_one_year(treated_year: int, timeout: int=30):
     """
     Retrieves key information related to children in need and population in need from a specified year using an API endpoint.
 
@@ -113,7 +122,14 @@ def _get_key_informations_project_one_year(treated_year: int):
     url = f"https://api.hpc.tools/v2/public/planSummary?year={treated_year}&includeIndicators=true&includeCaseloads=true&includeFinancials=true"  # noqa
 
     # Make the GET request
-    response = requests.get(url)
+    try:
+        response = requests.get(url, timeout=timeout)
+    except requests.exceptions.Timeout:
+        logger.error(f"Timeout occurred for the year {treated_year}")
+        return pd.DataFrame()
+    if response.status_code != 200:
+        logger.error(f"Payload data not received as status code is {response.status_code}")
+        return pd.DataFrame()
 
     data = response.json()
 
