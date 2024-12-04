@@ -9,8 +9,8 @@ from frontend.src.utils.utils_functions import (
     _load_countries_list,
     _show_header,
 )
-
-st.set_page_config(page_title="CPAoR", layout="wide")
+app_icon_path = os.path.join("./frontend/images", "cpaor_icon.png")
+st.set_page_config(page_title="CPAoR", layout="wide", page_icon=app_icon_path)
 
 st.session_state["base_data_folder"] = "/data"
 
