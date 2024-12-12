@@ -1,6 +1,6 @@
-name: User Story
+name: Feature Request
 description: Template for creating new feature requests.
-title: "US-[ID]: [US-Title]"
+title: "Feature: [Feature-Title]"
 labels: ["feature-request"]
 body:
   - type: textarea
@@ -13,16 +13,6 @@ body:
     attributes:
       value: |
         ---
-  - type: checkboxes
-    id: definition_of_done
-    attributes:
-      label:  Definition of Done
-      description: Criteria that must be met for the user story to be complete
-      options:
-        - label: If applicable, Relevant tests (unit, integration, etc.) have been created and passed.
-        - label: No critical bugs or security vulnerabilities remain.
-        - label: Documentation is updated (including behavior documents, technical documentation, etc.).
-        - label: All related PRs are merged to develop branch.
   - type: textarea
     attributes:
       label: Additional Context
