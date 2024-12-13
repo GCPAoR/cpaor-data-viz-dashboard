@@ -4,6 +4,15 @@ labels: ["bug"]
 body:
   - type: checkboxes
     attributes:
+      label: Is this an issue with data or visualization?
+      description: Please select one or both based on the issue.
+      options:
+      - label: Data
+        required: false
+      - label: Application/Visualization
+        required: false
+  - type: checkboxes
+    attributes:
       label: Is there an existing issue for this?
       description: Please search to see if an issue already exists for the bug you encountered.
       options:
