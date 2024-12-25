@@ -1,7 +1,8 @@
+
 import streamlit as st
 
 @st.dialog("Disclaimer and Terms of Use", width="large")
-def show_disclaimer():
+def show_disclaimer(local_storage):
     """ Show disclaimer message at the startup """
     text = """
     The information provided on this platform is for informational purposes only. The Global
@@ -38,3 +39,7 @@ def show_disclaimer():
     
     """
     st.html(text)
+
+    if st.button("Accept", use_container_width=True):
+        local_storage.setItem("cpaor_consent_confirm", "true")
+        st.rerun()
