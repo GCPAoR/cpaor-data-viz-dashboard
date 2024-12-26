@@ -3,12 +3,10 @@ import os
 
 import pandas as pd
 import streamlit as st
-from frontend.src.authentification.auth import check_password
-from frontend.src.utils.utils_functions import (
-    _country_selection_filter,
-    _load_countries_list,
-    _show_header,
-)
+from streamlit_local_storage import LocalStorage
+
+from frontend.src.disclaimer.message import show_disclaimer
+
 app_icon_path = os.path.join("./frontend/images", "cpaor_icon.png")
 st.set_page_config(page_title="CPAoR", layout="wide", page_icon=app_icon_path)
 
@@ -17,44 +15,58 @@ st.session_state["base_data_folder"] = "/data"
 st.session_state["tabular_data_data_path"] = os.path.join(
     st.session_state["base_data_folder"], "datasources"
 )
-######### LOAD SESSION STATE VARIABLES #########
 
-countries_list = _load_countries_list()
-st.session_state["countries"] = {country: i for i, country in enumerate(countries_list)}
-st.session_state["country_index"] = 0
-st.session_state.show = False
+local_storage = LocalStorage()
 
-from frontend.custom_pages.country_profile import _display_all_data
-from frontend.custom_pages.crisis_wise_analysis import _display_crisis_wise_analysis
-from frontend.custom_pages.methodology import _show_methodological_details
-from frontend.custom_pages.worldwide_analysis import main_page
-from frontend.src.specific_datasets_scripts.acaps_inform_severity import (
-    _load_information_severity_index_data,
-)
-from frontend.src.specific_datasets_scripts.acaps_protection_indicators import (
-    _display_protection_data,
-)
-from frontend.src.specific_datasets_scripts.acled import _load_acled_data
-from frontend.src.specific_datasets_scripts.idmc import _load_idmc_data
-from frontend.src.specific_datasets_scripts.ipc import _load_preprocess_ipc_data
-from frontend.src.specific_datasets_scripts.ocha_hpc import (
-    _get_country_wise_children_in_need_data,
-    _get_country_wise_pin_data,
-)
-from frontend.src.specific_datasets_scripts.ohchr import country_wise_legal_framework
+cached_disclaimer_data = local_storage.getItem("cpaor_consent_confirm")
+USER_CONSENT = cached_disclaimer_data == "true"
 
-# from src.utils.pop_up import _show_pop_up
-from frontend.src.utils.load_geodata import _load_polygons_adm0
-from frontend.src.visualizations.maps_creation import (
-    default_filling_color,
-    severity_mapping_tag_name_to_color_main_countries,
-)
+if not USER_CONSENT:
+    show_disclaimer(local_storage=local_storage)
+else:
+    from frontend.src.utils.utils_functions import (
+        _country_selection_filter,
+        _load_countries_list,
+        _show_header,
+    )
 
-st.session_state["title_size"] = 30
-st.session_state["subtitle_size"] = 25
-st.session_state["subsubtitle_size"] = 22
+    ######### LOAD SESSION STATE VARIABLES #########
 
-if check_password():
+    countries_list = _load_countries_list()
+    st.session_state["countries"] = {country: i for i, country in enumerate(countries_list)}
+    st.session_state["country_index"] = 0
+    st.session_state.show = False
+
+    from frontend.custom_pages.country_profile import _display_all_data
+    from frontend.custom_pages.crisis_wise_analysis import _display_crisis_wise_analysis
+    from frontend.custom_pages.methodology import _show_methodological_details
+    from frontend.custom_pages.worldwide_analysis import main_page
+    from frontend.src.specific_datasets_scripts.acaps_inform_severity import (
+        _load_information_severity_index_data,
+    )
+    from frontend.src.specific_datasets_scripts.acaps_protection_indicators import (
+        _display_protection_data,
+    )
+    from frontend.src.specific_datasets_scripts.acled import _load_acled_data
+    from frontend.src.specific_datasets_scripts.idmc import _load_idmc_data
+    from frontend.src.specific_datasets_scripts.ipc import _load_preprocess_ipc_data
+    from frontend.src.specific_datasets_scripts.ocha_hpc import (
+        _get_country_wise_children_in_need_data,
+        _get_country_wise_pin_data,
+    )
+    from frontend.src.specific_datasets_scripts.ohchr import country_wise_legal_framework
+
+    # from src.utils.pop_up import _show_pop_up
+    from frontend.src.utils.load_geodata import _load_polygons_adm0
+    from frontend.src.visualizations.maps_creation import (
+        default_filling_color,
+        severity_mapping_tag_name_to_color_main_countries,
+    )
+
+    st.session_state["title_size"] = 30
+    st.session_state["subtitle_size"] = 25
+    st.session_state["subsubtitle_size"] = 22
+
 
     st.session_state["tag_name_to_indicators"] = {
         "Causes and Underlying Factors": [
@@ -136,6 +148,7 @@ if check_password():
             "acaps_protection_indicators_tags.json",
         ),
         "r",
+        encoding="utf-8"
     ) as f:
         st.session_state["acaps_protection_indicators_child_related_tags"] = json.load(f)
 
@@ -179,6 +192,7 @@ if check_password():
             "grouped_legal_framework_indicators.json",
         ),
         "r",
+        encoding="utf-8"
     ) as f:
         st.session_state["legal_framework_indicators"] = json.load(f)
 

@@ -113,6 +113,7 @@ def _display_protection_data(selected_country: str):
     #     "Protection Indicators",
     #     st.session_state["title_size"],
     # )
+    breakdown = None
 
     with st.container():
         # logo_col, _, filter_col, _ = st.columns([0.1, 0.01, 0.39, 0.5])
@@ -127,28 +128,31 @@ def _display_protection_data(selected_country: str):
                 date=st.session_state[f"protection_df_max_date_{selected_country}"],
             )
 
-    indicator_id = [
+    indicator_list = [
         i
         for i, breakdown in enumerate(
             st.session_state[f"possible_breakdowns_{selected_country}"]
         )
         if breakdown == "Indicator"
-    ][0]
+    ]
+    indicator_id = indicator_list[0] if indicator_list else 0
 
     brekdown_col, _ = st.columns([0.3, 0.7])
-    with brekdown_col:
-        breakdown = st.selectbox(
-            "Breakdown",
-            st.session_state[f"possible_breakdowns_{selected_country}"],
-            index=indicator_id,
-            key="breakdown",
-        )
+    if st.session_state[f"possible_breakdowns_{selected_country}"]:
+        with brekdown_col:
+            breakdown = st.selectbox(
+                "Breakdown",
+                st.session_state[f"possible_breakdowns_{selected_country}"],
+                index=indicator_id,
+                key="breakdown",
+            )
 
     _display_main_summary(selected_country)
     _add_blank_space(2)
 
     # for breakdown in st.session_state[f"possible_breakdowns_{selected_country}"]:
-    _display_detailed_summaries(selected_country, breakdown)
+    if breakdown:
+        _display_detailed_summaries(selected_country, breakdown)
     # _add_blank_space(2)
 
 
