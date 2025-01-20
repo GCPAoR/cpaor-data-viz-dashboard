@@ -26,6 +26,7 @@ services:
       - ./data_sources_processing_src/data_sources_processing/datasets_metadata.json:/data/datasets_metadata.json
       - ./data_sources_processing_src/crontab:/etc/cron.d/processing_cron
       - cron_logs:/var/log
+      - ./data_sources_processing_src:/app
     command: cron -f
     restart: always
 
