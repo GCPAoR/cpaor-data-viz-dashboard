@@ -85,8 +85,7 @@ def _get_key_pin_informations_all_years():
     total_country_level_funding = pd.DataFrame()
     for year in tqdm(treated_years, desc="Processing years"):
         output_df, global_funding, country_level_funding = _get_key_informations_project_one_year(year)
-        #print(output_df)
-        #print(global_funding)
+
         if len(output_df) > 0:
             final_dataset = final_dataset._append(
                 output_df
