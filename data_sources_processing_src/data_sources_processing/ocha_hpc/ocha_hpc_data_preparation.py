@@ -35,12 +35,24 @@ def _get_ocha_hpc_data(
     datasets_metadata: Dict[str, Any], data_output_path: os.PathLike
 ):
 
-    pulled_data = _get_key_pin_informations_all_years()
-    pulled_data.to_csv(
+    caseload_data, global_funding, country_funding = _get_key_pin_informations_all_years()
+    caseload_data.to_csv(
         os.path.join(
             data_output_path, "ocha_hpc", datasets_metadata["saved_file_name"]
         ),
         index=False,
+    )
+    global_funding.to_csv(
+        os.path.join(
+            data_output_path, "ocha_hpc", datasets_metadata["global_funding"]
+        ),
+        index=False
+    )
+    country_funding.to_csv(
+        os.path.join(
+            data_output_path, "ocha_hpc", datasets_metadata["country_funding"]
+        ),
+        index=False
     )
     return datasets_metadata
 
@@ -69,12 +81,20 @@ def _get_key_pin_informations_all_years():
     """
 
     final_dataset = pd.DataFrame()
+    total_global_funding = pd.DataFrame()
+    total_country_level_funding = pd.DataFrame()
     for year in tqdm(treated_years, desc="Processing years"):
-        output_df = _get_key_informations_project_one_year(year)
+        output_df, global_funding, country_level_funding = _get_key_informations_project_one_year(year)
+        #print(output_df)
+        #print(global_funding)
         if len(output_df) > 0:
             final_dataset = final_dataset._append(
-                _get_key_informations_project_one_year(year)
+                output_df
             )
+        if len(global_funding):
+            total_global_funding = total_global_funding._append(global_funding)
+        if len(country_level_funding):
+            total_country_level_funding = total_country_level_funding._append(country_level_funding)
 
     final_dataset = (
         final_dataset[
@@ -86,7 +106,7 @@ def _get_key_pin_informations_all_years():
         .reset_index(drop=True)
     )
 
-    return final_dataset
+    return final_dataset, total_global_funding, total_country_level_funding
 
 
 def _get_key_informations_project_one_year(treated_year: int, timeout: int=30):
@@ -137,62 +157,125 @@ def _get_key_informations_project_one_year(treated_year: int, timeout: int=30):
         return pd.DataFrame()
 
     all_data = pd.DataFrame(data["data"]["planData"])
+
+    global_funding_per_year_df = get_global_funding(all_data=all_data, treated_year=treated_year)
+
     all_data = all_data[
         all_data.planType.isin(["Humanitarian response plan", "Flash appeal"])
     ]
 
+    total_funding_country_level_df = pd.DataFrame()
     final_dataset = pd.DataFrame()
     for i, row in all_data.iterrows():
         country = row["planCountries"][0]["country"]
-
-        protection_caseloads = pd.DataFrame(row["caseloads"])
-        if len(protection_caseloads) == 0:
-            continue
-
-        child_protection_caseloads_data = protection_caseloads[
-            protection_caseloads["caseloadCustomRef"].apply(lambda x: "PRO-CPN" in x)
-        ]
-        if len(child_protection_caseloads_data) > 0:
-            children_in_need = child_protection_caseloads_data.inNeed.iloc[0]
-            targeted_children = child_protection_caseloads_data.target.iloc[0]
-        else:
-            children_in_need = None
-            targeted_children = None
-
-        general_protection_caseloads_data = protection_caseloads[
-            protection_caseloads["caseloadCustomRef"] == "BP1"
-        ]
-        if len(general_protection_caseloads_data) > 0:
-            tot_pop_in_need = general_protection_caseloads_data.inNeed.iloc[0]
-        else:
-            tot_pop_in_need = None
-
-        # Prepare the row data
-        row_data = {
-            "country": countries_mapping.get(country, country),
-            "children_in_need": children_in_need,
-            "targeted_children": targeted_children,
-            "tot_pop_in_need": tot_pop_in_need,
-            "year": row["planYear"],
-            "plan_type": row["planType"],
-        }
-
-        # Filter out None or NaN values
-        filtered_row_data = {k: v for k, v in row_data.items() if pd.notna(v)}
-
         # Append the filtered row to the final dataset
-        final_dataset = final_dataset._append(filtered_row_data, ignore_index=True)
+        protection_caseloads = process_protection_caseloads(row, country)
+        if protection_caseloads:
+            final_dataset = final_dataset._append(protection_caseloads, ignore_index=True)
+        # Country level funding
+        country_funding = get_country_level_funding(row, country)
+        total_funding_country_level_df = total_funding_country_level_df._append(country_funding, ignore_index=True)
 
-        # final_dataset = final_dataset._append(
-        #     {
-        #         "country": countries_mapping.get(country, country),
-        #         "children_in_need": children_in_need,
-        #         "targeted_children": targeted_children,
-        #         "tot_pop_in_need": tot_pop_in_need,
-        #         "year": row["planYear"],
-        #         "plan_type": row["planType"],
-        #     },
-        #     ignore_index=True,
-        # )
+    total_funding_country_level_df = total_funding_country_level_df.groupby(["country", "year"]).agg({
+        "funding_requested": "sum",
+        "funding_received": "sum",
+    }).reset_index()
+    total_funding_country_level_df.sort_values(by=["country"], inplace=True)
 
-    return final_dataset
+    return final_dataset, global_funding_per_year_df, total_funding_country_level_df
+
+def process_protection_caseloads(row: pd.DataFrame, country: str):
+    """Get the Protection caseloads"""
+    protection_caseloads = pd.DataFrame(row["caseloads"])
+    if len(protection_caseloads) == 0:
+        return
+
+    child_protection_caseloads_data = protection_caseloads[
+        protection_caseloads["caseloadCustomRef"].apply(lambda x: "PRO-CPN" in x)
+    ]
+    if len(child_protection_caseloads_data) > 0:
+        children_in_need = child_protection_caseloads_data.inNeed.iloc[0]
+        targeted_children = child_protection_caseloads_data.target.iloc[0]
+    else:
+        children_in_need = None
+        targeted_children = None
+
+    general_protection_caseloads_data = protection_caseloads[
+        protection_caseloads["caseloadCustomRef"] == "BP1"
+    ]
+    if len(general_protection_caseloads_data) > 0:
+        tot_pop_in_need = general_protection_caseloads_data.inNeed.iloc[0]
+    else:
+        tot_pop_in_need = None
+    
+    cp_targeted = child_protection_caseloads_data["target"].sum()
+
+    cp_beneficiaries = child_protection_caseloads_data["measurements"].apply(
+        lambda x: x[-1]["cumulativeReach/peopleReached(cumulative)"] if len(x) and "cumulativeReach/peopleReached(cumulative)" in x[-1]  else 0
+    )
+
+    # Handles string in the series if exists.
+    cp_beneficiaries = pd.to_numeric(cp_beneficiaries, errors="coerce").sum()
+
+    # Prepare the row data
+    row_data = {
+        "country": countries_mapping.get(country, country),
+        "children_in_need": children_in_need,
+        "targeted_children": targeted_children,
+        "tot_pop_in_need": tot_pop_in_need,
+        "cp_targeted": cp_targeted,
+        "cp_beneficiaries": cp_beneficiaries,
+        "year": row["planYear"],
+        "plan_type": row["planType"],
+    }
+
+    # Filter out None or NaN values
+    filtered_row_data = {k: v for k, v in row_data.items() if pd.notna(v)}
+    return filtered_row_data
+
+def get_global_funding(all_data: pd.DataFrame, treated_year: int):
+    """Get the global funding per year"""
+    total_global_funding_requested = all_data["financialData"].apply(
+        lambda x: x["requirements"]["totalRequirements"]
+    ).sum()
+
+    total_global_funding_received = all_data["financialData"].apply(
+        lambda x: x["funding"]["totalFundingInsidePlan"]
+    ).sum()
+
+    protection_caseloads = all_data["caseloads"].explode().dropna().apply(pd.Series)
+
+    child_protection_caseloads_data = protection_caseloads[
+        protection_caseloads["caseloadCustomRef"].apply(lambda x: "PRO-CPN" in x)
+    ]
+
+    cp_targeted = child_protection_caseloads_data["target"].sum()
+
+    cp_beneficiaries = child_protection_caseloads_data["measurements"].apply(
+        lambda x: x[-1]["cumulativeReach/peopleReached(cumulative)"] if len(x) and "cumulativeReach/peopleReached(cumulative)" in x[-1]  else 0
+    )
+    # Handles string in the series if exists.
+    cp_beneficiaries = pd.to_numeric(cp_beneficiaries, errors="coerce").sum()
+
+    return pd.DataFrame([
+        {
+            "year": treated_year,
+            "funding_requested": total_global_funding_requested,
+            "funding_received": total_global_funding_received,
+            "cp_targeted": cp_targeted,
+            "cp_beneficiaries": cp_beneficiaries
+        }
+    ])
+
+def get_country_level_funding(row: pd.DataFrame, country: str):
+    """Get the country level funding"""
+    funding_requested = row["financialData"]["requirements"]["totalRequirements"]
+    funding_received = row["financialData"]["funding"]["totalFundingInsidePlan"]
+    row_data = {
+        "country": countries_mapping.get(country, country),
+        "funding_requested": funding_requested,
+        "funding_received": funding_received,
+        "year": row["planYear"],
+        "plan_type": row["planType"]
+    }
+    return row_data
