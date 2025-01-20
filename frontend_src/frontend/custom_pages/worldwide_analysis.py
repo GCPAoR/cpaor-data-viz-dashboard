@@ -3,7 +3,11 @@ from frontend.src.specific_datasets_scripts.ocha_hpc import (
     _display_evolution_data, _display_top_countries_with_children_in_need,
     _get_ratio_children_in_need_to_pop_in_need,
     _get_ratio_children_targeted_to_children_in_need,
-    _get_total_CP_caseload_in_need)
+    _get_total_CP_caseload_in_need,
+    _get_ratio_global_funding,
+    _get_cp_beneficiaries,
+    display_global_funding
+)
 from frontend.src.utils.utils_functions import _custom_title, _show_logo
 from frontend.src.visualizations.barchart import _get_abbreviated_number
 from frontend.src.visualizations.maps_creation import \
@@ -113,6 +117,7 @@ def main_page():
                 padding: 10px;
                 text-align: center;
                 box-shadow: 0 2px 4px 0 rgba(0,0,0,0.2);
+                margin-bottom: 20px;
                 transition: 0.3s;">
                 <h2 style="color: #333333; font-size: 30px; margin: 0;">{ratio_children_targeted_to_children_in_need}</h2>
                 <p style="color: #333333; font-size: 16px; margin: 0;">% CP targeted vs in need
@@ -120,10 +125,43 @@ def main_page():
             </div>
             """
 
+            # Define the custom style for the fourth box
+            ratio_global_funding = _get_ratio_global_funding()
+            fourth_indicator_custom_css = f"""
+            <div style="
+                background-color: #94BF95;
+                border-radius: 10px;
+                padding: 10px;
+                text-align: center;
+                box-shadow: 0 2px 4px 0 rgba(0,0,0,0.2);
+                margin-bottom: 20px;
+                transition: 0.3s;">
+                <h2 style="color: #333333; font-size: 30px; margin: 0;">{ratio_global_funding}</h2>
+                <p style="color: #333333; font-size: 16px; margin: 0;">% Received vs Requested on Global Funding</p>
+            </div>
+            """
+
+            # Define the custom style for the fifth box
+            total_cp_beneficiaries = _get_cp_beneficiaries()
+            fifth_indicator_custom_css = f"""
+            <div style="
+                background-color: #44AB90;
+                border-radius: 10px;
+                padding: 10px;
+                text-align: center;
+                box-shadow: 0 2px 4px 0 rgba(0,0,0,0.2);
+                transition: 0.3s;">
+                <h2 style="color: #333333; font-size: 30px; margin: 0;">{total_cp_beneficiaries}</h2>
+                <p style="color: #333333; font-size: 16px; margin: 0;">Overall # CP reached beneficiaries</p>
+            </div>
+            """
+
             # Use markdown to display the custom-styled boxes
             st.markdown(first_indicator_custom_css, unsafe_allow_html=True)
             st.markdown(second_indicator_custom_css, unsafe_allow_html=True)
             st.markdown(third_indicator_custom_css, unsafe_allow_html=True)
+            st.markdown(fourth_indicator_custom_css, unsafe_allow_html=True)
+            st.markdown(fifth_indicator_custom_css, unsafe_allow_html=True)
 
     for _ in range(2):
         st.markdown("")
@@ -150,3 +188,15 @@ def main_page():
             )
             st.markdown("## ")
             _display_evolution_data()
+
+    with st.container():
+        _custom_title(
+            "Funding requested vs Funding received",
+            st.session_state["subtitle_size"],
+            source="OCHA HPC Plans Summary API",
+            date=f"{st.session_state['ocha_hpc_min_year']}-{st.session_state['ocha_hpc_max_year']}",
+        )
+        display_global_funding()
+        # global_funding_df = st.session_state["ocha_hpc_global_funding_df"]
+        # df_pivot = global_funding_df.set_index("year")[["funding_requested", "funding_received"]]
+        # st.bar_chart(df_pivot)

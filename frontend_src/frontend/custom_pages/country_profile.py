@@ -9,8 +9,10 @@ from frontend.src.specific_datasets_scripts.acled import (
 from frontend.src.specific_datasets_scripts.idmc import \
     _get_displacement_numbers
 from frontend.src.specific_datasets_scripts.ipc import _plot_ipc_results
-from frontend.src.specific_datasets_scripts.ocha_hpc import \
-    _display_pin_stackbar
+from frontend.src.specific_datasets_scripts.ocha_hpc import (
+    _display_pin_stackbar,
+    display_country_level_funding
+)
 from frontend.src.specific_datasets_scripts.ohchr import \
     country_wise_legal_framework
 from frontend.src.specific_datasets_scripts.unicef_data_processing import (
@@ -103,3 +105,8 @@ def _display_all_data(selected_country: str):
         "Children’s mental and physical health", st.session_state["subtitle_size"]
     )
     st.markdown("No data available for this indicator.")
+
+    _custom_title(
+        "Funding", font_size=st.session_state["title_size"], source="OCHA HPC"
+    )
+    display_country_level_funding(selected_country)

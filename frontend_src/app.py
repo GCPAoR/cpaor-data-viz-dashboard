@@ -122,6 +122,22 @@ else:
     st.session_state["ocha_hpc_min_year"] = st.session_state["all_pin_data"]["year"].min()
     st.session_state["ocha_hpc_max_year"] = st.session_state["all_pin_data"]["year"].max()
 
+    st.session_state["global_funding_file_path"] = os.path.join(
+        st.session_state["tabular_data_data_path"], "ocha_hpc", "global_funding.csv"
+    )
+    if os.path.exists(st.session_state["global_funding_file_path"]):
+        st.session_state["ocha_hpc_global_funding_df"] = pd.read_csv(st.session_state["global_funding_file_path"])
+    else:
+        st.session_state["ocha_hpc_global_funding_df"] = pd.DataFrame()
+
+    st.session_state["ocha_hpc_country_funding_file_path"] = os.path.join(
+        st.session_state["tabular_data_data_path"], "ocha_hpc", "country_funding.csv"
+    )
+    if os.path.exists(st.session_state["ocha_hpc_country_funding_file_path"]):
+        st.session_state["ocha_hpc_country_funding_df"] = pd.read_csv(st.session_state["ocha_hpc_country_funding_file_path"])
+    else:
+        st.session_state["ocha_hpc_country_funding_df"] = pd.DataFrame()
+
     st.session_state["country_wise_children_in_need_data"] = (
         _get_country_wise_children_in_need_data(st.session_state["all_pin_data"])
     )

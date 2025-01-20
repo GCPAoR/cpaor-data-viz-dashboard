@@ -1,5 +1,7 @@
+from datetime import datetime
 import pandas as pd
 import streamlit as st
+import plotly.express as px
 from frontend.src.utils.utils_functions import (_add_commas, _custom_title,
                                                 _get_percentage)
 from frontend.src.visualizations.barchart import (  # _create_horizontal_single_scale_barplot,
@@ -187,7 +189,11 @@ def _get_ratio_children_in_need_to_pop_in_need():
     """
     df = st.session_state["country_wise_pin_data"].copy()
     df = df[(df["tot_pop_in_need"].notna()) & (df["children_in_need"].notna())]
-    ratio = df["children_in_need"].sum() / df["tot_pop_in_need"].sum()
+    if df["tot_pop_in_need"].sum() > 0:
+        ratio = df["children_in_need"].sum() / df["tot_pop_in_need"].sum()
+    else:
+        ratio = 0
+
     ratio = _get_percentage(ratio)
     number_of_countries = df.shape[0]
     return ratio, number_of_countries
@@ -213,10 +219,83 @@ def _get_ratio_children_targeted_to_children_in_need():
 
     df = st.session_state["country_wise_pin_data"].copy()
     df = df[(df["targeted_children"].notna()) & (df["children_in_need"].notna())]
-    ratio = df["targeted_children"].sum() / df["children_in_need"].sum()
+    if df["children_in_need"].sum() > 0:
+        ratio = df["targeted_children"].sum() / df["children_in_need"].sum()
+    else:
+        ratio = 0
     ratio = _get_percentage(ratio)
     number_of_countries = df.shape[0]
     return ratio, number_of_countries
+
+def _get_cp_beneficiaries():
+    current_year = datetime.now().year
+    df = st.session_state["ocha_hpc_global_funding_df"].copy()
+    assert current_year == st.session_state["ocha_hpc_max_year"]
+    df = df[df["year"] == st.session_state["ocha_hpc_max_year"]]
+    cp_beneficiaries = df["cp_beneficiaries"].iat[0]
+    if cp_beneficiaries >= 1_000_000:
+        cp_beneficiaries = f"{round(cp_beneficiaries/1_000_000, 2)} million"
+    return cp_beneficiaries
+
+
+def _get_ratio_global_funding():
+    current_year = datetime.now().year
+    df = st.session_state["ocha_hpc_global_funding_df"].copy()
+    assert current_year == st.session_state["ocha_hpc_max_year"]
+    df = df[df["year"] == st.session_state["ocha_hpc_max_year"]]
+    ratio = df["funding_received"].iat[0] / df["funding_requested"].iat[0]
+    ratio = _get_percentage(ratio)
+    return ratio
+
+def display_global_funding():
+    """Plot a grouped barchart related to funding"""
+    global_funding_df = st.session_state["ocha_hpc_global_funding_df"]
+    if len(global_funding_df):
+        df_melted = global_funding_df.melt(
+            id_vars=["year"],
+            value_vars=["funding_requested", "funding_received"],
+            var_name="funding_type",
+            value_name="amount",
+        )
+        fig = px.bar(
+            df_melted,
+            x="year",
+            y="amount",
+            color="funding_type",
+            barmode="group",
+            title="Funding Requested vs Funding Received by Year",
+            labels={"amount": "Funding Amount", "year": "Year"},
+            text="amount"
+        )
+        st.plotly_chart(fig)
+    else:
+        st.write("No funding related data available.")
+
+
+def display_country_level_funding(selected_country: str):
+    """Plot a grouped barchart related to funding"""
+    df = st.session_state["ocha_hpc_country_funding_df"]
+    df = df[df["country"] == selected_country]
+    if len(df):
+        # Calculate percentage of funding received
+        df["funding_percentage"] = round((df["funding_received"] / df["funding_requested"]) * 100, 2)
+
+        # Plot a horizontal bar chart for funding percentage
+        fig = px.bar(
+            df,
+            x="funding_percentage",
+            y="year",
+            orientation="h",
+            title="Percentage of Funding Received Out of Funding Requested",
+            labels={"funding_percentage": "Percentage of Funding Received (%)", "year": "Year"},
+            text="funding_percentage",
+            color="year",
+        )
+
+        # Show the chart in Streamlit
+        st.plotly_chart(fig)
+    else:
+        st.write("No funding related data available.")
 
 
 def _get_country_wise_pin_data(df: pd.DataFrame):
