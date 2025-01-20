@@ -291,11 +291,32 @@ def display_country_level_funding(selected_country: str):
             text="funding_percentage",
             color="year",
         )
-
-        # Show the chart in Streamlit
         st.plotly_chart(fig)
     else:
         st.write("No funding related data available.")
+
+def display_cp_beneficiaries(selected_country: str):
+    """Plot a grouped barchart related to funding"""
+    df = st.session_state["all_pin_data"]
+    df = df[df["country"] == selected_country]
+    if len(df):
+        # Calculate percentage of funding received
+        df["cp_percentage"] = round((df["cp_beneficiaries"] / df["cp_targeted"]) * 100, 3)
+
+        # Plot a horizontal bar chart for cp beneficiaries percentage
+        fig = px.bar(
+            df,
+            x="cp_percentage",
+            y="year",
+            orientation="h",
+            title="Percentage of CP Beneficiaries Out of CP Targeted",
+            labels={"CP_percentage": "Percentage of CP Beneficiaries (%)", "year": "Year"},
+            text="cp_percentage",
+            color="year",
+        )
+        st.plotly_chart(fig)
+    else:
+        st.write("No related data available.")
 
 
 def _get_country_wise_pin_data(df: pd.DataFrame):

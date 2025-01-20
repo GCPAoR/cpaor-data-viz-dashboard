@@ -11,7 +11,8 @@ from frontend.src.specific_datasets_scripts.idmc import \
 from frontend.src.specific_datasets_scripts.ipc import _plot_ipc_results
 from frontend.src.specific_datasets_scripts.ocha_hpc import (
     _display_pin_stackbar,
-    display_country_level_funding
+    display_country_level_funding,
+    display_cp_beneficiaries
 )
 from frontend.src.specific_datasets_scripts.ohchr import \
     country_wise_legal_framework
@@ -110,3 +111,8 @@ def _display_all_data(selected_country: str):
         "Funding", font_size=st.session_state["title_size"], source="OCHA HPC"
     )
     display_country_level_funding(selected_country)
+
+    _custom_title(
+        "Child Protection Beneficiaries", font_size=st.session_state["title_size"], source="OCHA HPC"
+    )
+    display_cp_beneficiaries(selected_country)
