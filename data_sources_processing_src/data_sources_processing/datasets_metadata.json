@@ -1,1 +1,61 @@
-{"ipc": {"latest_file_info": {"file_time": "10-07-2024", "download_url": "https://data.humdata.org/dataset/7a7e7428-b8d7-4d2e-91d3-19100500e016/resource/f6e7954c-3717-487a-b0d9-787881831634/download/ipc_global_level1_long.csv"}, "last_update_time": "17-07-2024", "hdx_file_name": "ipc_global_level1_long.csv", "saved_file_name": "ipc_global_level1_long.csv", "update_frequency": 60, "website_url": "https://data.humdata.org/dataset/global-acute-food-insecurity-country-data"}, "acaps_protection_indicators": {"latest_file_info": {"file_time": "22-08-2024"}, "last_update_time": "22-08-2024", "update_frequency": 30, "website_url": "https://api.acaps.org/api/v1/protection-risks-monitor/"}, "acaps_inform_severity": {"latest_file_info": {"file_time": "07-08-2024", "download_url": "https://data.humdata.org/dataset/823ab728-bccf-4ae1-adee-a0038c24b7dd/resource/7ca8021a-5e8d-4080-9e1c-033a9289df2b/download/202407-inform-severity-july-2024.xlsx"}, "last_update_time": "13-09-2024", "hdx_file_name": "-", "saved_file_name": "INFORM Severity latest.xlsx", "update_frequency": 10, "website_url": "https://data.humdata.org/dataset/inform-global-crisis-severity-index"}, "idmc": {"latest_file_info": {"file_time": "21-06-2024", "download_url": "https://helix-tools-api.idmcdb.org/external-api/gidd/displacements/displacement-export/?release_environment=RELEASE&start_year=2008&end_year=2023&client_id=IDMCWSHSOLO009&release_environment=RELEASE"}, "last_update_time": "17-07-2024", "hdx_file_name": "IDMC_Internal_Displacement_Conflict-Violence_Disasters", "saved_file_name": "IDMC_Internal_Displacement_Conflict-Violence_Disasters.xlsx", "update_frequency": 60, "website_url": "https://data.humdata.org/dataset/gidd_conflict_disasters_context_sadd?"}, "ocha_hpc": {"latest_file_info": {}, "last_update_time": "16-08-2024", "saved_file_name": "OCHA PIN.csv", "update_frequency": 90}, "acled": {"latest_file_info": {}, "last_update_time": "19-07-2024", "update_frequency": 90, "website_url": "https://api.acleddata.com/acled/read"}}
+{
+    "ipc":{
+       "latest_file_info":{
+          "file_time":"10-07-2024",
+          "download_url":"https://data.humdata.org/dataset/7a7e7428-b8d7-4d2e-91d3-19100500e016/resource/f6e7954c-3717-487a-b0d9-787881831634/download/ipc_global_level1_long.csv"
+       },
+       "last_update_time":"17-07-2024",
+       "hdx_file_name":"ipc_global_level1_long.csv",
+       "saved_file_name":"ipc_global_level1_long.csv",
+       "update_frequency":60,
+       "website_url":"https://data.humdata.org/dataset/global-acute-food-insecurity-country-data"
+    },
+    "acaps_protection_indicators":{
+       "latest_file_info":{
+          "file_time":"22-08-2024"
+       },
+       "last_update_time":"22-08-2024",
+       "update_frequency":30,
+       "website_url":"https://api.acaps.org/api/v1/protection-risks-monitor/"
+    },
+    "acaps_inform_severity":{
+       "latest_file_info":{
+          "file_time":"07-08-2024",
+          "download_url":"https://data.humdata.org/dataset/823ab728-bccf-4ae1-adee-a0038c24b7dd/resource/7ca8021a-5e8d-4080-9e1c-033a9289df2b/download/202407-inform-severity-july-2024.xlsx"
+       },
+       "last_update_time":"13-09-2024",
+       "hdx_file_name":"-",
+       "saved_file_name":"INFORM Severity latest.xlsx",
+       "update_frequency":10,
+       "website_url":"https://data.humdata.org/dataset/inform-global-crisis-severity-index"
+    },
+    "idmc":{
+       "latest_file_info":{
+          "file_time":"21-06-2024",
+          "download_url":"https://helix-tools-api.idmcdb.org/external-api/gidd/displacements/displacement-export/?release_environment=RELEASE&start_year=2008&end_year=2023&client_id=IDMCWSHSOLO009&release_environment=RELEASE"
+       },
+       "last_update_time":"17-07-2024",
+       "hdx_file_name":"IDMC_Internal_Displacement_Conflict-Violence_Disasters",
+       "saved_file_name":"IDMC_Internal_Displacement_Conflict-Violence_Disasters.xlsx",
+       "update_frequency":60,
+       "website_url":"https://data.humdata.org/dataset/gidd_conflict_disasters_context_sadd?"
+    },
+    "ocha_hpc":{
+       "latest_file_info":{
+          
+       },
+       "last_update_time":"16-08-2024",
+       "saved_file_name":"OCHA PIN.csv",
+       "global_funding":"global_funding.csv",
+       "country_funding":"country_funding.csv",
+       "update_frequency":90
+    },
+    "acled":{
+       "latest_file_info":{
+          
+       },
+       "last_update_time":"19-07-2024",
+       "update_frequency":90,
+       "website_url":"https://api.acleddata.com/acled/read"
+    }
+ }
