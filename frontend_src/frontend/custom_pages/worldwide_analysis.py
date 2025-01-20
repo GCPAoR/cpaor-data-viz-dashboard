@@ -197,6 +197,4 @@ def main_page():
             date=f"{st.session_state['ocha_hpc_min_year']}-{st.session_state['ocha_hpc_max_year']}",
         )
         display_global_funding()
-        # global_funding_df = st.session_state["ocha_hpc_global_funding_df"]
-        # df_pivot = global_funding_df.set_index("year")[["funding_requested", "funding_received"]]
-        # st.bar_chart(df_pivot)
+

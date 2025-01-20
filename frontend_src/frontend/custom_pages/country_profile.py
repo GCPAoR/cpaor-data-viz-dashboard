@@ -107,12 +107,6 @@ def _display_all_data(selected_country: str):
     )
     st.markdown("No data available for this indicator.")
 
-    _custom_title(
-        "Funding", font_size=st.session_state["title_size"], source="OCHA HPC"
-    )
     display_country_level_funding(selected_country)
 
-    _custom_title(
-        "Child Protection Beneficiaries", font_size=st.session_state["title_size"], source="OCHA HPC"
-    )
     display_cp_beneficiaries(selected_country)
