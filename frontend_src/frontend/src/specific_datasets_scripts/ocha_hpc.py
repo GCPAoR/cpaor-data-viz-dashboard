@@ -270,8 +270,7 @@ def display_global_funding():
             text="amount"
         )
         fig.update_traces(
-            text = global_funding_df["Funding Requested"].apply(lambda x: f"{x:,}"),
-            texttemplate='%{text}',
+            texttemplate='%{y:,}',
             textposition='outside'
         )
         st.plotly_chart(fig)
@@ -289,6 +288,8 @@ def display_country_level_funding(selected_country: str):
         funding_requested = df["funding_requested"].iat[0]
         funding_received = df["funding_received"].iat[0]
 
+        ratio = funding_received / funding_requested if funding_requested else 0
+
         numbers_values = {
             "title": "Received vs Requested Fundings",
             "original_numbers": [
@@ -296,7 +297,7 @@ def display_country_level_funding(selected_country: str):
                     "value": funding_received,
                     "label": f"Received Funding {_get_abbreviated_number(funding_received)}",
                     "color": "#9FD5B5",
-                    "number_annotation": f"{round(funding_received / funding_requested * 100)}%",
+                    "number_annotation": f"{round(ratio * 100)}%",
                 },
                 {
                     "value": funding_requested,
@@ -305,7 +306,7 @@ def display_country_level_funding(selected_country: str):
                     "number_annotation": f"100%: {_get_abbreviated_number(funding_requested)}\n Requested Funding",
                 },
             ],
-            "annotation": f"\n\n\n\n{round(funding_received / funding_requested * 100)}% ({_get_abbreviated_number(funding_received)}) of funding received.",  # noqa
+            "annotation": f"\n\n\n\n{round(ratio * 100)}% ({_get_abbreviated_number(funding_received)}) of funding received.",  # noqa
             "plot_size": (20, 3),
         }
         _custom_title(
@@ -327,6 +328,8 @@ def display_cp_beneficiaries(selected_country: str):
         cp_beneficiaries = df["cp_beneficiaries"].iat[0]
         cp_targeted = df["cp_targeted"].iat[0]
 
+        ratio = cp_beneficiaries / cp_targeted if cp_targeted else 0
+
         numbers_values = {
             "title": "CP Beneficiaries vs CP Targeted",
             "original_numbers": [
@@ -334,7 +337,7 @@ def display_cp_beneficiaries(selected_country: str):
                     "value": cp_beneficiaries,
                     "label": f"CP Beneficiaries {_get_abbreviated_number(cp_beneficiaries)}",
                     "color": "#9FD5B5",
-                    "number_annotation": f"{round(cp_beneficiaries / cp_targeted * 100)}%",
+                    "number_annotation": f"{round(ratio * 100)}%",
                 },
                 {
                     "value": cp_targeted,
@@ -343,7 +346,7 @@ def display_cp_beneficiaries(selected_country: str):
                     "number_annotation": f"100%: {_get_abbreviated_number(cp_targeted)}\n CP Targeted.",
                 },
             ],
-            "annotation": f"\n\n\n\n{round(cp_beneficiaries / cp_targeted * 100)}% ({_get_abbreviated_number(cp_beneficiaries)}) of CP Beneficiaries recorded.",  # noqa
+            "annotation": f"\n\n\n\n{round(ratio * 100)}% ({_get_abbreviated_number(cp_beneficiaries)}) of CP Beneficiaries recorded.",  # noqa
             "plot_size": (20, 3),
         }
         _custom_title(
