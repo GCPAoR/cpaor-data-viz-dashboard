@@ -1,0 +1,25 @@
+ingress:
+  className: nginx
+  streamlit:
+    host: cpaor.example.com
+
+streamlit:
+  image:
+    name: ghcr.io/cpaor/streamlit
+    tag: v1.0.1
+    pullPolicy: IfNotPresent
+
+sharedVolume:
+  persistence:
+    storageClassName: longhorn
+    size: "1Gi"
+
+dataProcessing:
+  image:
+    name: ghcr.io/cpaor/data-processing
+    tag: v1.0.1
+  secrets:
+    OPENAI_API_KEY: FAKE_OPENAI_API_KEY
+    ACLED_API_KEY: FAKE_ACLED_API_KEY
+    CPAOR_EMAIL: FAKE_CPAOR@EMAIL.COM
+    ACAPS_PASSWORD: FAKE_ACAPS_PASSWORD

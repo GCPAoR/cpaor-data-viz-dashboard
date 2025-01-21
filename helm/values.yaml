@@ -7,8 +7,8 @@ streamlit:
   enabled: true
   replicaCount: 1
   image:
-    name:
-    tag:
+    name: SET-BY-CICD-IMAGE-STREAMLIT
+    tag: SET-BY-CICD-TAG-STREAMLIT
     pullPolicy: IfNotPresent
   containerPort: "8501"
   resources:
@@ -27,8 +27,8 @@ sharedVolume:
 dataProcessing:
   enabled: true
   image:
-    name:
-    tag:
+    name: SET-BY-CICD-IMAGE-DATA-PROCESSING
+    tag: SET-BY-CICD-TAG-DATA-PROCESSING
     pullPolicy: IfNotPresent
   global:
     resources:

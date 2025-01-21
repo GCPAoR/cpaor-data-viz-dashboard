@@ -1,6 +1,7 @@
 FROM python:3.11.5-slim
 
 LABEL maintainer="CPAoR dev team"
+LABEL org.opencontainers.image.source="https://github.com/GCPAoR/cpaor-data-viz-dashboard"
 
 ENV PYTHONUNBUFFERED 1
 
