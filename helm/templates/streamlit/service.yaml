@@ -1,0 +1,23 @@
+{{- if .Values.streamlit.enabled }}
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "cpaor-data-viz-dashboard-helm.fullname" . }}-streamlit
+  labels:
+    app: {{ template "cpaor-data-viz-dashboard-helm.fullname" . }}
+    component: streamlit
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ template "cpaor-data-viz-dashboard-helm.fullname" . }}
+    run: streamlit
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: {{ .Values.streamlit.containerPort }}
+      nodePort: null
+
+{{- end }}

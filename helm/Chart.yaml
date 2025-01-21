@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cpaor-data-viz-dashboard-helm
+description: A Helm chart for Streamlit and Data Processing services for cpaor viz dashboard
+version: 0.0.1-SET-BY-CICD
+appVersion: "1.0"
