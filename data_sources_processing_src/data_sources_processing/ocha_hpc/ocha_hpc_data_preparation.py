@@ -183,6 +183,18 @@ def _get_key_informations_project_one_year(treated_year: int, timeout: int=30):
 
     return final_dataset, global_funding_per_year_df, total_funding_country_level_df
 
+def extract_max_cumulative_reach(row):
+    """Extract the max value for the cumulative reach in CP beneficiaries"""
+    try:
+        values = [
+            item.get("cumulativeReach/peopleReached(cumulative)", 0)
+            for item in row
+            if isinstance(item, dict) and item.get("cumulativeReach/peopleReached(cumulative)") is not None
+        ]
+        return max(values) if values else 0
+    except Exception:
+        return 0
+
 def process_protection_caseloads(row: pd.DataFrame, country: str):
     """Get the Protection caseloads"""
     protection_caseloads = pd.DataFrame(row["caseloads"])
@@ -206,15 +218,13 @@ def process_protection_caseloads(row: pd.DataFrame, country: str):
         tot_pop_in_need = general_protection_caseloads_data.inNeed.iloc[0]
     else:
         tot_pop_in_need = None
-    
+
     cp_targeted = child_protection_caseloads_data["target"].sum()
 
-    cp_beneficiaries = child_protection_caseloads_data["measurements"].apply(
-        lambda x: x[-1]["cumulativeReach/peopleReached(cumulative)"] if len(x) and "cumulativeReach/peopleReached(cumulative)" in x[-1]  else 0
-    )
-
-    # Handles string in the series if exists.
-    cp_beneficiaries = pd.to_numeric(cp_beneficiaries, errors="coerce").sum()
+    cp_beneficiaries_lst = child_protection_caseloads_data["measurements"].apply(extract_max_cumulative_reach)
+    cp_beneficiaries_df = pd.to_numeric(cp_beneficiaries_lst, errors="coerce")
+    cp_beneficiaries_df = cp_beneficiaries_df[~pd.isna(cp_beneficiaries_df)]
+    cp_beneficiaries_sum = float(cp_beneficiaries_df.sum())
 
     # Prepare the row data
     row_data = {
@@ -223,7 +233,7 @@ def process_protection_caseloads(row: pd.DataFrame, country: str):
         "targeted_children": targeted_children,
         "tot_pop_in_need": tot_pop_in_need,
         "cp_targeted": cp_targeted,
-        "cp_beneficiaries": cp_beneficiaries,
+        "cp_beneficiaries": cp_beneficiaries_sum,
         "year": row["planYear"],
         "plan_type": row["planType"],
     }
@@ -250,11 +260,10 @@ def get_global_funding(all_data: pd.DataFrame, treated_year: int):
 
     cp_targeted = child_protection_caseloads_data["target"].sum()
 
-    cp_beneficiaries = child_protection_caseloads_data["measurements"].apply(
-        lambda x: x[-1]["cumulativeReach/peopleReached(cumulative)"] if len(x) and "cumulativeReach/peopleReached(cumulative)" in x[-1]  else 0
-    )
-    # Handles string in the series if exists.
-    cp_beneficiaries = pd.to_numeric(cp_beneficiaries, errors="coerce").sum()
+    cp_beneficiaries_lst = child_protection_caseloads_data["measurements"].apply(extract_max_cumulative_reach)
+    cp_beneficiaries_df = pd.to_numeric(cp_beneficiaries_lst, errors="coerce")
+    cp_beneficiaries_df = cp_beneficiaries_df[~pd.isna(cp_beneficiaries_df)]
+    cp_beneficiaries_sum = float(cp_beneficiaries_df.sum())
 
     return pd.DataFrame([
         {
@@ -262,7 +271,7 @@ def get_global_funding(all_data: pd.DataFrame, treated_year: int):
             "funding_requested": total_global_funding_requested,
             "funding_received": total_global_funding_received,
             "cp_targeted": cp_targeted,
-            "cp_beneficiaries": cp_beneficiaries
+            "cp_beneficiaries": cp_beneficiaries_sum
         }
     ])
 
