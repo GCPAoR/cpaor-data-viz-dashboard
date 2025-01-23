@@ -1,5 +1,7 @@
+from datetime import datetime
 import pandas as pd
 import streamlit as st
+import plotly.express as px
 from frontend.src.utils.utils_functions import (_add_commas, _custom_title,
                                                 _get_percentage)
 from frontend.src.visualizations.barchart import (  # _create_horizontal_single_scale_barplot,
@@ -187,7 +189,11 @@ def _get_ratio_children_in_need_to_pop_in_need():
     """
     df = st.session_state["country_wise_pin_data"].copy()
     df = df[(df["tot_pop_in_need"].notna()) & (df["children_in_need"].notna())]
-    ratio = df["children_in_need"].sum() / df["tot_pop_in_need"].sum()
+    if df["tot_pop_in_need"].sum() > 0:
+        ratio = df["children_in_need"].sum() / df["tot_pop_in_need"].sum()
+    else:
+        ratio = 0
+
     ratio = _get_percentage(ratio)
     number_of_countries = df.shape[0]
     return ratio, number_of_countries
@@ -213,10 +219,147 @@ def _get_ratio_children_targeted_to_children_in_need():
 
     df = st.session_state["country_wise_pin_data"].copy()
     df = df[(df["targeted_children"].notna()) & (df["children_in_need"].notna())]
-    ratio = df["targeted_children"].sum() / df["children_in_need"].sum()
+    if df["children_in_need"].sum() > 0:
+        ratio = df["targeted_children"].sum() / df["children_in_need"].sum()
+    else:
+        ratio = 0
     ratio = _get_percentage(ratio)
     number_of_countries = df.shape[0]
     return ratio, number_of_countries
+
+def _get_cp_beneficiaries():
+    current_year = datetime.now().year
+    df = st.session_state["ocha_hpc_global_funding_df"].copy()
+    assert current_year == st.session_state["ocha_hpc_max_year"]
+    df = df[df["year"] == st.session_state["ocha_hpc_max_year"]]
+    cp_beneficiaries = df["cp_beneficiaries"].iat[0]
+    if cp_beneficiaries >= 1_000_000:
+        cp_beneficiaries = f"{round(cp_beneficiaries/1_000_000, 2)} million"
+    return cp_beneficiaries
+
+
+def _get_ratio_global_funding():
+    current_year = datetime.now().year
+    df = st.session_state["ocha_hpc_global_funding_df"].copy()
+    assert current_year == st.session_state["ocha_hpc_max_year"]
+    df = df[df["year"] == st.session_state["ocha_hpc_max_year"]]
+    ratio = df["funding_received"].iat[0] / df["funding_requested"].iat[0]
+    ratio = _get_percentage(ratio)
+    return ratio
+
+def display_global_funding():
+    """Plot a grouped barchart related to funding"""
+    global_funding_df = st.session_state["ocha_hpc_global_funding_df"]
+    global_funding_df.rename(columns={"funding_requested": "Funding Requested", "funding_received": "Funding Received"}, inplace=True)
+
+    if len(global_funding_df):
+        df_melted = global_funding_df.melt(
+            id_vars=["year"],
+            value_vars=["Funding Requested", "Funding Received"],
+            var_name="Funding Type",
+            value_name="amount",
+        )
+        fig = px.bar(
+            df_melted,
+            x="year",
+            y="amount",
+            color="Funding Type",
+            color_discrete_map={
+                "Funding Requested": "#D6E9DF",
+                "Funding Received": "#B1DBC3"
+            },
+            barmode="group",
+            title="Funding Requested vs Funding Received by Year",
+            labels={"amount": "Funding Amount", "year": "Year"},
+            text="amount"
+        )
+        fig.update_traces(
+            texttemplate='%{y:,}',
+            textposition='outside'
+        )
+        st.plotly_chart(fig)
+    else:
+        st.write("No funding related data available.")
+
+
+def display_country_level_funding(selected_country: str):
+    """Plot a grouped barchart related to funding"""
+    year = datetime.now().year
+    df = st.session_state["ocha_hpc_country_funding_df"]
+    df = df[(df["country"] == selected_country) & (df["year"] == year)]
+
+    if len(df) > 0:
+        funding_requested = df["funding_requested"].iat[0]
+        funding_received = df["funding_received"].iat[0]
+
+        ratio = funding_received / funding_requested if funding_requested else 0
+
+        numbers_values = {
+            "title": "Received vs Requested Fundings",
+            "original_numbers": [
+                {
+                    "value": funding_received,
+                    "label": f"Received Funding {_get_abbreviated_number(funding_received)}",
+                    "color": "#9FD5B5",
+                    "number_annotation": f"{round(ratio * 100)}%",
+                },
+                {
+                    "value": funding_requested,
+                    "label": "Requested Funding",
+                    "color": "#d3d3d3",
+                    "number_annotation": f"100%: {_get_abbreviated_number(funding_requested)}\n Requested Funding",
+                },
+            ],
+            "annotation": f"\n\n\n\n{round(ratio * 100)}% ({_get_abbreviated_number(funding_received)}) of funding received.",  # noqa
+            "plot_size": (10, 2.5),
+        }
+        _custom_title(
+            "Received Funding vs Requested Funding",
+            st.session_state["subtitle_size"],
+            source="OCHA HPC Plans Summary API",
+            date=year
+        )
+        _display_stackbar(numbers_values)
+
+
+def display_cp_beneficiaries(selected_country: str):
+    """Plot a grouped barchart related to funding"""
+    year = datetime.now().year
+    df = st.session_state["all_pin_data"]
+    df = df[(df["country"] == selected_country) & (df["year"] == year)]
+
+    if len(df) > 0:
+        cp_beneficiaries = df["cp_beneficiaries"].iat[0]
+        cp_targeted = df["cp_targeted"].iat[0]
+
+        ratio = cp_beneficiaries / cp_targeted if cp_targeted else 0
+
+        numbers_values = {
+            "title": "CP Beneficiaries vs CP Targeted",
+            "original_numbers": [
+                {
+                    "value": cp_beneficiaries,
+                    "label": f"CP Beneficiaries {_get_abbreviated_number(cp_beneficiaries)}",
+                    "color": "#9FD5B5",
+                    "number_annotation": f"{round(ratio * 100)}%",
+                },
+                {
+                    "value": cp_targeted,
+                    "label": "CP Targeted",
+                    "color": "#d3d3d3",
+                    "number_annotation": f"100%: {_get_abbreviated_number(cp_targeted)}\n CP Targeted.",
+                },
+            ],
+            "annotation": f"\n\n\n\n{round(ratio * 100)}% ({_get_abbreviated_number(cp_beneficiaries)}) of CP Beneficiaries recorded.",  # noqa
+            "plot_size": (10, 2.5),
+        }
+        _custom_title(
+            "CP Beneficiaries vs CP Targeted",
+            st.session_state["subtitle_size"],
+            source="OCHA HPC Plans Summary API",
+            date=year
+        )
+        _display_stackbar(numbers_values)
 
 
 def _get_country_wise_pin_data(df: pd.DataFrame):

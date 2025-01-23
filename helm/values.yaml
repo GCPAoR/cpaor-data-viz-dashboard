@@ -1,0 +1,51 @@
+ingress:
+  streamlit:
+    enabled: true
+    host:
+
+streamlit:
+  enabled: true
+  replicaCount: 1
+  image:
+    name: SET-BY-CICD-IMAGE-STREAMLIT
+    tag: SET-BY-CICD-TAG-STREAMLIT
+    pullPolicy: IfNotPresent
+  containerPort: "8501"
+  resources:
+    requests:
+      cpu: "200m"
+      memory: 1Gi
+    limits:
+      cpu: 2
+      memory: 2Gi
+
+sharedVolume:
+  persistence:
+    storageClassName:
+    size: "1Gi"
+
+dataProcessing:
+  enabled: true
+  image:
+    name: SET-BY-CICD-IMAGE-DATA-PROCESSING
+    tag: SET-BY-CICD-TAG-DATA-PROCESSING
+    pullPolicy: IfNotPresent
+  global:
+    resources:
+      requests:
+        cpu: "200m"
+        memory: 1Gi
+      limits:
+        cpu: 2
+        memory: 2Gi
+  cronjobs:
+    update_datasets:
+      enabled: true
+      timeLimit: 7200  # 2 hours
+      schedule: "0 1 * * *"
+      command: ["/usr/local/bin/python", "/app/update_datasets.py"]
+  secrets:
+    OPENAI_API_KEY:
+    ACLED_API_KEY:
+    CPAOR_EMAIL:
+    ACAPS_PASSWORD:

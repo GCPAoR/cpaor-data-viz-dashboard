@@ -1,0 +1,48 @@
+{{- if .Values.dataProcessing.enabled }}
+
+{{- range $jobName, $job := .Values.dataProcessing.cronjobs }}
+
+{{- if $job.enabled }}
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: "{{ template "cpaor-data-viz-dashboard-helm.fullname" $ }}-{{ $jobName | nospace | lower | replace "_" "-" }}"
+  labels:
+    app: {{ template "cpaor-data-viz-dashboard-helm.fullname" $ }}
+    component: data-processing
+    environment: {{ $.Values.environment }}
+    release: {{ $.Release.Name }}
+spec:
+  schedule: {{ $job.schedule | quote }}
+  concurrencyPolicy: "Forbid"
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: {{ $job.timeLimit }}
+      template:
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: task
+              image: "{{ $.Values.dataProcessing.image.name }}:{{ $.Values.dataProcessing.image.tag }}"
+              imagePullPolicy: {{ $.Values.dataProcessing.image.pullPolicy }}
+              command: {{ toYaml $job.command | trim | nindent 16 }}
+              resources:
+                {{- toYaml (default $.Values.dataProcessing.global.resources $job.resources) | nindent 16 }}
+              envFrom:
+                - secretRef:
+                    name: {{ include "cpaor-data-viz-dashboard-helm.fullname" $ }}-secrets
+              volumeMounts:
+              - mountPath: "/data"
+                name: shared-volume
+          volumes:
+            - name: shared-volume
+              persistentVolumeClaim:
+                claimName: {{ template "cpaor-data-viz-dashboard-helm.fullname" $ }}-shared-volume
+
+{{- end }}
+
+{{- end }}
+
+{{- end }}

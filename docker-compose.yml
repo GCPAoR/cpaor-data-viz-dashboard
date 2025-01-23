@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   streamlit:
     build:
@@ -16,7 +14,7 @@ services:
       - STREAMLIT_SERVER_ADDRESS=0.0.0.0
     command: bash -c "streamlit run /app/app.py --server.address 0.0.0.0"
     restart: always
-  
+
   data_processing:
     build:
       context: ./data_sources_processing_src
@@ -26,6 +24,7 @@ services:
       - ./data_sources_processing_src/data_sources_processing/datasets_metadata.json:/data/datasets_metadata.json
       - ./data_sources_processing_src/crontab:/etc/cron.d/processing_cron
       - cron_logs:/var/log
+      - ./data_sources_processing_src:/app
     command: cron -f
     restart: always
 

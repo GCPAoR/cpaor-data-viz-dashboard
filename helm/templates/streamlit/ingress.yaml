@@ -1,0 +1,26 @@
+{{- if .Values.ingress.streamlit.enabled }}
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ template "cpaor-data-viz-dashboard-helm.fullname" . }}-streamlit
+  labels:
+    app: {{ template "cpaor-data-viz-dashboard-helm.fullname" . }}
+    component: streamlit
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ required "ingress.streamlit.host" .Values.ingress.streamlit.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ template "cpaor-data-viz-dashboard-helm.fullname" . }}-streamlit
+                port:
+                  number: 80
+
+{{- end }}

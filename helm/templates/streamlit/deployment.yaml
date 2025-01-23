@@ -1,0 +1,54 @@
+{{- if .Values.streamlit.enabled }}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "cpaor-data-viz-dashboard-helm.fullname" . }}-streamlit
+  labels:
+    app: {{ template "cpaor-data-viz-dashboard-helm.fullname" . }}
+    component: streamlit
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.streamlit.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "cpaor-data-viz-dashboard-helm.fullname" . }}
+      run: streamlit
+  template:
+    metadata:
+      labels:
+        app: {{ template "cpaor-data-viz-dashboard-helm.fullname" . }}
+        run: streamlit
+    spec:
+      containers:
+        - name: streamlit
+          image: "{{ .Values.streamlit.image.name }}:{{ .Values.streamlit.image.tag }}"
+          imagePullPolicy: {{ .Values.streamlit.image.pullPolicy }}
+          command: ["streamlit", "run", "/app/app.py", "--server.address", "0.0.0.0"]
+          ports:
+            - name: http
+              containerPort: {{ .Values.streamlit.containerPort }}
+              protocol: TCP
+          livenessProbe: # FIXME: Fix Liveness Probe
+            httpGet:
+              path: /  # TODO
+              port: {{ .Values.streamlit.containerPort }}
+            initialDelaySeconds: 10180  # TODO:?
+            periodSeconds: 5  # TODO:?
+          resources:
+            {{- toYaml .Values.streamlit.resources | nindent 12 }}
+          env:
+            - name: STREAMLIT_SERVER_ADDRESS
+              value: "0.0.0.0"
+            - name: STREAMLIT_SERVER_PORT
+              value: {{ .Values.streamlit.containerPort | quote }}
+          volumeMounts:
+          - mountPath: "/data"
+            name: shared-volume
+      volumes:
+        - name: shared-volume
+          persistentVolumeClaim:
+            claimName: {{ template "cpaor-data-viz-dashboard-helm.fullname" . }}-shared-volume
+
+{{- end }}

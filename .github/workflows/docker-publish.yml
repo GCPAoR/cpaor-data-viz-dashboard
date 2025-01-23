@@ -1,0 +1,138 @@
+name: Python check
+
+on:
+  # NOTE: Called by ./helm-publish.yml
+  workflow_call:
+    inputs:
+      push_docker_image:
+        type: string  # true or false
+        default: "false"
+    outputs:
+      streamlit_docker_image_name:
+        description: "Only docker image name"
+        value: ${{ jobs.test.outputs.streamlit_docker_image_name }}
+      streamlit_docker_image_tag:
+        description: "Only docker image tag"
+        value: ${{ jobs.test.outputs.streamlit_docker_image_tag }}
+      streamlit_docker_image:
+        description: "docker image with tag"
+        value: ${{ jobs.test.outputs.streamlit_docker_image }}
+      dp_docker_image_name:
+        description: "Only docker image name"
+        value: ${{ jobs.test.outputs.dp_docker_image_name }}
+      dp_docker_image_tag:
+        description: "Only docker image tag"
+        value: ${{ jobs.test.outputs.dp_docker_image_tag }}
+      dp_docker_image:
+        description: "docker image with tag"
+        value: ${{ jobs.test.outputs.dp_docker_image }}
+
+jobs:
+  test:
+    name: Build
+    runs-on: ubuntu-latest
+
+    outputs:
+      # Streamlit
+      streamlit_docker_image_name: ${{ steps.prep.outputs.streamlit_tagged_image_name }}
+      streamlit_docker_image_tag: ${{ steps.prep.outputs.streamlit_tag }}
+      streamlit_docker_image: ${{ steps.prep.outputs.streamlit_tagged_image }}
+      # Data sources
+      dp_docker_image_name: ${{ steps.prep.outputs.dp_tagged_image_name }}
+      dp_docker_image_tag: ${{ steps.prep.outputs.dp_tag }}
+      dp_docker_image: ${{ steps.prep.outputs.dp_tagged_image }}
+
+    strategy:
+      matrix:
+        include:
+          - context: ./frontend_src
+            dockerfile: ./frontend_src/Dockerfile
+            image: ghcr.io/${{ github.repository }}/streamlit
+            output_prefix: streamlit_
+          - context: ./data_sources_processing_src
+            dockerfile: ./data_sources_processing_src/Dockerfile
+            image: ghcr.io/${{ github.repository }}/data-processing
+            output_prefix: dp_
+
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        if: ${{ inputs.push_docker_image }}
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🐳 Prepare Docker
+        id: prep
+        env:
+          IMAGE_NAME: ${{ matrix.image }}
+        run: |
+          BRANCH_NAME=$(echo $GITHUB_REF_NAME | sed 's|[/:]|-|' | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g' | cut -c1-100 | sed 's/-*$//')
+
+          TAG="$BRANCH_NAME.$(echo $GITHUB_SHA | head -c7)"
+
+          IMAGE_NAME=$(echo $IMAGE_NAME | tr '[:upper:]' '[:lower:]')
+          echo "${{ matrix.output_prefix }}tagged_image_name=${IMAGE_NAME}" >> $GITHUB_OUTPUT
+          echo "${{ matrix.output_prefix }}tag=${TAG}" >> $GITHUB_OUTPUT
+          echo "${{ matrix.output_prefix }}tagged_image=${IMAGE_NAME}:${TAG}" >> $GITHUB_OUTPUT
+          echo "tagged_image=${IMAGE_NAME}:${TAG}" >> $GITHUB_OUTPUT
+          echo "::notice::Tagged docker image: ${IMAGE_NAME}:${TAG}"
+
+      - name: 🐳 Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🐳 Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.ref }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-refs/develop
+            ${{ runner.os }}-buildx-
+
+      - name: 🐳 Docker build/push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          builder: ${{ steps.buildx.outputs.name }}
+          push: true
+          load: true
+          provenance: false  # XXX: Without this we have untagged images in ghcr.io
+          tags: ${{ steps.prep.outputs.tagged_image }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+
+        # Temp fix
+        # https://github.com/docker/build-push-action/blob/master/docs/advanced/cache.md#github-cache
+        # https://github.com/docker/build-push-action/issues/252
+        # https://github.com/moby/buildkit/issues/1896
+      - name: 🐳 Move docker cache (🧙 Hack fix)
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+  validate_helm:
+    name: 🚴 Validate Helm 🚴
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: 🐳 Helm dependency
+        run: |
+          yq --indent 0 '.dependencies | map(["helm", "repo", "add", .name, .repository] | join(" ")) | .[]' ./helm/Chart.lock  | sh --
+          helm dependency build ./helm
+
+      - name: 🐳 Helm lint
+        run: helm lint ./helm --values ./helm/values-test.yaml
+
+      - name: 🐳 Helm template
+        run: helm template ./helm --values ./helm/values-test.yaml
