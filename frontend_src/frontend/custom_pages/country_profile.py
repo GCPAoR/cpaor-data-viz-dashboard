@@ -50,11 +50,9 @@ def _display_all_data(selected_country: str):
     17. Calls `_display_specific_protection_indicators` to display specific protection indicators.
     18. Calls `_display_tabular_mortality_rates` to display tabular data related to mortality rates.
     """
-    map_col, _, additional_col = st.columns([0.47, 0.06, 0.47])  # , 0.05, 0.2]
-    with map_col:
-        _display_acled_map_data(selected_country)
+    cp_info, _, cp_charts = st.columns([0.47, 0.06, 0.47])
 
-    with additional_col:
+    with cp_info:
         _custom_title(
             "Child Protection Situation",
             st.session_state["subtitle_size"],
@@ -62,8 +60,12 @@ def _display_all_data(selected_country: str):
             date=st.session_state[f"protection_df_max_date_{selected_country}"],
         )
         _display_main_summary(selected_country, display_evidence=False)
+        _display_acled_map_data(selected_country)
 
+    with cp_charts:
         _display_pin_stackbar(selected_country)
+        display_cp_beneficiaries(selected_country)
+        display_country_level_funding(selected_country)
         _display_crises_list(selected_country)
 
     _custom_title(
@@ -107,6 +109,6 @@ def _display_all_data(selected_country: str):
     )
     st.markdown("No data available for this indicator.")
 
-    display_country_level_funding(selected_country)
+   
 
-    display_cp_beneficiaries(selected_country)
+    

@@ -126,33 +126,33 @@ def main_page():
             """
 
             # Define the custom style for the fourth box
-            ratio_global_funding = _get_ratio_global_funding()
-            fourth_indicator_custom_css = f"""
-            <div style="
-                background-color: #94BF95;
-                border-radius: 10px;
-                padding: 10px;
-                text-align: center;
-                box-shadow: 0 2px 4px 0 rgba(0,0,0,0.2);
-                margin-bottom: 20px;
-                transition: 0.3s;">
-                <h2 style="color: #333333; font-size: 30px; margin: 0;">{ratio_global_funding}</h2>
-                <p style="color: #333333; font-size: 16px; margin: 0;">% Received vs Requested on Global Funding</p>
-            </div>
-            """
-
-            # Define the custom style for the fifth box
             total_cp_beneficiaries = _get_cp_beneficiaries()
-            fifth_indicator_custom_css = f"""
+            fourth_indicator_custom_css = f"""
             <div style="
                 background-color: #44AB90;
                 border-radius: 10px;
                 padding: 10px;
                 text-align: center;
                 box-shadow: 0 2px 4px 0 rgba(0,0,0,0.2);
+                margin-bottom: 20px;
                 transition: 0.3s;">
                 <h2 style="color: #333333; font-size: 30px; margin: 0;">{total_cp_beneficiaries}</h2>
                 <p style="color: #333333; font-size: 16px; margin: 0;">Overall # CP reached beneficiaries</p>
+            </div>
+            """
+
+            # Define the custom style for the fifth box
+            ratio_global_funding = _get_ratio_global_funding()
+            fifth_indicator_custom_css = f"""
+            <div style="
+                background-color: #94BF95;
+                border-radius: 10px;
+                padding: 10px;
+                text-align: center;
+                box-shadow: 0 2px 4px 0 rgba(0,0,0,0.2);
+                transition: 0.3s;">
+                <h2 style="color: #333333; font-size: 30px; margin: 0;">{ratio_global_funding}</h2>
+                <p style="color: #333333; font-size: 16px; margin: 0;">% Received vs Requested on Global Funding</p>
             </div>
             """
 

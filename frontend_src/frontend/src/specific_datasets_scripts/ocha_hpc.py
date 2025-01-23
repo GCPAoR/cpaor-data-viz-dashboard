@@ -264,6 +264,10 @@ def display_global_funding():
             x="year",
             y="amount",
             color="Funding Type",
+            color_discrete_map={
+                "Funding Requested": "#D6E9DF",
+                "Funding Received": "#B1DBC3"
+            },
             barmode="group",
             title="Funding Requested vs Funding Received by Year",
             labels={"amount": "Funding Amount", "year": "Year"},
@@ -307,7 +311,7 @@ def display_country_level_funding(selected_country: str):
                 },
             ],
             "annotation": f"\n\n\n\n{round(ratio * 100)}% ({_get_abbreviated_number(funding_received)}) of funding received.",  # noqa
-            "plot_size": (20, 3),
+            "plot_size": (10, 2.5),
         }
         _custom_title(
             "Received Funding vs Requested Funding",
@@ -347,7 +351,7 @@ def display_cp_beneficiaries(selected_country: str):
                 },
             ],
             "annotation": f"\n\n\n\n{round(ratio * 100)}% ({_get_abbreviated_number(cp_beneficiaries)}) of CP Beneficiaries recorded.",  # noqa
-            "plot_size": (20, 3),
+            "plot_size": (10, 2.5),
         }
         _custom_title(
             "CP Beneficiaries vs CP Targeted",
