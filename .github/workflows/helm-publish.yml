@@ -1,0 +1,79 @@
+name: Builds and pushes Docker Images and Helm charts to Github Registry
+
+on:
+  workflow_dispatch:
+
+permissions:
+  packages: write
+
+jobs:
+  dockerbuild:
+    name: Docker publish
+    uses: ./.github/workflows/docker-publish.yml
+    with:
+      push_docker_image: true
+
+  build:
+    name: Publish Helm
+    needs: dockerbuild
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install Helm
+      uses: azure/setup-helm@v3
+
+    - name: 🐳 Helm dependency
+      run: |
+        yq --indent 0 '.dependencies | map(["helm", "repo", "add", .name, .repository] | join(" ")) | .[]' ./helm/Chart.lock  | sh --
+        helm dependency build ./helm
+
+    - name: Tag docker image in Helm Chart values.yaml
+      env:
+        STREAMLIT_IMAGE_NAME: ${{ needs.dockerbuild.outputs.streamlit_docker_image_name }}
+        STREAMLIT_IMAGE_TAG: ${{ needs.dockerbuild.outputs.streamlit_docker_image_tag }}
+        DP_IMAGE_NAME: ${{ needs.dockerbuild.outputs.dp_docker_image_name }}
+        DP_IMAGE_TAG: ${{ needs.dockerbuild.outputs.dp_docker_image_tag }}
+      run: |
+        # Update values.yaml with latest docker image
+        sed -i "s|SET-BY-CICD-IMAGE-STREAMLIT|$STREAMLIT_IMAGE_NAME|" helm/values.yaml
+        sed -i "s/SET-BY-CICD-TAG-STREAMLIT/$STREAMLIT_IMAGE_TAG/" helm/values.yaml
+
+        sed -i "s|SET-BY-CICD-IMAGE-DATA-PROCESSING|$DP_IMAGE_NAME|" helm/values.yaml
+        sed -i "s/SET-BY-CICD-TAG-DATA-PROCESSING/$DP_IMAGE_TAG/" helm/values.yaml
+
+    - name: Package Helm Chart
+      id: set-variables
+      env:
+        IMAGE_TAG: ${{ needs.dockerbuild.outputs.streamlit_docker_image_tag }}
+      run: |
+        sed -i "s/SET-BY-CICD/$IMAGE_TAG/g" helm/Chart.yaml
+        helm package ./helm -d .helm-charts
+
+    - name: Push Helm Chart
+      env:
+        STREAMLIT_IMAGE: ${{ needs.dockerbuild.outputs.streamlit_docker_image }}
+        DP_IMAGE: ${{ needs.dockerbuild.outputs.dp_docker_image }}
+        OCI_REPO: oci://ghcr.io/${{ github.repository }}
+      run: |
+        OCI_REPO=$(echo $OCI_REPO | tr '[:upper:]' '[:lower:]')
+        PACKAGE_FILE=$(ls .helm-charts/*.tgz | head -n 1)
+        echo "# Helm Chart" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Tagged Image (Streamlit): **$STREAMLIT_IMAGE**" >> $GITHUB_STEP_SUMMARY
+        echo "Tagged Image (Data Processing): **$DP_IMAGE**" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Helm push output" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```bash' >> $GITHUB_STEP_SUMMARY
+        helm push "$PACKAGE_FILE" $OCI_REPO >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
