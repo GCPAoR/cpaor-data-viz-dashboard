@@ -252,6 +252,7 @@ def display_global_funding():
     global_funding_df = st.session_state["ocha_hpc_global_funding_df"]
     global_funding_df.rename(columns={"funding_requested": "Funding Requested", "funding_received": "Funding Received"}, inplace=True)
 
+
     if len(global_funding_df):
         df_melted = global_funding_df.melt(
             id_vars=["year"],
@@ -259,6 +260,9 @@ def display_global_funding():
             var_name="Funding Type",
             value_name="amount",
         )
+
+        df_melted["amount"] = df_melted["amount"].apply(lambda x: round(x / 1_000_000, 2) if x > 1_000_000 else x)
+
         fig = px.bar(
             df_melted,
             x="year",
@@ -270,7 +274,7 @@ def display_global_funding():
             },
             barmode="group",
             title="Funding Requested vs Funding Received by Year",
-            labels={"amount": "Funding Amount", "year": "Year"},
+            labels={"amount": "Funding Amount (in Millions)", "year": "Year"},
             text="amount"
         )
         fig.update_traces(
