@@ -261,7 +261,7 @@ def display_global_funding():
             value_name="amount",
         )
 
-        df_melted["amount"] = df_melted["amount"].apply(lambda x: round(x / 1_000_000, 2) if x > 1_000_000 else x)
+        df_melted["amount"] = df_melted["amount"].apply(lambda x: round(x / 1_000_000, 2))
 
         fig = px.bar(
             df_melted,
@@ -274,7 +274,7 @@ def display_global_funding():
             },
             barmode="group",
             title="Funding Requested vs Funding Received by Year",
-            labels={"amount": "Funding Amount (in Millions)", "year": "Year"},
+            labels={"amount": "Funding Amount (in millions)", "year": "Year"},
             text="amount"
         )
         fig.update_traces(
