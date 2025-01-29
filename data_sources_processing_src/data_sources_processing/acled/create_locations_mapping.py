@@ -19,9 +19,9 @@ logger = logging.getLogger(__name__)
 
 system_prompt = (
     "I want to create a mapping between different geolocations in %s. "
-    + "I will provide you with two lists of geolocations al slightly differnt one from another, "
+    + "I will provide you with two lists of geolocations which are slightly different one from another, "
     + "and you will need to create a mapping for items from the first to the second list so I can complete the database. "
-    + "Return the output as a JSON format where the key comes from the first list and the value from the second list. "
+    + "Return the output in strictly a JSON format where the key comes from the first list and the value from the second list. "
     + "If there is no match, return an empty dict."
 )
 

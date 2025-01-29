@@ -289,9 +289,12 @@ def _get_acled_data(datasets_metadata: Dict[str, Any], data_output_path: os.Path
     for country in tqdm(countries_list, desc="Processing ACLED countries"):
 
         data = fetch_country_data(country, datasets_metadata["website_url"], start_date)
-        if "data" in data and data["data"] is not None:
 
+        if "data" in data and data["data"]:
             one_country_df = pd.DataFrame(data["data"])[needed_columns]
+            one_country_df["country"] = one_country_df["country"].apply(
+                lambda x: reversed_mapping_countries.get(x, x)  # Apply reverse mapping
+            )
             events_df = pd.concat([events_df, one_country_df])
 
     events_df["year"] = events_df["year"].astype(int)

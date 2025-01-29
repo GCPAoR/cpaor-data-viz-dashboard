@@ -11,7 +11,7 @@ from frontend.src.visualizations.maps_creation import \
 def _load_acled_data():
 
     number_of_events_targeting_civilians_countries_mapping = {
-        "Central African Republic": "CAR",
+        #"Central African Republic": "CAR",
         "Democratic Republic of Congo": "Congo DRC",
         "eSwatini": "Eswatini",
         "Turkey": "Türkiye",
