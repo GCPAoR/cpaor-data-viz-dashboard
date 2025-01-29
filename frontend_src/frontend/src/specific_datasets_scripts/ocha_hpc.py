@@ -235,7 +235,8 @@ def _get_cp_beneficiaries():
     cp_beneficiaries = df["cp_beneficiaries"].iat[0]
     if cp_beneficiaries >= 1_000_000:
         cp_beneficiaries = f"{round(cp_beneficiaries/1_000_000, 2)} million"
-    return cp_beneficiaries
+    total_countries = df["total_countries"].iat[0]
+    return cp_beneficiaries, total_countries
 
 
 def _get_ratio_global_funding():
@@ -245,17 +246,24 @@ def _get_ratio_global_funding():
     df = df[df["year"] == st.session_state["ocha_hpc_max_year"]]
     ratio = df["funding_received"].iat[0] / df["funding_requested"].iat[0]
     ratio = _get_percentage(ratio)
-    return ratio
+    total_countries = df["total_countries"].iat[0]
+    return ratio, total_countries
 
 def display_global_funding():
     """Plot a grouped barchart related to funding"""
     global_funding_df = st.session_state["ocha_hpc_global_funding_df"]
-    global_funding_df.rename(columns={"funding_requested": "Funding Requested", "funding_received": "Funding Received"}, inplace=True)
-
+    global_funding_df.rename(
+        columns={
+            "funding_requested": "Funding Requested",
+            "funding_received": "Funding Received",
+            "total_countries": "Total Countries"
+        },
+        inplace=True
+    )
 
     if len(global_funding_df):
         df_melted = global_funding_df.melt(
-            id_vars=["year"],
+            id_vars=["year", "Total Countries"],
             value_vars=["Funding Requested", "Funding Received"],
             var_name="Funding Type",
             value_name="amount",
@@ -275,20 +283,32 @@ def display_global_funding():
             barmode="group",
             title="Funding Requested vs Funding Received by Year",
             labels={"amount": "Funding Amount (in millions)", "year": "Year"},
-            text="amount"
+            text="amount",
+            hover_data={"Total Countries": True}
         )
         fig.update_traces(
-            texttemplate='%{y:,}',
+            texttemplate='%{y:,} million',
             textposition='outside'
         )
         st.plotly_chart(fig)
     else:
         st.write("No funding related data available.")
 
+def country_mapping(country: str):
+    """Maps country names"""
+    mapping = {
+        "Congo DRC": "Democratic Republic of the Congo",
+        "Palestine": "Occupied Palestinian Territory",
+        "Türkiye": "Turkey"
+    }
+    return mapping.get(country, country)
+
 
 def display_country_level_funding(selected_country: str):
     """Plot a grouped barchart related to funding"""
     year = datetime.now().year
+    selected_country = country_mapping(selected_country)
+
     df = st.session_state["ocha_hpc_country_funding_df"]
     df = df[(df["country"] == selected_country) & (df["year"] == year)]
 
@@ -329,6 +349,8 @@ def display_country_level_funding(selected_country: str):
 def display_cp_beneficiaries(selected_country: str):
     """Plot a grouped barchart related to funding"""
     year = datetime.now().year
+    selected_country = country_mapping(selected_country)
+
     df = st.session_state["all_pin_data"]
     df = df[(df["country"] == selected_country) & (df["year"] == year)]
 
