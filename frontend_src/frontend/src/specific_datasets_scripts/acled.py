@@ -74,6 +74,7 @@ def _display_number_of_events_targetting_civilians(selected_country: str):
     # st.dataframe(one_country_number_of_events_targeting_civilians)
 
     if len(one_country_number_of_events_targeting_civilians) > 0:
+        one_country_number_of_events_targeting_civilians.sort_values(by="year", inplace=True)
         _custom_title(
             f"Number of events affecting civilians in {selected_country}",
             margin_top=0,
