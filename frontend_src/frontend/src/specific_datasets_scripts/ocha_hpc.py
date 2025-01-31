@@ -358,6 +358,11 @@ def display_cp_beneficiaries(selected_country: str):
         cp_beneficiaries = df["cp_beneficiaries"].iat[0]
         cp_targeted = df["cp_targeted"].iat[0]
 
+        if pd.isna(cp_beneficiaries):
+            cp_beneficiaries = 0
+        if pd.isna(cp_targeted):
+            cp_targeted = 0
+
         ratio = cp_beneficiaries / cp_targeted if cp_targeted else 0
 
         numbers_values = {
@@ -512,6 +517,22 @@ def _display_pin_stackbar(selected_country: str):
         children_targeted = country_specific_df["targeted_children"].values[0]
         total_people_in_need = country_specific_df["tot_pop_in_need"].values[0]
 
+        if pd.isna(children_in_need):
+            children_in_need = 0
+        if pd.isna(children_targeted):
+            children_targeted = 0
+        if pd.isna(total_people_in_need):
+            total_people_in_need = 0
+
+        ratio_children_targeted_total_people = (
+            round(children_targeted / total_people_in_need * 100)
+            if children_targeted and total_people_in_need else 0
+        )
+        ratio_children_in_need_total_people_in_need = (
+            round(children_in_need / total_people_in_need * 100)
+            if children_in_need and total_people_in_need else 0
+        )
+
         numbers_values = {
             "title": "Child Protection Caseload (in Need)",
             "original_numbers": [
@@ -519,13 +540,13 @@ def _display_pin_stackbar(selected_country: str):
                     "value": children_targeted,
                     "label": f"CP\nCaseload\ntargeted\n{_get_abbreviated_number(children_targeted)}",
                     "color": "#9FD5B5",
-                    "number_annotation": f"{round(children_targeted / total_people_in_need * 100)}%",
+                    "number_annotation": f"{ratio_children_targeted_total_people}%",
                 },
                 {
                     "value": children_in_need,
                     "label": f"CP Caseload\nin Need\n{_get_abbreviated_number(children_in_need)}",
                     "color": "#90AF95",
-                    "number_annotation": f"{round(children_in_need / total_people_in_need * 100)}%",
+                    "number_annotation": f"{ratio_children_in_need_total_people_in_need}%",
                 },
                 {
                     "value": total_people_in_need,
@@ -534,7 +555,7 @@ def _display_pin_stackbar(selected_country: str):
                     "number_annotation": f"100%: {_get_abbreviated_number(total_people_in_need)}\nPeople in need",
                 },
             ],
-            "annotation": f"\n\n\n\n{round(children_in_need / total_people_in_need * 100)}% ({_get_abbreviated_number(children_in_need)}) of people are in Need of CP Services. ",  # noqa
+            "annotation": f"\n\n\n\n{ratio_children_in_need_total_people_in_need}% ({_get_abbreviated_number(children_in_need)}) of people are in Need of CP Services. ",  # noqa
             "plot_size": (10, 2.5),
         }
         _custom_title(
