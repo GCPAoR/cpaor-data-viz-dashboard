@@ -242,6 +242,13 @@ def process_protection_caseloads(row: pd.DataFrame, country: str):
     filtered_row_data = {k: v for k, v in row_data.items() if pd.notna(v)}
     return filtered_row_data
 
+def extract_iso3(plan_countries: list[dict]):
+    """Extract all ISO3"""
+    try:
+        return [country['iso3'] for country in plan_countries if 'iso3' in country]
+    except (ValueError, SyntaxError):
+        return []
+
 def get_global_funding(all_data: pd.DataFrame, treated_year: int):
     """Get the global funding per year"""
     total_global_funding_requested = all_data["financialData"].apply(
@@ -257,7 +264,7 @@ def get_global_funding(all_data: pd.DataFrame, treated_year: int):
     child_protection_caseloads_data = protection_caseloads[
         protection_caseloads["caseloadCustomRef"].apply(lambda x: "PRO-CPN" in x)
     ]
-
+    child_protection_caseloads_data["target"] = pd.to_numeric(child_protection_caseloads_data["target"], errors="coerce")
     cp_targeted = child_protection_caseloads_data["target"].sum()
 
     cp_beneficiaries_lst = child_protection_caseloads_data["measurements"].apply(extract_max_cumulative_reach)
@@ -265,13 +272,18 @@ def get_global_funding(all_data: pd.DataFrame, treated_year: int):
     cp_beneficiaries_df = cp_beneficiaries_df[~pd.isna(cp_beneficiaries_df)]
     cp_beneficiaries_sum = float(cp_beneficiaries_df.sum())
 
+    # Extract ISO3 codes
+    filtered_all_data = all_data[all_data['financialData'].apply(lambda x: len(x) > 0)]
+    iso3_list = filtered_all_data['planCountries'].apply(extract_iso3).explode().dropna().unique().tolist()
+
     return pd.DataFrame([
         {
             "year": treated_year,
             "funding_requested": total_global_funding_requested,
             "funding_received": total_global_funding_received,
             "cp_targeted": cp_targeted,
-            "cp_beneficiaries": cp_beneficiaries_sum
+            "cp_beneficiaries": cp_beneficiaries_sum,
+            "total_countries": len(iso3_list)
         }
     ])
 

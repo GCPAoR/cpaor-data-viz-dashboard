@@ -235,7 +235,8 @@ def _get_cp_beneficiaries():
     cp_beneficiaries = df["cp_beneficiaries"].iat[0]
     if cp_beneficiaries >= 1_000_000:
         cp_beneficiaries = f"{round(cp_beneficiaries/1_000_000, 2)} million"
-    return cp_beneficiaries
+    total_countries = df["total_countries"].iat[0]
+    return cp_beneficiaries, total_countries
 
 
 def _get_ratio_global_funding():
@@ -245,20 +246,31 @@ def _get_ratio_global_funding():
     df = df[df["year"] == st.session_state["ocha_hpc_max_year"]]
     ratio = df["funding_received"].iat[0] / df["funding_requested"].iat[0]
     ratio = _get_percentage(ratio)
-    return ratio
+    total_countries = df["total_countries"].iat[0]
+    return ratio, total_countries
 
 def display_global_funding():
     """Plot a grouped barchart related to funding"""
     global_funding_df = st.session_state["ocha_hpc_global_funding_df"]
-    global_funding_df.rename(columns={"funding_requested": "Funding Requested", "funding_received": "Funding Received"}, inplace=True)
+    global_funding_df.rename(
+        columns={
+            "funding_requested": "Funding Requested",
+            "funding_received": "Funding Received",
+            "total_countries": "Total Countries"
+        },
+        inplace=True
+    )
 
     if len(global_funding_df):
         df_melted = global_funding_df.melt(
-            id_vars=["year"],
+            id_vars=["year", "Total Countries"],
             value_vars=["Funding Requested", "Funding Received"],
             var_name="Funding Type",
             value_name="amount",
         )
+
+        df_melted["amount"] = df_melted["amount"].apply(lambda x: round(x / 1_000_000, 2))
+
         fig = px.bar(
             df_melted,
             x="year",
@@ -270,21 +282,33 @@ def display_global_funding():
             },
             barmode="group",
             title="Funding Requested vs Funding Received by Year",
-            labels={"amount": "Funding Amount", "year": "Year"},
-            text="amount"
+            labels={"amount": "Funding Amount (in millions)", "year": "Year"},
+            text="amount",
+            hover_data={"Total Countries": True}
         )
         fig.update_traces(
-            texttemplate='%{y:,}',
+            texttemplate='%{y:,} million',
             textposition='outside'
         )
         st.plotly_chart(fig)
     else:
         st.write("No funding related data available.")
 
+def country_mapping(country: str):
+    """Maps country names"""
+    mapping = {
+        "Congo DRC": "Democratic Republic of the Congo",
+        "Palestine": "Occupied Palestinian Territory",
+        "Türkiye": "Turkey"
+    }
+    return mapping.get(country, country)
+
 
 def display_country_level_funding(selected_country: str):
     """Plot a grouped barchart related to funding"""
     year = datetime.now().year
+    selected_country = country_mapping(selected_country)
+
     df = st.session_state["ocha_hpc_country_funding_df"]
     df = df[(df["country"] == selected_country) & (df["year"] == year)]
 
@@ -325,12 +349,19 @@ def display_country_level_funding(selected_country: str):
 def display_cp_beneficiaries(selected_country: str):
     """Plot a grouped barchart related to funding"""
     year = datetime.now().year
+    selected_country = country_mapping(selected_country)
+
     df = st.session_state["all_pin_data"]
     df = df[(df["country"] == selected_country) & (df["year"] == year)]
 
     if len(df) > 0:
         cp_beneficiaries = df["cp_beneficiaries"].iat[0]
         cp_targeted = df["cp_targeted"].iat[0]
+
+        if pd.isna(cp_beneficiaries):
+            cp_beneficiaries = 0
+        if pd.isna(cp_targeted):
+            cp_targeted = 0
 
         ratio = cp_beneficiaries / cp_targeted if cp_targeted else 0
 
@@ -486,6 +517,22 @@ def _display_pin_stackbar(selected_country: str):
         children_targeted = country_specific_df["targeted_children"].values[0]
         total_people_in_need = country_specific_df["tot_pop_in_need"].values[0]
 
+        if pd.isna(children_in_need):
+            children_in_need = 0
+        if pd.isna(children_targeted):
+            children_targeted = 0
+        if pd.isna(total_people_in_need):
+            total_people_in_need = 0
+
+        ratio_children_targeted_total_people = (
+            round(children_targeted / total_people_in_need * 100)
+            if children_targeted and total_people_in_need else 0
+        )
+        ratio_children_in_need_total_people_in_need = (
+            round(children_in_need / total_people_in_need * 100)
+            if children_in_need and total_people_in_need else 0
+        )
+
         numbers_values = {
             "title": "Child Protection Caseload (in Need)",
             "original_numbers": [
@@ -493,13 +540,13 @@ def _display_pin_stackbar(selected_country: str):
                     "value": children_targeted,
                     "label": f"CP\nCaseload\ntargeted\n{_get_abbreviated_number(children_targeted)}",
                     "color": "#9FD5B5",
-                    "number_annotation": f"{round(children_targeted / total_people_in_need * 100)}%",
+                    "number_annotation": f"{ratio_children_targeted_total_people}%",
                 },
                 {
                     "value": children_in_need,
                     "label": f"CP Caseload\nin Need\n{_get_abbreviated_number(children_in_need)}",
                     "color": "#90AF95",
-                    "number_annotation": f"{round(children_in_need / total_people_in_need * 100)}%",
+                    "number_annotation": f"{ratio_children_in_need_total_people_in_need}%",
                 },
                 {
                     "value": total_people_in_need,
@@ -508,7 +555,7 @@ def _display_pin_stackbar(selected_country: str):
                     "number_annotation": f"100%: {_get_abbreviated_number(total_people_in_need)}\nPeople in need",
                 },
             ],
-            "annotation": f"\n\n\n\n{round(children_in_need / total_people_in_need * 100)}% ({_get_abbreviated_number(children_in_need)}) of people are in Need of CP Services. ",  # noqa
+            "annotation": f"\n\n\n\n{ratio_children_in_need_total_people_in_need}% ({_get_abbreviated_number(children_in_need)}) of people are in Need of CP Services. ",  # noqa
             "plot_size": (10, 2.5),
         }
         _custom_title(
