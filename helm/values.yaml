@@ -39,11 +39,38 @@ dataProcessing:
         cpu: 2
         memory: 2Gi
   cronjobs:
-    update_datasets:
+    update_ipc_data: 
+      enable: true
+      timpelimit: 7200
+      schedule: "0 1 * * *"
+      command: ["/usr/local/bin/python", "/app/update_ipc_data.py"]
+    update_acaps_protection:
       enabled: true
       timeLimit: 7200  # 2 hours
-      schedule: "0 1 * * *"
-      command: ["/usr/local/bin/python", "/app/update_datasets.py"]
+      schedule: "30 1 * * *"
+      command: ["/usr/local/bin/python", "/app/update_acaps_protection.py"]
+    update_acaps_info:
+      enabled: true
+      timeLimit: 7200  
+      schedule: "0 2 * * *"
+      command: ["/usr/local/bin/python", "/app/update_acaps_info.py"]
+    update_acled_data:
+      enabled: true
+      timeLimit: 7200  
+      schedule: "30 2 * * *"
+      command: ["/usr/local/bin/python", "/app/update_acled_data.py"]
+    update_idmc_data:
+      enabled: true
+      timeLimit: 7200  
+      schedule: "0 3 * * *"
+      command: ["/usr/local/bin/python", "/app/update_idmc_data.py"]
+    update_ocha_hpc_data:
+      enabled: true
+      timeLimit: 7200  
+      schedule: "30 3 * * *"
+      command: ["/usr/local/bin/python", "/app/update_ocha_hpc_data.py"]
+
+
   secrets:
     OPENAI_API_KEY:
     ACLED_API_KEY:
