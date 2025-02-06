@@ -1,17 +1,13 @@
-0 1 * * * /usr/local/bin/python /app/update_ipc_data.py >> /data/ipc_dataprocessing.log 2>&1
+0 1 * * * /usr/local/bin/python /app/update_ipc_data.py >> /app/data/ipc_dataprocessing.log 2>&1
+
+30 1 * * * /usr/local/bin/python /app/update_acaps_protection.py >> /app/data/acaps_protection_dataprocessing.log 2>&1
+
+0 2 * * * /usr/local/bin/python /app/update_acaps_info.py >> /app/data/acaps_info_dataprocessing.log 2>&1
+
+30 2 * * * /usr/local/bin/python /app/update_acled_data.py >> /app/data/acled_dataprocessing.log 2>&1
 
 
-30 1 * * * /usr/local/bin/python /app/update_acaps_protection.py >> /data/acaps_protection_dataprocessing.log 2>&1
+0 3 * * * /usr/local/bin/python /app/update_idmc_data.py >> /app/data/idmc_dataprocessing.log 2>&1
 
-
-0 2 * * * /usr/local/bin/python /app/update_acaps_info.py >> /data/acaps_info_dataprocessing.log 2>&1
-
-
-30 2 * * * /usr/local/bin/python /app/update_acled_data.py >> /data/acled_dataprocessing.log 2>&1
-
-
-0 3 * * * /usr/local/bin/python /app/update_idmc_data.py >> /data/idmc_dataprocessing.log 2>&1
-
-
-30 3 * * * /usr/local/bin/python /app/update_ocha_hpc_data.py >> /data/ocha_hpc_dataprocessing.log 2>&1
+30 3 * * * /usr/local/bin/python /app/update_ocha_hpc_data.py >> /app/data/ocha_hpc_dataprocessing.log 2>&1
 
