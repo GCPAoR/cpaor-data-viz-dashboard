@@ -25,7 +25,7 @@ services:
       - ./data_sources_processing_src/crontab:/etc/cron.d/processing_cron
       - cron_logs:/var/log
       - ./data_sources_processing_src:/app
-    command: cron -f
+    command: bash /app/run_cron.sh
     restart: always
 
 volumes:
