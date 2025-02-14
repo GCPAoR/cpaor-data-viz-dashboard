@@ -10,6 +10,7 @@ WORKDIR /app
 RUN apt-get update && apt-get -y install --no-install-recommends \
     cron \
     curl \
+    tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml poetry.lock /app/
