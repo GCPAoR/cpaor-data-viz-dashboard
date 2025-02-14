@@ -14,6 +14,8 @@ import requests
 from bs4 import BeautifulSoup
 from nltk.tokenize import sent_tokenize, word_tokenize
 from PIL import Image
+import nltk
+nltk.download('punkt_tab')
 from tqdm import tqdm
 
 tqdm.pandas()
@@ -199,15 +201,20 @@ def _get_link(child_link: str):
 
     # Parse the HTML content
     soup = BeautifulSoup(response.text, "html.parser")
-    link = soup.find("a", id=lambda id: id and "Docx" in id).get("href")
-    if not link.startswith("http"):
+    link_tag = soup.find("a", id=lambda id: id and "Docx" in id)
+    link = link_tag.get("href") if link_tag else None 
+
+    if link and not link.startswith("http"):
         if link.startswith("/"):
             link = original_parent_link + link
         else:
-            link = soup.find("a", id=lambda id: id and "pdf" in id.lower()).get("href")
-            doc_type = "pdf"
-            if link.startswith("/"):
-                link = original_parent_link + link
+            link = soup.find("a", id=lambda id: id and "pdf" in id.lower())
+            if link:
+                link= link.get("href")
+                doc_type = "pdf" 
+                if link.startswith("/"):
+                    link = original_parent_link + link
+
 
     return link, doc_type
 
