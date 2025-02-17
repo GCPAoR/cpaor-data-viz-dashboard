@@ -14,8 +14,6 @@ import requests
 from bs4 import BeautifulSoup
 from nltk.tokenize import sent_tokenize, word_tokenize
 from PIL import Image
-import nltk
-nltk.download('punkt_tab')
 from tqdm import tqdm
 
 tqdm.pandas()
