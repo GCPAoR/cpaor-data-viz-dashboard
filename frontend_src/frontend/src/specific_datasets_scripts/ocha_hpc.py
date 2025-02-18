@@ -281,7 +281,6 @@ def display_global_funding():
                 "Funding Received": "#B1DBC3"
             },
             barmode="group",
-            title="Funding Requested vs Funding Received by Year",
             labels={"amount": "Funding Amount (in millions)", "year": "Year"},
             text="amount",
             hover_data={"Total Countries": True}

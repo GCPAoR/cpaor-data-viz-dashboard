@@ -170,3 +170,4 @@ data/datasources/Asia-Pacific_2018-2024_May03.csv
 .DS_Store
 
 .helm-charts/
+data/
