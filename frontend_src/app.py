@@ -6,6 +6,7 @@ import streamlit as st
 from streamlit_local_storage import LocalStorage
 
 from frontend.src.disclaimer.message import show_disclaimer
+from frontend.src.utils.utils_functions import _custom_title
 
 app_icon_path = os.path.join("./frontend/images", "cpaor_icon.png")
 st.set_page_config(page_title="CPAoR", layout="wide", page_icon=app_icon_path)
@@ -63,10 +64,9 @@ else:
         severity_mapping_tag_name_to_color_main_countries,
     )
 
-    st.session_state["title_size"] = 30
-    st.session_state["subtitle_size"] = 25
-    st.session_state["subsubtitle_size"] = 22
-
+    st.session_state["title_size"] = 24
+    st.session_state["subtitle_size"] = 20
+    st.session_state["subsubtitle_size"] = 18
 
     st.session_state["tag_name_to_indicators"] = {
         "Causes and Underlying Factors": [
@@ -253,58 +253,137 @@ else:
 
     main_font_css = """
     <style>
-    button[data-baseweb="tab"] > div[data-testid="stMarkdownContainer"] > p {
-        margin-top: -50px;
-        text-transform: uppercase;
-        font-size: 1.6rem;
-        font-weight: bold;
-        margin: -20px 0px 0px 0px;
-        width: 100%;
-        color: #738462 !important;
-    }
+        .block-container {
+            padding-top: 4rem;
+            padding-bottom: 0rem;
+            margin-top: 1rem;
+        }
+        button[data-baseweb="tab"] > div[data-testid="stMarkdownContainer"] > p {
+            margin-top: -50px;
+            text-transform: uppercase;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: -20px 0px 0px 0px;
+            width: 100%;
+            color: #738462 !important;
+        }
+
+        div .stRadio > div[role="radiogroup"] {
+            display: flex;
+            flex-direction: row;
+        }
+
+        div .stRadio > div[role="radiogroup"] > label {
+            margin-right: 0;
+            padding-right: 0;
+            flex-grow: 1;
+        }
+
+        div .stRadio > div[role="radiogroup"] > label[data-baseweb="radio"] > div:first-child{
+            display: none;
+        }
+
+        input[type="radio"] + div {
+            width: 100%;
+            padding: 0;
+        }
+
+        input[type="radio"] + div > div {
+            padding: 0;
+        }
+        input[type="radio"] + div > div > p {
+            padding: 0.2rem 0.8rem 0.4rem 0.8rem;
+            text-transform: uppercase;
+            text-align: center;
+            color: #738462;
+            font-weight: bold;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        input[type="radio"]:checked + div > div > p {
+            border-bottom: 2px solid rgb(255, 75, 75);
+        }
     </style>
     """
     st.markdown(main_font_css, unsafe_allow_html=True)
 
-    st.session_state["tabs"] = st.tabs(  # Names of the tabs
-        [
-            "Global Overview",
-            "Country Profile",
-            "Legal Framework",
-            "Protection Concerns",
-            "Breakdown by Crisis",
-            "Methodology",
-        ]
-    )
-
     ######### DISPLAY THE TABS #########
 
-    with st.sidebar:
-        selected_country = _country_selection_filter("country-profile")
+    with st.container():
+        logo_col, tabs_col = st.columns(
+            [0.12, 0.88],
+            vertical_alignment="bottom",
+        )
+        with logo_col:
+            st.image(
+                os.path.join(
+                    "frontend",
+                    "images",
+                    "LOGO_AoR_high_res_NoBackground.png",
+                ),
+                width=100,
+            )
+        with tabs_col:
+            st.session_state["tabs"] = st.radio(
+                'asda', [
+                    "Global Overview",
+                    "Country Profile",
+                    "Legal Framework",
+                    "Protection Concerns",
+                    "Breakdown by Crisis",
+                    "Methodology",
+                ],
+                label_visibility="collapsed",
+            )
 
-    with st.session_state["tabs"][0]:
-        with st.container():
-            main_page()
-    with st.session_state["tabs"][1]:
-        _show_header(
-            text=f"{selected_country} Country Profile",
-        )
-        _display_all_data(selected_country)
-    with st.session_state["tabs"][2]:
-        _show_header(
-            text=f"{selected_country} Legal Framework",
-        )
-        country_wise_legal_framework(selected_country, display_detailed_results=True)
-    with st.session_state["tabs"][3]:
-        # _show_header(
-        #     text=f"{selected_country} Protection Concerns",
-        # )
-        _display_protection_data(selected_country)
-    with st.session_state["tabs"][4]:
-        _show_header(
-            text=f"{selected_country} Breakdown by Crisis",
-        )
-        _display_crisis_wise_analysis(selected_country)
-    with st.session_state["tabs"][5]:
-        _show_header(text="Methodological Overview")
-        _show_methodological_details()
+    with st.container():
+        with st.container(border=True):
+            _custom_title("Filters", font_size=16)
+            with st.container():
+                year_filter_column, country_filter_column, empty_div = st.columns(
+                    [1, 1, 2],
+                    vertical_alignment="bottom",
+                )
+                with year_filter_column:
+                    st.session_state["selected_year"] = st.selectbox(
+                        "Year",
+                        list([2020, 2021, 2022, 2023, 2024, 2025]),
+                        index=0,
+                        key="selected-year",
+                    )
+                with country_filter_column:
+                    st.session_state["selected_country"] = _country_selection_filter(
+                        "country-profile",
+                        st.session_state["tabs"] == "Global Overview"
+                    )
+                    selected_country = st.session_state["selected_country"]
+                with empty_div:
+                    st.empty()
+
+        if st.session_state["tabs"] == "Global Overview":
+            with st.container():
+                main_page()
+        if st.session_state["tabs"] == "Country Profile":
+            _show_header(
+                text=f"{selected_country} Country Profile",
+            )
+            _display_all_data(selected_country)
+        if st.session_state["tabs"] == "Legal Framework":
+            _show_header(
+                text=f"{selected_country} Legal Framework",
+            )
+            country_wise_legal_framework(selected_country, display_detailed_results=True)
+        if st.session_state["tabs"] == "Protection Concerns":
+            # _show_header(
+            #     text=f"{selected_country} Protection Concerns",
+            # )
+            _display_protection_data(selected_country)
+        if st.session_state["tabs"] == "Breakdown by Crisis":
+            _show_header(
+                text=f"{selected_country} Breakdown by Crisis",
+            )
+            _display_crisis_wise_analysis(selected_country)
+        if st.session_state["tabs"] == "Methodology":
+            _show_header(text="Methodological Overview")
+            _show_methodological_details()
