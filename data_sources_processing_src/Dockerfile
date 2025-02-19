@@ -10,6 +10,7 @@ WORKDIR /app
 RUN apt-get update && apt-get -y install --no-install-recommends \
     cron \
     curl \
+    tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml poetry.lock /app/
@@ -33,4 +34,4 @@ RUN pip install --upgrade --no-cache-dir pip poetry \
 
 COPY . /app/
 
-RUN python -m nltk.downloader punkt
+RUN [ "python3", "-c", "import nltk; nltk.download('punkt_tab', download_dir='/usr/local/nltk_data')" ]

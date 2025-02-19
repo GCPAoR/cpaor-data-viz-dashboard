@@ -118,10 +118,10 @@ if __name__ == "__main__":
     if not os.path.exists(os.path.join(output_datasets_path, "ohchr", "results")):
         logger.info("---------------- Processing ohchr ----------------")
         # Change directory to 'ohchr'
-        os.chdir("ohchr")
+        os.chdir("data_sources_processing/ohchr")
 
         # Run the first script
-        subprocess.run(["python", "scrape_articles", "--use_sample=false"])
+        subprocess.run(["python", "scrape_articles.py", "--use_sample=false"])
 
         # Run the second script
-        subprocess.run(["python", "prepare_final_results", "--use_sample=false"])
+        subprocess.run(["python", "prepare_final_results.py", "--use_sample=false"])
