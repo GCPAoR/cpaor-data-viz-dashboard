@@ -148,7 +148,7 @@ def _display_protection_data(selected_country: str):
     # for breakdown in st.session_state[f"possible_breakdowns_{selected_country}"]:
     if breakdown:
         _display_detailed_summaries(selected_country, breakdown)
-    # _add_blank_space(2)
+    _add_blank_space(2)
 
 
 @st.fragment

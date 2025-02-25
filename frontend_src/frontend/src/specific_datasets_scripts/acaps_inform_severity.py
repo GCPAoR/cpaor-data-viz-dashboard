@@ -41,6 +41,16 @@ def _load_information_severity_index_data():
         df_countries["Last updated"]
     ).dt.strftime("%d-%m-%Y")
 
+    # if "selected-year" not in st.session_state:
+    #    st.session_state["selected-year"] = 2020
+
+    # df_countries["Year"] = df_countries["Last updated"].apply(lambda x: x.split("-")[-1])
+    # df_countries = df_countries[df_countries["Year"] == st.session_state["selected-year"]]
+
+    # if df_countries.empty:
+    #    st.session_state["inform_severity_last_updated"] = st.session_state["selected-year"]
+    #    return pd.DataFrame({})
+
     df_countries = df_countries[
         df_countries.COUNTRY.isin(st.session_state["countries"])
     ].rename(columns={"INFORM Severity category.1": "INFORM Severity category name"})

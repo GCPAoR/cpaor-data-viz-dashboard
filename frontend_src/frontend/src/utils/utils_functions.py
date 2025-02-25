@@ -43,21 +43,44 @@ def _load_protection_indicators_data(selected_country: str):
     Function to load the protection data
     """
 
-    if f"protection_df_{selected_country}" not in st.session_state:
+    if (f"protection_df_{selected_country}" not in st.session_state) or (
+        f"protection_df_max_date_{selected_country}" in st.session_state and
+        st.session_state[f"protection_df_max_date_{selected_country}"] != st.session_state["selected-year"]
+    ):
         df_path = os.path.join(
             st.session_state["protection_data_path"],
             f"{selected_country}.csv",
         )
         if os.path.exists(df_path):
-            st.session_state[f"protection_df_{selected_country}"] = pd.read_csv(
-                df_path,
-                # index_col=[0, 1, 2, 3, 4],
-            )  # .reset_index()
-            st.session_state[f"protection_df_{selected_country}"]["Source Date"] = (
-                pd.to_datetime(
-                    st.session_state[f"protection_df_{selected_country}"]["Source Date"], errors='coerce'
-                ).dt.strftime("%d %b %Y")
-            )
+            temp_protection_df = pd.read_csv(df_path)
+            temp_protection_df["Source Date"] = pd.to_datetime(temp_protection_df["Source Date"], errors="coerce")
+            temp_protection_df["Year"] = temp_protection_df["Source Date"].dt.year
+            temp_protection_df["Source Date"] = pd.to_datetime(temp_protection_df["Source Date"], errors="coerce").dt.strftime("%d %b %Y")
+
+            if "selected-year" not in st.session_state:
+                st.session_state["selected-year"] = 2020
+            temp_protection_df = temp_protection_df[temp_protection_df["Year"] == st.session_state["selected-year"]]
+            
+            st.session_state[f"protection_df_{selected_country}"] = temp_protection_df
+
+            # st.session_state[f"protection_df_{selected_country}"] = pd.read_csv(
+            #     df_path,
+            #     # index_col=[0, 1, 2, 3, 4],
+            # )  # .reset_index()
+            # st.session_state[f"protection_df_{selected_country}"]["Source Date"] = (
+            #     pd.to_datetime(
+            #         st.session_state[f"protection_df_{selected_country}"]["Source Date"], errors='coerce'
+            #     ) #.dt.strftime("%d %b %Y")
+            # )
+            # st.session_state[f"protection_df_{selected_country}"]["Year"] = st.session_state[f"protection_df_{selected_country}"]["Source Date"].dt.year
+
+            # st.session_state[f"protection_df_{selected_country}"]["Source Date"] = (
+            #     pd.to_datetime(
+            #         st.session_state[f"protection_df_{selected_country}"]["Source Date"], errors='coerce'
+            #     ).dt.strftime("%d %b %Y")
+            # )
+
+            # st.session_state[f"protection_df_{selected_country}"] = st.session_state[f"protection_df_{selected_country}"][]
 
             st.session_state[f"possible_breakdowns_{selected_country}"] = [
                 b
@@ -67,16 +90,19 @@ def _load_protection_indicators_data(selected_country: str):
                 if b != "1 - General Summary"
             ]
 
-            st.session_state[f"protection_df_max_date_{selected_country}"] = (
-                pd.to_datetime(
-                    st.session_state[f"protection_df_{selected_country}"][
-                        "Source Date"
-                    ],
-                    format="%d %b %Y",
+            if st.session_state[f"protection_df_{selected_country}"].empty:
+                st.session_state[f"protection_df_max_date_{selected_country}"] = st.session_state["selected-year"]
+            else:
+                st.session_state[f"protection_df_max_date_{selected_country}"] = (
+                    pd.to_datetime(
+                        st.session_state[f"protection_df_{selected_country}"][
+                            "Source Date"
+                        ],
+                        format="%d %b %Y",
+                    )
+                    .max()
+                    .strftime("%m-%Y")
                 )
-                .max()
-                .strftime("%m-%Y")
-            )
         else:
             st.session_state[f"protection_df_{selected_country}"] = pd.DataFrame(
                 columns=[

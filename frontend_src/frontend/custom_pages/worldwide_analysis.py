@@ -38,10 +38,10 @@ def main_page():
 
     with st.container():
         _custom_title(
-            f"Key Indicators ({st.session_state['ocha_hpc_max_year']})",
+            f"Key Indicators ({st.session_state['selected-year']})",
             st.session_state["subtitle_size"],
             source="OCHA HPC Plans Summary API",
-            date=st.session_state["ocha_hpc_max_year"],
+            date=st.session_state["selected-year"],
         )
 
         # Define the custom style for the first box
@@ -161,7 +161,7 @@ def main_page():
                 "Top Countries- % Child Protection Caseload (in Need) vs Total PiN",
                 st.session_state["subtitle_size"],
                 source="OCHA HPC Plans Summary API",
-                date=st.session_state["ocha_hpc_max_year"],
+                date=st.session_state["selected-year"],
             )
             _display_top_countries_with_children_in_need()
 

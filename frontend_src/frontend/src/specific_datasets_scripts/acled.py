@@ -68,10 +68,14 @@ def _display_number_of_events_targetting_civilians(selected_country: str):
     one_country_number_of_events_targeting_civilians = st.session_state[
         "number_of_events_targeting_civilians_df"
     ][
-        st.session_state["number_of_events_targeting_civilians_df"].country
-        == selected_country
+        (st.session_state["number_of_events_targeting_civilians_df"].country == selected_country)
+        & (st.session_state["number_of_events_targeting_civilians_df"].year <= st.session_state["selected-year"])
     ].copy()
     # st.dataframe(one_country_number_of_events_targeting_civilians)
+
+    one_country_number_of_events_targeting_civilians.reset_index(drop=True, inplace=True)
+
+    one_country_number_of_events_targeting_civilians['year'] = one_country_number_of_events_targeting_civilians['year'].astype(int)
 
     if len(one_country_number_of_events_targeting_civilians) > 0:
         one_country_number_of_events_targeting_civilians.sort_values(by="year", inplace=True)
@@ -81,7 +85,8 @@ def _display_number_of_events_targetting_civilians(selected_country: str):
             margin_bottom=20,
             font_size=st.session_state["subtitle_size"],
             source="ACLED",
-            date=st.session_state["acled_last_updated"],
+            # date=st.session_state["acled_last_updated"],
+            date=st.session_state['selected-year']
         )
         fig = px.line(
             one_country_number_of_events_targeting_civilians,
@@ -103,7 +108,15 @@ def _display_number_of_events_targetting_civilians(selected_country: str):
             yaxis_tickfont=dict(size=14),  # Bigger y-axis tick labels
             legend_title_font=dict(size=16),  # Bigger legend title font
             legend_font=dict(size=14),  # Bigger legend text,
+            margin=dict(t=50, b=50, l=50, r=50)
             # title=None
+        )
+        fig.update_xaxes(
+            dtick=1,  # Show every year
+            range=[
+                min(one_country_number_of_events_targeting_civilians['year']),
+                max(one_country_number_of_events_targeting_civilians['year'])
+            ]  # Ensure the x-axis covers all years
         )
         st.plotly_chart(fig, use_container_width=True)
 

@@ -227,11 +227,11 @@ def _get_ratio_children_targeted_to_children_in_need():
     number_of_countries = df.shape[0]
     return ratio, number_of_countries
 
+
 def _get_cp_beneficiaries():
-    current_year = datetime.now().year
     df = st.session_state["ocha_hpc_global_funding_df"].copy()
-    assert current_year == st.session_state["ocha_hpc_max_year"]
-    df = df[df["year"] == st.session_state["ocha_hpc_max_year"]]
+    df = df[df["year"] == st.session_state["selected-year"]]
+    df.reset_index(drop=True, inplace=True)
     cp_beneficiaries = df["cp_beneficiaries"].iat[0]
     if cp_beneficiaries >= 1_000_000:
         cp_beneficiaries = f"{round(cp_beneficiaries/1_000_000, 2)} million"
@@ -240,14 +240,14 @@ def _get_cp_beneficiaries():
 
 
 def _get_ratio_global_funding():
-    current_year = datetime.now().year
     df = st.session_state["ocha_hpc_global_funding_df"].copy()
-    assert current_year == st.session_state["ocha_hpc_max_year"]
-    df = df[df["year"] == st.session_state["ocha_hpc_max_year"]]
+    df = df[df["year"] == st.session_state["selected-year"]]
+    df.reset_index(drop=True, inplace=True)
     ratio = df["funding_received"].iat[0] / df["funding_requested"].iat[0]
     ratio = _get_percentage(ratio)
     total_countries = df["total_countries"].iat[0]
     return ratio, total_countries
+
 
 def display_global_funding():
     """Plot a grouped barchart related to funding"""
@@ -305,12 +305,12 @@ def country_mapping(country: str):
 
 def display_country_level_funding(selected_country: str):
     """Plot a grouped barchart related to funding"""
-    year = datetime.now().year
+    year = st.session_state["selected-year"]
     selected_country = country_mapping(selected_country)
 
     df = st.session_state["ocha_hpc_country_funding_df"]
     df = df[(df["country"] == selected_country) & (df["year"] == year)]
-
+    df.reset_index(drop=True, inplace=True)
     if len(df) > 0:
         funding_requested = df["funding_requested"].iat[0]
         funding_received = df["funding_received"].iat[0]
@@ -347,12 +347,12 @@ def display_country_level_funding(selected_country: str):
 
 def display_cp_beneficiaries(selected_country: str):
     """Plot a grouped barchart related to funding"""
-    year = datetime.now().year
+    year = st.session_state["selected-year"]
     selected_country = country_mapping(selected_country)
 
     df = st.session_state["all_pin_data"]
     df = df[(df["country"] == selected_country) & (df["year"] == year)]
-
+    df.reset_index(drop=True, inplace=True)
     if len(df) > 0:
         cp_beneficiaries = df["cp_beneficiaries"].iat[0]
         cp_targeted = df["cp_targeted"].iat[0]
@@ -425,7 +425,9 @@ def _get_country_wise_pin_data(df: pd.DataFrame):
     # ]
 
     all_pin_data = df.copy()
-    all_pin_data = all_pin_data[all_pin_data["year"] == 2024]
+    if "selected-year" not in st.session_state:
+        st.session_state["selected-year"] = 2020
+    all_pin_data = all_pin_data[all_pin_data["year"] == st.session_state["selected-year"]]
     all_pin_data = (
         all_pin_data[
             (~all_pin_data["children_in_need"].isna())
@@ -473,22 +475,32 @@ def _get_country_wise_children_in_need_data(df: pd.DataFrame):
     ].dropna()
 
     for one_country in all_pin_data.country.unique():
-        one_country_df = all_pin_data[all_pin_data.country == one_country]
-        one_col_one_country_df = one_country_df.sort_values(
-            "year", ascending=False
-        ).iloc[0]
+        one_col_one_country_df = all_pin_data[
+            (all_pin_data["country"] == one_country) &
+            (all_pin_data["year"] == st.session_state["selected-year"])
+        ]
+        one_col_one_country_df.reset_index(drop=True, inplace=True)
+
+        if one_col_one_country_df.empty:
+            continue
+        # one_col_one_country_df = one_country_df.sort_values(
+        #     "year", ascending=False
+        # ).iloc[0] # latest year
+
         results_one_country = {"country": one_country}
 
         results_one_col = round(
-            one_col_one_country_df["children_in_need"]
-            / one_col_one_country_df["tot_pop_in_need"],
+            one_col_one_country_df["children_in_need"][0]
+            / one_col_one_country_df["tot_pop_in_need"][0],
             2,
         )
+
         results_one_country["children_in_need"] = int(
-            one_col_one_country_df["children_in_need"]
+            one_col_one_country_df["children_in_need"][0]
         )
         results_one_country["proportion_children_in_need"] = results_one_col
-        results_one_country["year"] = one_col_one_country_df["year"]
+        results_one_country["year"] = one_col_one_country_df["year"][0]
+
         country_wise_results = country_wise_results._append(
             results_one_country, ignore_index=True
         )
@@ -511,6 +523,8 @@ def _display_pin_stackbar(selected_country: str):
     country_specific_df = country_informations[
         country_informations["country"] == selected_country
     ]
+    country_specific_df.reset_index(drop=True, inplace=True)
+
     if len(country_specific_df) > 0:
         children_in_need = country_specific_df["children_in_need"].values[0]
         children_targeted = country_specific_df["targeted_children"].values[0]
@@ -561,6 +575,13 @@ def _display_pin_stackbar(selected_country: str):
             "Child Protection Caseload",
             st.session_state["subtitle_size"],
             source="OCHA HPC Plans Summary API",
-            date="2024",
+            date=st.session_state["selected-year"],
         )
-        _display_stackbar(numbers_values)
+        if (
+            total_people_in_need
+            and ratio_children_targeted_total_people
+            and ratio_children_in_need_total_people_in_need
+        ):
+            _display_stackbar(numbers_values)
+        else:
+            st.markdown("Not enough or valid data available to create the plot.")

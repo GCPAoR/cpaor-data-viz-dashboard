@@ -105,7 +105,12 @@ def _get_displacement_numbers(selected_country: str):
     source_name = "IDMC, GRID"
 
     country_df = st.session_state["idmc_df"].copy()
-    country_df = country_df[country_df["Country"] == selected_country]
+
+    country_df = country_df[
+        (country_df["Country"] == selected_country) &
+        (country_df["Year"] == st.session_state["selected-year"])
+    ]
+    country_df.reset_index(drop=True, inplace=True)
 
     if len(country_df) == 0:
         _custom_title(
@@ -115,8 +120,10 @@ def _get_displacement_numbers(selected_country: str):
         )
         st.write("No data available for this country")
         return
-
+    # Note: The below is same as assigning st.session_state["selected-year"]
+    # as we are filtering based on "selected-year" key above.
     st.session_state["idmc_last_updated"] = country_df["Year"].max()
+
     _custom_title(
         "Displacement",
         font_size=st.session_state["subtitle_size"],
