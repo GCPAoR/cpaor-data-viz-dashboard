@@ -111,6 +111,10 @@ def _display_evolution_data():
         .copy()[["country", "year", "children_in_need"]]
         .dropna()
     )
+
+    df = df[df["year"] <= st.session_state["selected-year"]]
+    df.reset_index(drop=True, inplace=True)
+
     # group by year and keep three columns, one for the year,
     # one for the sum of children in need and one for the number of country
     grouped_df = (
