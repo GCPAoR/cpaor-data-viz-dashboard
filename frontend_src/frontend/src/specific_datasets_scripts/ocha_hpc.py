@@ -252,6 +252,12 @@ def _get_ratio_global_funding():
 def display_global_funding():
     """Plot a grouped barchart related to funding"""
     global_funding_df = st.session_state["ocha_hpc_global_funding_df"]
+    # Filter based on selected year
+    global_funding_df = global_funding_df[
+        global_funding_df["year"] <= st.session_state["selected-year"]
+    ]
+    global_funding_df.reset_index(drop=True, inplace=True)
+
     global_funding_df.rename(
         columns={
             "funding_requested": "Funding Requested",
