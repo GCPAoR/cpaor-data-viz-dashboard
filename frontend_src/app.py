@@ -348,8 +348,8 @@ else:
                 with year_filter_column:
                     st.session_state["selected_year"] = st.selectbox(
                         "Year",
-                        list([2020, 2021, 2022, 2023, 2024, 2025]),
-                        index=0,
+                        [2020, 2021, 2022, 2023, 2024, 2025],
+                        index=4,
                         key="selected-year",
                     )
                 with country_filter_column:

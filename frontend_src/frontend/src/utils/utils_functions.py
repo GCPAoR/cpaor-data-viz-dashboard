@@ -58,7 +58,7 @@ def _load_protection_indicators_data(selected_country: str):
             temp_protection_df["Source Date"] = pd.to_datetime(temp_protection_df["Source Date"], errors="coerce").dt.strftime("%d %b %Y")
 
             if "selected-year" not in st.session_state:
-                st.session_state["selected-year"] = 2020
+                st.session_state["selected-year"] = 2024
             temp_protection_df = temp_protection_df[temp_protection_df["Year"] == st.session_state["selected-year"]]
             
             st.session_state[f"protection_df_{selected_country}"] = temp_protection_df

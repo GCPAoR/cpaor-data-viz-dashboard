@@ -436,7 +436,7 @@ def _get_country_wise_pin_data(df: pd.DataFrame):
 
     all_pin_data = df.copy()
     if "selected-year" not in st.session_state:
-        st.session_state["selected-year"] = 2020
+        st.session_state["selected-year"] = 2024
     all_pin_data = all_pin_data[all_pin_data["year"] == st.session_state["selected-year"]]
     all_pin_data = (
         all_pin_data[
