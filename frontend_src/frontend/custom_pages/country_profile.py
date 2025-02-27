@@ -108,7 +108,3 @@ def _display_all_data(selected_country: str):
         "Children’s mental and physical health", st.session_state["subtitle_size"]
     )
     st.markdown("No data available for this indicator.")
-
-   
-
-    

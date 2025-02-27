@@ -25,12 +25,18 @@ def _load_acled_data():
     number_of_events_targeting_civilians_df = pd.read_csv(
         number_of_events_targeting_civilians_df_path
     )
+
+    number_of_events_targeting_civilians_df = number_of_events_targeting_civilians_df[
+        number_of_events_targeting_civilians_df["year"] <= st.session_state["selected-year"]
+    ]
+
+    number_of_events_targeting_civilians_df.reset_index(drop=True, inplace=True)
+
     number_of_events_targeting_civilians_df["country"] = (
         number_of_events_targeting_civilians_df["country"].replace(
             number_of_events_targeting_civilians_countries_mapping
         )
     )
-    # st.dataframe(number_of_events_targeting_civilians_df)
 
     st.session_state["number_of_events_targeting_civilians_df"] = (
         number_of_events_targeting_civilians_df
@@ -68,10 +74,14 @@ def _display_number_of_events_targetting_civilians(selected_country: str):
     one_country_number_of_events_targeting_civilians = st.session_state[
         "number_of_events_targeting_civilians_df"
     ][
-        st.session_state["number_of_events_targeting_civilians_df"].country
-        == selected_country
+        (st.session_state["number_of_events_targeting_civilians_df"].country == selected_country)
+        & (st.session_state["number_of_events_targeting_civilians_df"].year <= st.session_state["selected-year"])
     ].copy()
     # st.dataframe(one_country_number_of_events_targeting_civilians)
+
+    one_country_number_of_events_targeting_civilians.reset_index(drop=True, inplace=True)
+
+    one_country_number_of_events_targeting_civilians['year'] = one_country_number_of_events_targeting_civilians['year'].astype(int)
 
     if len(one_country_number_of_events_targeting_civilians) > 0:
         one_country_number_of_events_targeting_civilians.sort_values(by="year", inplace=True)
@@ -81,7 +91,8 @@ def _display_number_of_events_targetting_civilians(selected_country: str):
             margin_bottom=20,
             font_size=st.session_state["subtitle_size"],
             source="ACLED",
-            date=st.session_state["acled_last_updated"],
+            # date=st.session_state["acled_last_updated"],
+            date=st.session_state['selected-year']
         )
         fig = px.line(
             one_country_number_of_events_targeting_civilians,
@@ -103,7 +114,15 @@ def _display_number_of_events_targetting_civilians(selected_country: str):
             yaxis_tickfont=dict(size=14),  # Bigger y-axis tick labels
             legend_title_font=dict(size=16),  # Bigger legend title font
             legend_font=dict(size=14),  # Bigger legend text,
+            margin=dict(t=50, b=50, l=50, r=50)
             # title=None
+        )
+        fig.update_xaxes(
+            dtick=1,  # Show every year
+            range=[
+                min(one_country_number_of_events_targeting_civilians['year']),
+                max(one_country_number_of_events_targeting_civilians['year'])
+            ]  # Ensure the x-axis covers all years
         )
         st.plotly_chart(fig, use_container_width=True)
 
@@ -156,6 +175,19 @@ def _display_acled_map_data(selected_country: str):
             st.session_state["events_list"]
         )
 
+    displayed_df = st.session_state[f"events_dataset_{selected_country}"].copy()
+    displayed_df["event_date"] = pd.to_datetime(displayed_df["event_date"])
+
+    displayed_df = displayed_df[
+        displayed_df["event_date"].dt.year == st.session_state["selected-year"]
+    ]
+
+    if displayed_df.empty:
+        st.markdown(
+            f"No information available for the year {st.session_state['selected-year']}"
+        )
+        return
+
     with st.container():
         filter_col, date_range_col = st.columns([0.5, 0.5])
 
@@ -181,8 +213,6 @@ def _display_acled_map_data(selected_country: str):
             elif past_date == "Past 2 years":
                 start_date = today_date - pd.DateOffset(months=24)
 
-    displayed_df = st.session_state[f"events_dataset_{selected_country}"].copy()
-    displayed_df["event_date"] = pd.to_datetime(displayed_df["event_date"])
     displayed_df = displayed_df[displayed_df["event_date"] >= start_date]
     if event_type != "All":
         displayed_df = displayed_df[displayed_df["event_type"] == event_type]
@@ -192,8 +222,5 @@ def _display_acled_map_data(selected_country: str):
     st.markdown(
         f"**Events Map ({event_text}, {past_date}, {displayed_df.shape[0]} total events)**"
     )
-
-    # st.dataframe(displayed_df)
-
     # Add more content here
     _display_map_img(displayed_df, selected_country)

@@ -1,7 +1,7 @@
 import streamlit as st
 from frontend.src.utils.utils_functions import (
     _add_blank_space, _custom_title, _display_bullet_point_as_highlighted_text,
-    _load_protection_indicators_data, _show_logo)
+    _load_protection_indicators_data)
 
 
 @st.fragment
@@ -116,17 +116,12 @@ def _display_protection_data(selected_country: str):
     breakdown = None
 
     with st.container():
-        # logo_col, _, filter_col, _ = st.columns([0.1, 0.01, 0.39, 0.5])
-        filter_col, logo_col = st.columns([0.86, 0.14])
-        with logo_col:
-            _show_logo()
-        with filter_col:
-            _custom_title(
-                f"{selected_country} Protection Concerns",
-                font_size=40,
-                source="ACAPS, Protection Indicators",
-                date=st.session_state[f"protection_df_max_date_{selected_country}"],
-            )
+        _custom_title(
+            f"{selected_country} Protection Concerns",
+            font_size=40,
+            source="ACAPS, Protection Indicators",
+            date=st.session_state[f"protection_df_max_date_{selected_country}"],
+        )
 
     indicator_list = [
         i
@@ -153,7 +148,7 @@ def _display_protection_data(selected_country: str):
     # for breakdown in st.session_state[f"possible_breakdowns_{selected_country}"]:
     if breakdown:
         _display_detailed_summaries(selected_country, breakdown)
-    # _add_blank_space(2)
+    _add_blank_space(2)
 
 
 @st.fragment

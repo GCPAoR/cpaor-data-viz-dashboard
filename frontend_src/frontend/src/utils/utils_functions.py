@@ -43,21 +43,44 @@ def _load_protection_indicators_data(selected_country: str):
     Function to load the protection data
     """
 
-    if f"protection_df_{selected_country}" not in st.session_state:
+    if (f"protection_df_{selected_country}" not in st.session_state) or (
+        f"protection_df_max_date_{selected_country}" in st.session_state and
+        st.session_state[f"protection_df_max_date_{selected_country}"] != st.session_state["selected-year"]
+    ):
         df_path = os.path.join(
             st.session_state["protection_data_path"],
             f"{selected_country}.csv",
         )
         if os.path.exists(df_path):
-            st.session_state[f"protection_df_{selected_country}"] = pd.read_csv(
-                df_path,
-                # index_col=[0, 1, 2, 3, 4],
-            )  # .reset_index()
-            st.session_state[f"protection_df_{selected_country}"]["Source Date"] = (
-                pd.to_datetime(
-                    st.session_state[f"protection_df_{selected_country}"]["Source Date"], errors='coerce'
-                ).dt.strftime("%d %b %Y")
-            )
+            temp_protection_df = pd.read_csv(df_path)
+            temp_protection_df["Source Date"] = pd.to_datetime(temp_protection_df["Source Date"], errors="coerce")
+            temp_protection_df["Year"] = temp_protection_df["Source Date"].dt.year
+            temp_protection_df["Source Date"] = pd.to_datetime(temp_protection_df["Source Date"], errors="coerce").dt.strftime("%d %b %Y")
+
+            if "selected-year" not in st.session_state:
+                st.session_state["selected-year"] = 2024
+            temp_protection_df = temp_protection_df[temp_protection_df["Year"] == st.session_state["selected-year"]]
+            
+            st.session_state[f"protection_df_{selected_country}"] = temp_protection_df
+
+            # st.session_state[f"protection_df_{selected_country}"] = pd.read_csv(
+            #     df_path,
+            #     # index_col=[0, 1, 2, 3, 4],
+            # )  # .reset_index()
+            # st.session_state[f"protection_df_{selected_country}"]["Source Date"] = (
+            #     pd.to_datetime(
+            #         st.session_state[f"protection_df_{selected_country}"]["Source Date"], errors='coerce'
+            #     ) #.dt.strftime("%d %b %Y")
+            # )
+            # st.session_state[f"protection_df_{selected_country}"]["Year"] = st.session_state[f"protection_df_{selected_country}"]["Source Date"].dt.year
+
+            # st.session_state[f"protection_df_{selected_country}"]["Source Date"] = (
+            #     pd.to_datetime(
+            #         st.session_state[f"protection_df_{selected_country}"]["Source Date"], errors='coerce'
+            #     ).dt.strftime("%d %b %Y")
+            # )
+
+            # st.session_state[f"protection_df_{selected_country}"] = st.session_state[f"protection_df_{selected_country}"][]
 
             st.session_state[f"possible_breakdowns_{selected_country}"] = [
                 b
@@ -67,16 +90,19 @@ def _load_protection_indicators_data(selected_country: str):
                 if b != "1 - General Summary"
             ]
 
-            st.session_state[f"protection_df_max_date_{selected_country}"] = (
-                pd.to_datetime(
-                    st.session_state[f"protection_df_{selected_country}"][
-                        "Source Date"
-                    ],
-                    format="%d %b %Y",
+            if st.session_state[f"protection_df_{selected_country}"].empty:
+                st.session_state[f"protection_df_max_date_{selected_country}"] = st.session_state["selected-year"]
+            else:
+                st.session_state[f"protection_df_max_date_{selected_country}"] = (
+                    pd.to_datetime(
+                        st.session_state[f"protection_df_{selected_country}"][
+                            "Source Date"
+                        ],
+                        format="%d %b %Y",
+                    )
+                    .max()
+                    .strftime("%m-%Y")
                 )
-                .max()
-                .strftime("%m-%Y")
-            )
         else:
             st.session_state[f"protection_df_{selected_country}"] = pd.DataFrame(
                 columns=[
@@ -93,24 +119,17 @@ def _load_protection_indicators_data(selected_country: str):
             st.session_state[f"protection_df_max_date_{selected_country}"] = "-"
 
 
-def _country_selection_filter(filter_name: str, country_index: Optional[int] = None):
+def _country_selection_filter(filter_name: str, disabled: Optional[bool]):
     """
     Function to display the country selection filter, save the selected country and load the protection data.
     """
-    _custom_title("Select a country", font_size=25)
-    used_country_index = country_index if country_index is not None else 0
-    # select one country
-    # save the selected country
-
     selected_country = st.selectbox(
-        "Select a country",
+        "Country",
         list(st.session_state["countries"].keys()),
-        index=used_country_index,
+        index=0,
         key=filter_name,
-        label_visibility="collapsed",
+        disabled=disabled,
     )
-
-    # country_index = st.session_state["countries"][selected_country]
 
     _load_protection_indicators_data(selected_country)
     return selected_country
@@ -118,16 +137,7 @@ def _country_selection_filter(filter_name: str, country_index: Optional[int] = N
 
 def _show_header(text: str):
     with st.container():
-        # logo_col, _, filter_col, _ = st.columns([0.1, 0.01, 0.39, 0.5])
-        filter_col, logo_col = st.columns([0.86, 0.14])
-        with logo_col:
-            _show_logo()
-        with filter_col:
-            _custom_title(text, font_size=40)
-    #     with filter_col:
-    #         selected_country = _country_selection_filter(filter_name, country_index)
-
-    # return selected_country
+        _custom_title(text, font_size=24)
 
 
 def _add_source(source: str, margin_bottom: int):
@@ -181,13 +191,6 @@ def _custom_title(
 
     if additional_text:
         _add_source(additional_text, margin_bottom)
-
-
-def _show_logo():
-    st.image(
-        os.path.join("frontend", "images", "LOGO_AoR_high_res_NoBackground.png"),
-        width=150,
-    )
 
 
 def _get_percentage(number):
