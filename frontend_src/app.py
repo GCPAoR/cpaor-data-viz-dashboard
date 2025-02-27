@@ -320,7 +320,7 @@ else:
                 os.path.join(
                     "frontend",
                     "images",
-                    "LOGO_AoR_high_res_NoBackground.png",
+                    "cpaor_icon.png",
                 ),
                 width=100,
             )
@@ -346,16 +346,19 @@ else:
                     vertical_alignment="bottom",
                 )
                 with year_filter_column:
+                    disable_year_selection = st.session_state["tabs"] == "Methodology" or st.session_state["tabs"] == "Methodology"
                     st.session_state["selected_year"] = st.selectbox(
                         "Year",
                         [2020, 2021, 2022, 2023, 2024, 2025],
                         index=4,
                         key="selected-year",
+                        disabled=disable_year_selection,
                     )
                 with country_filter_column:
+                    disable_country_selection = st.session_state["tabs"] == "Global Overview" or st.session_state["tabs"] == "Methodology"
                     st.session_state["selected_country"] = _country_selection_filter(
                         "country-profile",
-                        st.session_state["tabs"] == "Global Overview"
+                        disable_country_selection,
                     )
                     selected_country = st.session_state["selected_country"]
                 with empty_div:
@@ -387,3 +390,21 @@ else:
         if st.session_state["tabs"] == "Methodology":
             _show_header(text="Methodological Overview")
             _show_methodological_details()
+
+        with st.container():
+            footer_styles = """
+                <style>
+                    .footer {
+                        border-top: 1px solid #cecece;
+                        padding: 2rem 2rem;
+                    }
+                </style>
+                <div class="footer">
+                    This platform has been developed and is maintained by the Global Child Protection Area of Responsibility.
+                    Please contact us at
+                    <a href="mailto:SWZ-gcpaor-data-unit@unicef.org">gcpaor-data-unit@unicef.org</a>
+                    if you have any questions.
+                    For more information about the applications and features, data sources and terms of use, please consult the Methodology page.
+                </div>
+            """
+            st.markdown(footer_styles, unsafe_allow_html=True)
