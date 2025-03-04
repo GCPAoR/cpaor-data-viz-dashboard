@@ -318,41 +318,89 @@ def display_country_level_funding(selected_country: str):
     year = st.session_state["selected-year"]
     selected_country = country_mapping(selected_country)
 
+    _custom_title(
+        "Received Funding vs Requested Funding",
+        st.session_state["subtitle_size"],
+        source="OCHA HPC Plans Summary API",
+        date=f"{min(st.session_state['filter-years'])}-{year}"
+    )
+
     df = st.session_state["ocha_hpc_country_funding_df"]
-    df = df[(df["country"] == selected_country) & (df["year"] == year)]
+    df = df[(df["country"] == selected_country) & (df["year"] <= year)]
     df.reset_index(drop=True, inplace=True)
-    if len(df) > 0:
-        funding_requested = df["funding_requested"].iat[0]
-        funding_received = df["funding_received"].iat[0]
 
-        ratio = funding_received / funding_requested if funding_requested else 0
+    df.rename(
+        columns={
+            "funding_requested": "Funding Requested",
+            "funding_received": "Funding Received"
+        },
+        inplace=True
+    )
 
-        numbers_values = {
-            "title": "Received vs Requested Fundings",
-            "original_numbers": [
-                {
-                    "value": funding_received,
-                    "label": f"Received Funding {_get_abbreviated_number(funding_received)}",
-                    "color": "#9FD5B5",
-                    "number_annotation": f"{round(ratio * 100)}%",
-                },
-                {
-                    "value": funding_requested,
-                    "label": "Requested Funding",
-                    "color": "#d3d3d3",
-                    "number_annotation": f"100%: {_get_abbreviated_number(funding_requested)}\n Requested Funding",
-                },
-            ],
-            "annotation": f"\n\n\n\n{round(ratio * 100)}% ({_get_abbreviated_number(funding_received)}) of funding received.",  # noqa
-            "plot_size": (10, 2.5),
-        }
-        _custom_title(
-            "Received Funding vs Requested Funding",
-            st.session_state["subtitle_size"],
-            source="OCHA HPC Plans Summary API",
-            date=year
+    if len(df):
+        df_melted = df.melt(
+            id_vars=["year"],
+            value_vars=["Funding Requested", "Funding Received"],
+            var_name="Funding Type",
+            value_name="amount",
         )
-        _display_stackbar(numbers_values)
+
+        df_melted["amount"] = df_melted["amount"].apply(lambda x: round(x / 1_000_000, 2))
+
+        fig = px.bar(
+            df_melted,
+            x="year",
+            y="amount",
+            color="Funding Type",
+            color_discrete_map={
+                "Funding Requested": "#D6E9DF",
+                "Funding Received": "#B1DBC3"
+            },
+            barmode="group",
+            labels={"amount": "Funding Amount (in millions)", "year": "Year"},
+            text="amount",
+            text_auto=True
+        )
+        fig.update_traces(
+            texttemplate='%{y:,} million',
+            textposition='outside',
+            textfont=dict(size=30)
+        )
+        st.plotly_chart(fig)
+    else:
+        st.write("No funding related data available.")
+    # if len(df) > 0:
+    #     funding_requested = df["funding_requested"].iat[0]
+    #     funding_received = df["funding_received"].iat[0]
+
+    #     ratio = funding_received / funding_requested if funding_requested else 0
+
+    #     numbers_values = {
+    #         "title": "Received vs Requested Fundings",
+    #         "original_numbers": [
+    #             {
+    #                 "value": funding_received,
+    #                 "label": f"Received Funding {_get_abbreviated_number(funding_received)}",
+    #                 "color": "#9FD5B5",
+    #                 "number_annotation": f"{round(ratio * 100)}%",
+    #             },
+    #             {
+    #                 "value": funding_requested,
+    #                 "label": "Requested Funding",
+    #                 "color": "#d3d3d3",
+    #                 "number_annotation": f"100%: {_get_abbreviated_number(funding_requested)}\n Requested Funding",
+    #             },
+    #         ],
+    #         "annotation": f"\n\n\n\n{round(ratio * 100)}% ({_get_abbreviated_number(funding_received)}) of funding received.",  # noqa
+    #         "plot_size": (10, 2.5),
+    #     }
+    #     _custom_title(
+    #         "Received Funding vs Requested Funding",
+    #         st.session_state["subtitle_size"],
+    #         source="OCHA HPC Plans Summary API",
+    #         date=year
+    #     )
+    #     _display_stackbar(numbers_values)
 
 
 def display_cp_beneficiaries(selected_country: str):
@@ -360,46 +408,95 @@ def display_cp_beneficiaries(selected_country: str):
     year = st.session_state["selected-year"]
     selected_country = country_mapping(selected_country)
 
+    _custom_title(
+        "CP Beneficiaries vs CP Targeted",
+        st.session_state["subtitle_size"],
+        source="OCHA HPC Plans Summary API",
+        date=f"{min(st.session_state['filter-years'])}-{year}"
+    )
+
     df = st.session_state["all_pin_data"]
-    df = df[(df["country"] == selected_country) & (df["year"] == year)]
+    df = df[(df["country"] == selected_country) & (df["year"] <= year)]
     df.reset_index(drop=True, inplace=True)
-    if len(df) > 0:
-        cp_beneficiaries = df["cp_beneficiaries"].iat[0]
-        cp_targeted = df["cp_targeted"].iat[0]
 
-        if pd.isna(cp_beneficiaries):
-            cp_beneficiaries = 0
-        if pd.isna(cp_targeted):
-            cp_targeted = 0
+    df.rename(
+        columns={
+            "cp_beneficiaries": "CP Beneficiaries",
+            "cp_targeted": "CP Targeted"
+        },
+        inplace=True
+    )
 
-        ratio = cp_beneficiaries / cp_targeted if cp_targeted else 0
-
-        numbers_values = {
-            "title": "CP Beneficiaries vs CP Targeted",
-            "original_numbers": [
-                {
-                    "value": cp_beneficiaries,
-                    "label": f"CP Beneficiaries {_get_abbreviated_number(cp_beneficiaries)}",
-                    "color": "#9FD5B5",
-                    "number_annotation": f"{round(ratio * 100)}%",
-                },
-                {
-                    "value": cp_targeted,
-                    "label": "CP Targeted",
-                    "color": "#d3d3d3",
-                    "number_annotation": f"100%: {_get_abbreviated_number(cp_targeted)}\n CP Targeted.",
-                },
-            ],
-            "annotation": f"\n\n\n\n{round(ratio * 100)}% ({_get_abbreviated_number(cp_beneficiaries)}) of CP Beneficiaries recorded.",  # noqa
-            "plot_size": (10, 2.5),
-        }
-        _custom_title(
-            "CP Beneficiaries vs CP Targeted",
-            st.session_state["subtitle_size"],
-            source="OCHA HPC Plans Summary API",
-            date=year
+    if len(df):
+        df_melted = df.melt(
+            id_vars=["year"],
+            value_vars=["CP Beneficiaries", "CP Targeted"],
+            var_name="CP Type",
+            value_name="cp_numbers",
         )
-        _display_stackbar(numbers_values)
+
+        df_melted["cp_numbers"] = df_melted["cp_numbers"].apply(lambda x: round(x / 1_000_000, 2))
+
+        fig = px.bar(
+            df_melted,
+            x="year",
+            y="cp_numbers",
+            color="CP Type",
+            color_discrete_map={
+                "CP Beneficiaries": "#D6E9DF",
+                "CP Targeted": "#B1DBC3"
+            },
+            barmode="group",
+            labels={"cp_numbers": "Total numbers", "year": "Year"},
+            text="cp_numbers",
+            text_auto=True
+        )
+        fig.update_traces(
+            texttemplate='%{y:,} million',
+            textposition='outside',
+            textfont=dict(size=20)
+        )
+        st.plotly_chart(fig)
+    else:
+        st.write("No CP Beneficiaries and Targeted data available.")
+
+    # if len(df) > 0:
+    #     cp_beneficiaries = df["cp_beneficiaries"].iat[0]
+    #     cp_targeted = df["cp_targeted"].iat[0]
+
+    #     if pd.isna(cp_beneficiaries):
+    #         cp_beneficiaries = 0
+    #     if pd.isna(cp_targeted):
+    #         cp_targeted = 0
+
+    #     ratio = cp_beneficiaries / cp_targeted if cp_targeted else 0
+
+    #     numbers_values = {
+    #         "title": "CP Beneficiaries vs CP Targeted",
+    #         "original_numbers": [
+    #             {
+    #                 "value": cp_beneficiaries,
+    #                 "label": f"CP Beneficiaries {_get_abbreviated_number(cp_beneficiaries)}",
+    #                 "color": "#9FD5B5",
+    #                 "number_annotation": f"{round(ratio * 100)}%",
+    #             },
+    #             {
+    #                 "value": cp_targeted,
+    #                 "label": "CP Targeted",
+    #                 "color": "#d3d3d3",
+    #                 "number_annotation": f"100%: {_get_abbreviated_number(cp_targeted)}\n CP Targeted.",
+    #             },
+    #         ],
+    #         "annotation": f"\n\n\n\n{round(ratio * 100)}% ({_get_abbreviated_number(cp_beneficiaries)}) of CP Beneficiaries recorded.",  # noqa
+    #         "plot_size": (10, 2.5),
+    #     }
+    #     _custom_title(
+    #         "CP Beneficiaries vs CP Targeted",
+    #         st.session_state["subtitle_size"],
+    #         source="OCHA HPC Plans Summary API",
+    #         date=year
+    #     )
+    #     _display_stackbar(numbers_values)
 
 
 def _get_country_wise_pin_data(df: pd.DataFrame):
