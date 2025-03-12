@@ -69,7 +69,7 @@ def _display_all_data(selected_country: str):
         _display_crises_list(selected_country)
 
     _custom_title(
-        "Causes & Underlying Factors", font_size=st.session_state["title_size"]
+        "Causes & Underlying Factors", font_size=30
     )
     st.write(" ")
     physical_env_col, _, impact_of_the_crisis_col = st.columns([0.47, 0.06, 0.47])
