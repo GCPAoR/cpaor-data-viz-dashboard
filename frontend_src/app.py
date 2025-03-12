@@ -68,6 +68,8 @@ else:
     st.session_state["subtitle_size"] = 20
     st.session_state["subsubtitle_size"] = 18
 
+    st.session_state["filter-years"] = [2020, 2021, 2022, 2023, 2024, 2025]
+
     st.session_state["tag_name_to_indicators"] = {
         "Causes and Underlying Factors": [
             "Presence of UXO",
@@ -349,7 +351,7 @@ else:
                     disable_year_selection = st.session_state["tabs"] == "Methodology" or st.session_state["tabs"] == "Methodology"
                     st.session_state["selected_year"] = st.selectbox(
                         "Year",
-                        [2020, 2021, 2022, 2023, 2024, 2025],
+                        st.session_state["filter-years"],
                         index=4,
                         key="selected-year",
                         disabled=disable_year_selection,

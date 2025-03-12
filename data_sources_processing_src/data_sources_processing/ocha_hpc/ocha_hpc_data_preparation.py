@@ -183,17 +183,26 @@ def _get_key_informations_project_one_year(treated_year: int, timeout: int=30):
 
     return final_dataset, global_funding_per_year_df, total_funding_country_level_df
 
+
 def extract_max_cumulative_reach(row):
     """Extract the max value for the cumulative reach in CP beneficiaries"""
     try:
-        values = [
-            item.get("cumulativeReach/peopleReached(cumulative)", 0)
+        values = [(
+                item.get("cumulativeReach/peopleReached(cumulative)") or
+                item.get("cumulativeReach/personnesAtteintes(cumul)") or
+                item.get("cumulativeReach/personasAtendidas(acumulativo)")
+            )
             for item in row
-            if isinstance(item, dict) and item.get("cumulativeReach/peopleReached(cumulative)") is not None
+            if isinstance(item, dict) and (
+                item.get("cumulativeReach/peopleReached(cumulative)") or
+                item.get("cumulativeReach/personnesAtteintes(cumul)") or
+                item.get("cumulativeReach/personasAtendidas(acumulativo)")
+            )
         ]
         return max(values) if values else 0
     except Exception:
         return 0
+
 
 def process_protection_caseloads(row: pd.DataFrame, country: str):
     """Get the Protection caseloads"""
