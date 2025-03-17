@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 from frontend.src.utils.utils_functions import (
-    _add_blank_space, _custom_title, _display_bullet_point_as_highlighted_text)
+    _add_blank_space, _custom_title, _get_bullet_point_as_highlighted_text_display)
 from frontend.src.visualizations.barchart import \
     _create_horizontal_continous_scale_barplot  # _create_horizontal_single_scale_barplot,
 
@@ -336,6 +336,24 @@ def _display_crises_list(selected_country: str):
         source="ACAPS, INFORM Severity Index",
         date=st.session_state["inform_severity_last_updated"],
     )
+    items = ''
     for one_crisis in crises:
-        _display_bullet_point_as_highlighted_text(one_crisis)
-        _add_blank_space(1)
+        custom_css = _get_bullet_point_as_highlighted_text_display(one_crisis)
+        items += custom_css
+
+    css = """
+        <style>
+            .crisis-tags {
+                display: flex;
+                flex-direction: row;
+                align-items: flex-start;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+        </style>
+    """
+    final_html = f"""<div class="crisis-tags">
+        {items}
+    </div>"""
+    st.markdown(css, unsafe_allow_html=True)
+    st.markdown(final_html, unsafe_allow_html=True)

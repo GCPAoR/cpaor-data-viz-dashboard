@@ -366,7 +366,8 @@ def display_country_level_funding(selected_country: str):
             textposition='outside',
             textfont=dict(size=30)
         )
-        st.plotly_chart(fig)
+        fig.update_layout(height=320)
+        st.plotly_chart(fig, height=320)
     else:
         st.write("No funding related data available.")
     # if len(df) > 0:
@@ -456,7 +457,8 @@ def display_cp_beneficiaries(selected_country: str):
             textposition='outside',
             textfont=dict(size=20)
         )
-        st.plotly_chart(fig)
+        fig.update_layout(height=320)
+        st.plotly_chart(fig, height=320)
     else:
         st.write("No CP Beneficiaries and Targeted data available.")
 
@@ -676,7 +678,7 @@ def _display_pin_stackbar(selected_country: str):
                 },
             ],
             "annotation": f"\n\n\n\n{ratio_children_in_need_total_people_in_need}% ({_get_abbreviated_number(children_in_need)}) of people are in Need of CP Services. ",  # noqa
-            "plot_size": (10, 2.5),
+            "plot_size": (10, 1.2),
         }
         _custom_title(
             "Child Protection Caseload",
