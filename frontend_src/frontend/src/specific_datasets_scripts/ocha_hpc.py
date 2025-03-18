@@ -420,6 +420,8 @@ def display_cp_beneficiaries(selected_country: str):
     df = df[(df["country"] == selected_country) & (df["year"] <= year)]
     df.reset_index(drop=True, inplace=True)
 
+    df = df.groupby(['year', 'country'], as_index=False)[['cp_beneficiaries', 'cp_targeted']].sum()
+
     df.rename(
         columns={
             "cp_beneficiaries": "CP Beneficiaries",
