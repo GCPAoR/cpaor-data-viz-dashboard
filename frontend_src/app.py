@@ -347,6 +347,8 @@ else:
                     [1, 1, 2],
                     vertical_alignment="bottom",
                 )
+                # Setting the default Year
+                st.session_state["selected-year"] = 2024
                 # with year_filter_column:
                 #     disable_year_selection = st.session_state["tabs"] == "Methodology" or st.session_state["tabs"] == "Methodology"
                 #     st.session_state["selected_year"] = st.selectbox(
