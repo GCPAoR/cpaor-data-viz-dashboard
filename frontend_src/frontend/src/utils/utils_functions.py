@@ -53,10 +53,12 @@ def _load_protection_indicators_data(selected_country: str):
         )
         if os.path.exists(df_path):
             temp_protection_df = pd.read_csv(df_path)
-            temp_protection_df["Source Date"] = pd.to_datetime(temp_protection_df["Source Date"], errors="coerce")
+            temp_protection_df["Source Date"] = pd.to_datetime(
+                temp_protection_df["Source Date"],
+                errors="coerce",
+                format="ISO8601"
+            )
             temp_protection_df["Year"] = temp_protection_df["Source Date"].dt.year
-            temp_protection_df["Source Date"] = pd.to_datetime(temp_protection_df["Source Date"], errors="coerce").dt.strftime("%d %b %Y")
-
             if "selected-year" not in st.session_state:
                 st.session_state["selected-year"] = 2024
             temp_protection_df = temp_protection_df[temp_protection_df["Year"] == st.session_state["selected-year"]]
@@ -201,6 +203,32 @@ def _add_blank_space(n_empty_lines: int):
     for _ in range(n_empty_lines):
         st.write("")
 
+def _get_bullet_point_as_highlighted_text_display(
+    text: str, background_color: str = "#D2E5B7", font_size: int = 16
+):
+    """
+    Function to display a bullet point as highlighted markdown text
+    """
+    custom_css = f"""<div
+        style="background-color: {background_color};
+            border-radius: 0px;
+            text-align: center;
+            box-shadow: 0 2px 4px 0 rgba(0,0,0,0.2);
+            transition: 0.3s;
+            display: inline-block;"
+    >
+        <p
+            style="
+                color: #333333;
+                font-size: {font_size}px;
+                margin: 7px;
+                font-weight: bold;
+            "
+        >
+            {text}
+        </p>
+    </div>"""
+    return custom_css
 
 def _display_bullet_point_as_highlighted_text(
     text: str, background_color: str = "#D2E5B7", font_size: int = 16
@@ -208,15 +236,6 @@ def _display_bullet_point_as_highlighted_text(
     """
     Function to display a bullet point as highlighted markdown text
     """
-    custom_css = f"""
-    <div style="
-        background-color: {background_color};
-        border-radius: 0px;
-        text-align: center;
-        box-shadow: 0 2px 4px 0 rgba(0,0,0,0.2);
-        transition: 0.3s;
-        display: inline-block;">
-        <p style="color: #333333; font-size: {font_size}px; margin: 7px; font-weight: bold;">{text}</p>
-    </div>
-    """
+    custom_css=_get_bullet_point_as_highlighted_text_display(text, background_color, font_size)
     st.markdown(custom_css, unsafe_allow_html=True)
+

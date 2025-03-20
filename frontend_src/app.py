@@ -68,6 +68,8 @@ else:
     st.session_state["subtitle_size"] = 20
     st.session_state["subsubtitle_size"] = 18
 
+    st.session_state["filter-years"] = [2020, 2021, 2022, 2023, 2024, 2025]
+
     st.session_state["tag_name_to_indicators"] = {
         "Causes and Underlying Factors": [
             "Presence of UXO",
@@ -341,19 +343,21 @@ else:
         with st.container(border=True):
             _custom_title("Filters", font_size=16)
             with st.container():
-                year_filter_column, country_filter_column, empty_div = st.columns(
+                country_filter_column, empty_div, empty_div = st.columns(
                     [1, 1, 2],
                     vertical_alignment="bottom",
                 )
-                with year_filter_column:
-                    disable_year_selection = st.session_state["tabs"] == "Methodology" or st.session_state["tabs"] == "Methodology"
-                    st.session_state["selected_year"] = st.selectbox(
-                        "Year",
-                        [2020, 2021, 2022, 2023, 2024, 2025],
-                        index=4,
-                        key="selected-year",
-                        disabled=disable_year_selection,
-                    )
+                # Setting the default Year
+                st.session_state["selected-year"] = 2024
+                # with year_filter_column:
+                #     disable_year_selection = st.session_state["tabs"] == "Methodology" or st.session_state["tabs"] == "Methodology"
+                #     st.session_state["selected_year"] = st.selectbox(
+                #         "Year",
+                #         st.session_state["filter-years"],
+                #         index=4,
+                #         key="selected-year",
+                #         disabled=disable_year_selection,
+                #     )
                 with country_filter_column:
                     disable_country_selection = st.session_state["tabs"] == "Global Overview" or st.session_state["tabs"] == "Methodology"
                     st.session_state["selected_country"] = _country_selection_filter(

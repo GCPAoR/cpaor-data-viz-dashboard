@@ -170,7 +170,7 @@ def main_page():
                 "Evolution of CP Caseload (in Need)",
                 st.session_state["subtitle_size"],
                 source="OCHA HPC Plans Summary API",
-                date=f"{st.session_state['ocha_hpc_min_year']}-{st.session_state['ocha_hpc_max_year']}",
+                date=f"{min(st.session_state['filter-years'])}-{st.session_state['selected-year']}"
             )
             st.markdown("## ")
             _display_evolution_data()
@@ -180,6 +180,6 @@ def main_page():
             "Funding requested vs Funding received",
             st.session_state["subtitle_size"],
             source="OCHA HPC Plans Summary API",
-            date=f"{st.session_state['ocha_hpc_min_year']}-{st.session_state['ocha_hpc_max_year']}",
+            date=f"{min(st.session_state['filter-years'])}-{st.session_state['selected-year']}"
         )
         display_global_funding()
