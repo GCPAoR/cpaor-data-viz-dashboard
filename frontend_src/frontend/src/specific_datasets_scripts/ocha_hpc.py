@@ -450,7 +450,7 @@ def display_cp_beneficiaries(selected_country: str):
                 "CP Targeted": "#B1DBC3"
             },
             barmode="group",
-            labels={"cp_numbers": "Total numbers", "year": "Year"},
+            labels={"cp_numbers": "Total numbers(in millions)", "year": "Year"},
             text="cp_numbers",
             text_auto=True
         )
