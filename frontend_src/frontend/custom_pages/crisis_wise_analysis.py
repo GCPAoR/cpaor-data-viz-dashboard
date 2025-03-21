@@ -106,7 +106,10 @@ def _display_crisis_wise_analysis(selected_country: str):
     )
     _add_blank_space(1)
 
-    # st.markdown(f"#### Humanitarian Access")
+    if not selected_crisis:
+        st.markdown(f"No crisis available for the country {selected_country}")
+        return
+
     _custom_title("Selected crisis: " + selected_crisis, 30)
     _add_blank_space(1)
 
@@ -165,7 +168,7 @@ def _display_crisis_wise_analysis(selected_country: str):
                             max_val = 100
                         else:
                             displayed_df["Score Text"] = displayed_df["Score"].apply(
-                                lambda x: f"{x}"
+                                lambda x: f"{round(x, 2)}"
                             )
                             max_val = 5
                         columns_info["visualization_function"](
