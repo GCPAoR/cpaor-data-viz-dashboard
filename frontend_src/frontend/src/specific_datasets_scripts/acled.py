@@ -75,7 +75,7 @@ def _display_number_of_events_targetting_civilians(selected_country: str):
         "number_of_events_targeting_civilians_df"
     ][
         (st.session_state["number_of_events_targeting_civilians_df"].country == selected_country)
-        & (st.session_state["number_of_events_targeting_civilians_df"].year <= st.session_state["selected-year"])
+        # & (st.session_state["number_of_events_targeting_civilians_df"].year <= st.session_state["selected-year"])
     ].copy()
     # st.dataframe(one_country_number_of_events_targeting_civilians)
 
@@ -91,8 +91,8 @@ def _display_number_of_events_targetting_civilians(selected_country: str):
             margin_bottom=20,
             font_size=st.session_state["subtitle_size"],
             source="ACLED",
-            # date=st.session_state["acled_last_updated"],
-            date=st.session_state['selected-year']
+            date=st.session_state["acled_last_updated"],
+            #date=st.session_state['selected-year']
         )
         fig = px.line(
             one_country_number_of_events_targeting_civilians,
