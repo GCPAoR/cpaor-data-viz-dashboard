@@ -149,9 +149,9 @@ def _get_list_of_crises(selected_country: str):
         selected_country, "Impact of the crisis", 3
     )
     treated_crises = treated_crises[treated_crises["COUNTRY"] == selected_country]
-    # st.dataframe(treated_crises)
+
     treated_crises = treated_crises["CRISIS"].unique()
-    return treated_crises
+    return treated_crises.tolist()
 
 
 @st.fragment

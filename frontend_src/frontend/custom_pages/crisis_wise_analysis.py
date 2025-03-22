@@ -101,12 +101,15 @@ def _display_crisis_wise_analysis(selected_country: str):
         date=st.session_state["inform_severity_last_updated"],
     )
 
-    selected_crisis = st.selectbox(
-        "Select Crisis/Driver", treated_crises, key="crisis_wise_analysis", index=0
-    )
-    _add_blank_space(1)
+    if treated_crises:
+        selected_crisis = st.selectbox(
+            "Select Crisis/Driver", treated_crises, key="crisis_wise_analysis", index=0
+        )
+        _add_blank_space(1)
+    else:
+        st.markdown(f"No crisis available for the country {selected_country}")
+        return
 
-    # st.markdown(f"#### Humanitarian Access")
     _custom_title("Selected crisis: " + selected_crisis, 30)
     _add_blank_space(1)
 
@@ -165,7 +168,7 @@ def _display_crisis_wise_analysis(selected_country: str):
                             max_val = 100
                         else:
                             displayed_df["Score Text"] = displayed_df["Score"].apply(
-                                lambda x: f"{x}"
+                                lambda x: f"{round(x, 2)}"
                             )
                             max_val = 5
                         columns_info["visualization_function"](
