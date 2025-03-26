@@ -26,12 +26,6 @@ def _load_acled_data():
         number_of_events_targeting_civilians_df_path
     )
 
-    number_of_events_targeting_civilians_df = number_of_events_targeting_civilians_df[
-        number_of_events_targeting_civilians_df["year"] <= st.session_state["selected-year"]
-    ]
-
-    number_of_events_targeting_civilians_df.reset_index(drop=True, inplace=True)
-
     number_of_events_targeting_civilians_df["country"] = (
         number_of_events_targeting_civilians_df["country"].replace(
             number_of_events_targeting_civilians_countries_mapping
@@ -73,11 +67,7 @@ def _display_number_of_events_targetting_civilians(selected_country: str):
 
     one_country_number_of_events_targeting_civilians = st.session_state[
         "number_of_events_targeting_civilians_df"
-    ][
-        (st.session_state["number_of_events_targeting_civilians_df"].country == selected_country)
-        & (st.session_state["number_of_events_targeting_civilians_df"].year <= st.session_state["selected-year"])
-    ].copy()
-    # st.dataframe(one_country_number_of_events_targeting_civilians)
+    ][st.session_state["number_of_events_targeting_civilians_df"].country == selected_country].copy()
 
     one_country_number_of_events_targeting_civilians.reset_index(drop=True, inplace=True)
 
@@ -91,8 +81,7 @@ def _display_number_of_events_targetting_civilians(selected_country: str):
             margin_bottom=20,
             font_size=st.session_state["subtitle_size"],
             source="ACLED",
-            # date=st.session_state["acled_last_updated"],
-            date=st.session_state['selected-year']
+            date=st.session_state["acled_last_updated"]
         )
         fig = px.line(
             one_country_number_of_events_targeting_civilians,
@@ -178,13 +167,9 @@ def _display_acled_map_data(selected_country: str):
     displayed_df = st.session_state[f"events_dataset_{selected_country}"].copy()
     displayed_df["event_date"] = pd.to_datetime(displayed_df["event_date"])
 
-    displayed_df = displayed_df[
-        displayed_df["event_date"].dt.year == st.session_state["selected-year"]
-    ]
-
     if displayed_df.empty:
         st.markdown(
-            f"No information available for the year {st.session_state['selected-year']}"
+            f"No information available for the year {st.session_state['acled_last_updated']}"
         )
         return
 
