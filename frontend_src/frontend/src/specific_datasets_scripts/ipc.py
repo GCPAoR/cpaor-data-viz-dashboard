@@ -117,20 +117,12 @@ def _plot_ipc_results(selected_country: str):
     ipc_one_country_values_df = ipc_one_country_values_df[
         ipc_one_country_values_df["Country"] == selected_country
     ]
-    # ipc_one_country_values_df["year"] = ipc_one_country_values_df[
-    #     "Date of analysis"
-    # ].apply(lambda x: x.split(" ")[1] if x else x)
-
-    # ipc_one_country_values_df = ipc_one_country_values_df[
-    #     ipc_one_country_values_df["year"].apply(int) == st.session_state["selected-year"]
-    # ]
 
     if len(ipc_one_country_values_df) == 0:
         _custom_title(
             "Food Insecurity",
             font_size=st.session_state["subtitle_size"],
-            source="IPC",
-            # date=st.session_state["selected-year"]
+            source="IPC"
         )
         st.markdown(f"No Information for Food Security for {selected_country}")
         return

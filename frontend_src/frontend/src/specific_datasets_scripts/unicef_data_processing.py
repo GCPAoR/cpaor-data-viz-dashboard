@@ -377,8 +377,7 @@ def _get_percentage_adults_think_physical_punishement_good_df(
         df_path,
         [percentage_adults_think_physical_punishement_good_link],
     )
-    # df = df[df["TIME_PERIOD"] == st.session_state["selected-year"]]
-    # df.reset_index(drop=True, inplace=True)
+
     _show_one_number_results(
         df,
         "Percentage of adults who think that physical punishment is necessary to raise/educate children",
@@ -393,8 +392,7 @@ def _get_percentage_sexual_violence_df(selected_country: str, df_path: os.PathLi
         df_path,
         [percentage_women_sexual_violence_link, percentage_men_sexual_violence_link],
     )
-    # df = df[df["TIME_PERIOD"] == st.session_state["selected-year"]]
-    # df.reset_index(drop=True, inplace=True)
+
     _show_one_number_results(df, "Percentage of people exposed to sexual violence")
 
 
@@ -416,8 +414,7 @@ def _get_children_detention_rate_df(selected_country: str, df_path: os.PathLike)
     df = _standard_unicef_data_import(
         selected_country, df_path, [children_detention_rate_link]
     )
-    # df = df[df["TIME_PERIOD"] == st.session_state["selected-year"]]
-    # df.reset_index(drop=True, inplace=True)
+
     _show_one_number_results(df, "Rate of children in detention")
 
 
@@ -426,8 +423,7 @@ def _get_children_residential_care_rate_df(selected_country: str, df_path: os.Pa
     df = _standard_unicef_data_import(
         selected_country, df_path, [children_residential_care_rate_link]
     )
-    # df = df[df["TIME_PERIOD"] == st.session_state["selected-year"]]
-    # df.reset_index(drop=True, inplace=True)
+
     _show_one_number_results(df, "Rate of children in residential care")
 
 
@@ -465,9 +461,6 @@ def _get_out_of_school_rate(selected_country: str, df_path: os.PathLike):
 
     indicators = df["Indicator"].unique()
 
-    # df = df[df["TIME_PERIOD"] == st.session_state["selected-year"]]
-    # df.reset_index(drop=True, inplace=True)
-
     for one_indicator in indicators:
         df_one_indicator = df[df["Indicator"] == one_indicator]
         if df_one_indicator.empty:
@@ -498,8 +491,7 @@ def _get_refugee_host_per_country_df(selected_country: str, df_path: os.PathLike
     df = _standard_unicef_data_import(
         selected_country, df_path, [refugee_host_per_country_link]
     )
-    # df = df[df["TIME_PERIOD"] == st.session_state["selected-year"]]
-    # df.reset_index(drop=True, inplace=True)
+
     _show_one_number_results(df, "Refugees by host country (per 1000 population)")
 
 
@@ -704,11 +696,6 @@ def _display_tabular_mortality_rates(selected_country: str):
     mortality_rate_df = _get_mortality_rate_df(
         os.path.join(st.session_state["unicef_data_folder_path"], "mortality_rate_df.csv")
     )
-
-    # mortality_rate_df = mortality_rate_df[
-    #     mortality_rate_df["TIME_PERIOD"] <= st.session_state["selected-year"]
-    # ]
-    # mortality_rate_df.reset_index(drop=True, inplace=True)
 
     # Filter based on selected country
     mortality_rate_df = mortality_rate_df[
