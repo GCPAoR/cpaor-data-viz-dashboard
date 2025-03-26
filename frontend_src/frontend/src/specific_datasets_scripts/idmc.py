@@ -18,6 +18,7 @@ def _load_idmc_data():
     )
     df["Country"] = df["Country"].apply(lambda x: mapping_countries.get(x, x))
     df = df[df["Country"].isin(st.session_state["countries"])]
+
     return df
 
 
@@ -106,10 +107,7 @@ def _get_displacement_numbers(selected_country: str):
 
     country_df = st.session_state["idmc_df"].copy()
 
-    country_df = country_df[
-        (country_df["Country"] == selected_country) &
-        (country_df["Year"] == st.session_state["selected-year"])
-    ]
+    country_df = country_df[country_df["Country"] == selected_country]
     country_df.reset_index(drop=True, inplace=True)
 
     if len(country_df) == 0:
