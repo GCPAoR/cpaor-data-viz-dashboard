@@ -104,7 +104,7 @@ def _display_all_data(selected_country: str):
     _add_blank_space(3)
 
     _display_tabular_mortality_rates(selected_country)
-    _custom_title(
-        "Children’s mental and physical health", st.session_state["subtitle_size"]
-    )
-    st.markdown("No data available for this indicator.")
+    # _custom_title(
+    #     "Children’s mental and physical health", st.session_state["subtitle_size"]
+    # )
+    # st.markdown("No data available for this indicator.")
