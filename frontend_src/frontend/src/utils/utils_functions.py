@@ -53,8 +53,8 @@ def _load_protection_indicators_data(selected_country: str):
 
             st.session_state[f"protection_df_{selected_country}"]["Source Date"] = (
                 pd.to_datetime(
-                    st.session_state[f"protection_df_{selected_country}"]["Source Date"], errors='coerce'
-                ) #.dt.strftime("%d %b %Y")
+                    st.session_state[f"protection_df_{selected_country}"]["Source Date"], format="mixed"
+                )
             )
 
             st.session_state[f"possible_breakdowns_{selected_country}"] = [
@@ -66,12 +66,7 @@ def _load_protection_indicators_data(selected_country: str):
             ]
 
             st.session_state[f"protection_df_max_date_{selected_country}"] = (
-                pd.to_datetime(
-                    st.session_state[f"protection_df_{selected_country}"][
-                        "Source Date"
-                    ],
-                    format="%d %b %Y",
-                )
+                pd.to_datetime(st.session_state[f"protection_df_{selected_country}"]["Source Date"], format="mixed")
                 .max()
                 .strftime("%m-%Y")
             )
