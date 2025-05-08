@@ -108,7 +108,7 @@ def _get_key_pin_informations_all_years():
     return final_dataset, total_global_funding, total_country_level_funding
 
 
-def _get_key_informations_project_one_year(treated_year: int, timeout: int=30):
+def _get_key_informations_project_one_year(treated_year: int, timeout: int = 30):
     """
     Retrieves key information related to children in need and population in need from a specified year using an API endpoint.
 
@@ -152,7 +152,7 @@ def _get_key_informations_project_one_year(treated_year: int, timeout: int=30):
 
     data = response.json()
 
-    if len(data["data"]["planData"]) == 0:
+    if not len(data["data"]["planData"]):
         return pd.DataFrame()
 
     all_data = pd.DataFrame(data["data"]["planData"])
@@ -160,7 +160,7 @@ def _get_key_informations_project_one_year(treated_year: int, timeout: int=30):
     # Apply filters
     # includedGHO == True ensures only one country is in planCountries
     all_data = all_data[
-        (all_data.includedGHO) & (all_data.planType.isin(["Humanitarian response plan", "Flash appeal"]))
+        (all_data.includedGHO) & (all_data.planType.isin(["Humanitarian response plan", "Flash appeal", "Humanitarian needs and response plan"]))
     ]
 
     global_funding_per_year_df = get_global_funding(all_data=all_data, treated_year=treated_year)

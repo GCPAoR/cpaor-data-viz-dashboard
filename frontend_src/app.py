@@ -22,9 +22,14 @@ local_storage = LocalStorage()
 cached_disclaimer_data = local_storage.getItem("cpaor_consent_confirm")
 USER_CONSENT = cached_disclaimer_data == "true"
 
+OCHA_HPC_DEFAULT_YEAR = 2025
+
 if not USER_CONSENT:
     show_disclaimer(local_storage=local_storage)
 else:
+    # Setting the default Year
+    st.session_state["selected-year"] = OCHA_HPC_DEFAULT_YEAR
+
     from frontend.src.utils.utils_functions import (
         _country_selection_filter,
         _load_countries_list,
@@ -347,8 +352,7 @@ else:
                     [1, 1, 2],
                     vertical_alignment="bottom",
                 )
-                # Setting the default Year
-                st.session_state["selected-year"] = 2024
+
                 # with year_filter_column:
                 #     disable_year_selection = st.session_state["tabs"] == "Methodology" or st.session_state["tabs"] == "Methodology"
                 #     st.session_state["selected_year"] = st.selectbox(

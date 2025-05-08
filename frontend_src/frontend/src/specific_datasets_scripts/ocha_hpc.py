@@ -9,6 +9,20 @@ from frontend.src.visualizations.barchart import (  # _create_horizontal_single_
     _display_stackbar, _get_abbreviated_number)
 
 
+def plan_type_order_handler(df: pd.DataFrame) -> pd.DataFrame:
+    """Order the dataframe based on the plan_type stated"""
+    plan_type_order = ['Humanitarian response plan', 'Humanitarian needs and response plan', 'Flash appeal']
+    df['plan_type_order'] = pd.Categorical(
+        df['plan_type'],
+        categories=plan_type_order,
+        ordered=True
+    )
+    df = df.sort_values(
+        by=['year', 'plan_type_order']
+    )
+    return df
+
+
 def _display_top_countries_with_children_in_need(n_kept_countries: int = 10):
     """
     Displays a horizontal single-scale bar plot showing the top countries with the highest proportion of children in need.
@@ -170,7 +184,7 @@ def _get_total_CP_caseload_in_need():
 
     df = st.session_state["country_wise_pin_data"].copy()
     total_number_of_children_in_need = int(df["children_in_need"].sum())
-    n_countries = df[df["children_in_need"].notna()].shape[0]
+    n_countries = len(df["country"].unique())
     return _add_commas(total_number_of_children_in_need), n_countries
 
 
@@ -199,7 +213,7 @@ def _get_ratio_children_in_need_to_pop_in_need():
         ratio = 0
 
     ratio = _get_percentage(ratio)
-    number_of_countries = df.shape[0]
+    number_of_countries = len(df["country"].unique())
     return ratio, number_of_countries
 
 
@@ -228,7 +242,7 @@ def _get_ratio_children_targeted_to_children_in_need():
     else:
         ratio = 0
     ratio = _get_percentage(ratio)
-    number_of_countries = df.shape[0]
+    number_of_countries = len(df["country"].unique())
     return ratio, number_of_countries
 
 
@@ -293,7 +307,8 @@ def display_global_funding():
             barmode="group",
             labels={"amount": "Funding Amount (in millions)", "year": "Year"},
             text="amount",
-            hover_data={"Total Countries": True}
+            hover_data={"Total Countries": True},
+            height=None
         )
         fig.update_traces(
             texttemplate='%{y:,} million',
@@ -359,15 +374,15 @@ def display_country_level_funding(selected_country: str):
             barmode="group",
             labels={"amount": "Funding Amount (in millions)", "year": "Year"},
             text="amount",
-            text_auto=True
+            text_auto=True,
+            height=None
         )
         fig.update_traces(
             texttemplate='%{y:,} million',
             textposition='outside',
             textfont=dict(size=30)
         )
-        fig.update_layout(height=320)
-        st.plotly_chart(fig, height=320)
+        st.plotly_chart(fig)
     else:
         st.write("No funding related data available.")
     # if len(df) > 0:
@@ -417,11 +432,12 @@ def display_cp_beneficiaries(selected_country: str):
     )
 
     df = st.session_state["all_pin_data"]
+
     df = df[(df["country"] == selected_country) & (df["year"] <= year)]
     df.reset_index(drop=True, inplace=True)
-
-    df = df.groupby(['year', 'country'], as_index=False)[['cp_beneficiaries', 'cp_targeted']].sum()
-
+    df = df.groupby(['year', 'country', 'plan_type'], as_index=False)[['cp_beneficiaries', 'cp_targeted']].sum()
+    df = plan_type_order_handler(df=df)
+    df = df.drop_duplicates(subset=["year", "country"], keep="first")
     df.rename(
         columns={
             "cp_beneficiaries": "CP Beneficiaries",
@@ -452,15 +468,15 @@ def display_cp_beneficiaries(selected_country: str):
             barmode="group",
             labels={"cp_numbers": "Total numbers(in millions)", "year": "Year"},
             text="cp_numbers",
-            text_auto=True
+            text_auto=True,
+            height=None
         )
         fig.update_traces(
             texttemplate='%{y:,} million',
             textposition='outside',
             textfont=dict(size=20)
         )
-        fig.update_layout(height=320)
-        st.plotly_chart(fig, height=320)
+        st.plotly_chart(fig)
     else:
         st.write("No CP Beneficiaries and Targeted data available.")
 
@@ -536,8 +552,7 @@ def _get_country_wise_pin_data(df: pd.DataFrame):
     # ]
 
     all_pin_data = df.copy()
-    if "selected-year" not in st.session_state:
-        st.session_state["selected-year"] = 2024
+
     all_pin_data = all_pin_data[all_pin_data["year"] == st.session_state["selected-year"]]
     all_pin_data = (
         all_pin_data[
@@ -550,7 +565,7 @@ def _get_country_wise_pin_data(df: pd.DataFrame):
     )
 
     all_pin_data = all_pin_data[
-        ["country", "year", "children_in_need", "targeted_children", "tot_pop_in_need"]
+        ["country", "year", "children_in_need", "targeted_children", "tot_pop_in_need", "plan_type"]
     ]
 
     return all_pin_data
@@ -634,6 +649,7 @@ def _display_pin_stackbar(selected_country: str):
     country_specific_df = country_informations[
         country_informations["country"] == selected_country
     ]
+    country_specific_df = plan_type_order_handler(df=country_specific_df)
     country_specific_df.reset_index(drop=True, inplace=True)
 
     if len(country_specific_df) > 0:
