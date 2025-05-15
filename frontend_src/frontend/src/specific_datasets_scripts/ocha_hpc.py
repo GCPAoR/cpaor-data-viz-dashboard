@@ -133,7 +133,7 @@ def _display_evolution_data():
     # one for the sum of children in need and one for the number of country
     grouped_df = (
         df.groupby("year")
-        .agg({"children_in_need": "sum", "country": "count"})
+        .agg({"children_in_need": "sum", "country": "nunique"})
         .reset_index()
         .rename(
             columns={
@@ -435,7 +435,9 @@ def display_cp_beneficiaries(selected_country: str):
 
     df = df[(df["country"] == selected_country) & (df["year"] <= year)]
     df.reset_index(drop=True, inplace=True)
-    df = df.groupby(['year', 'country', 'plan_type'], as_index=False)[['cp_beneficiaries', 'cp_targeted']].sum()
+    # Note: If there are plans of same types, get the first one.
+    df = df.groupby(['year', 'country', 'plan_type'], as_index=False).first()
+
     df = plan_type_order_handler(df=df)
     df = df.drop_duplicates(subset=["year", "country"], keep="first")
     df.rename(
@@ -646,11 +648,20 @@ def _display_pin_stackbar(selected_country: str):
     4. Includes a title and source annotation for the visualization.
     """
     country_informations = st.session_state["country_wise_pin_data"]
+    selected_country = country_mapping(selected_country)
+
     country_specific_df = country_informations[
         country_informations["country"] == selected_country
     ]
     country_specific_df = plan_type_order_handler(df=country_specific_df)
     country_specific_df.reset_index(drop=True, inplace=True)
+
+    _custom_title(
+        "Child Protection Caseload",
+        st.session_state["subtitle_size"],
+        source="OCHA HPC Plans Summary API",
+        date=st.session_state["selected-year"],
+    )
 
     if len(country_specific_df) > 0:
         children_in_need = country_specific_df["children_in_need"].values[0]
@@ -698,12 +709,7 @@ def _display_pin_stackbar(selected_country: str):
             "annotation": f"\n\n\n\n{ratio_children_in_need_total_people_in_need}% ({_get_abbreviated_number(children_in_need)}) of people are in Need of CP Services. ",  # noqa
             "plot_size": (10, 1.2),
         }
-        _custom_title(
-            "Child Protection Caseload",
-            st.session_state["subtitle_size"],
-            source="OCHA HPC Plans Summary API",
-            date=st.session_state["selected-year"],
-        )
+       
         if (
             total_people_in_need
             and ratio_children_targeted_total_people
@@ -712,3 +718,5 @@ def _display_pin_stackbar(selected_country: str):
             _display_stackbar(numbers_values)
         else:
             st.markdown("Not enough or valid data available to create the plot.")
+    else:
+        st.markdown("No data available for the selected country")
