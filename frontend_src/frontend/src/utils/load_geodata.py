@@ -9,7 +9,8 @@ from shapely.geometry import mapping, shape
 
 countries_mapping = {
     "Venezuela (Bolivarian Republic of)": "Venezuela",
-    "Syrian Arab Republic": "Syria"
+    "Syrian Arab Republic": "Syria",
+    "Iran (Islamic Republic of)": "Iran"
 }
 
 
@@ -103,7 +104,6 @@ def _load_gpkg_adm0(file_path: str):
                 }
 
                 geojson_obj["features"].append(filtered_feature)
-
     return geojson_obj
 
 
