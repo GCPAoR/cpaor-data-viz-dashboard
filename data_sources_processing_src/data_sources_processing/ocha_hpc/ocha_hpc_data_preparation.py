@@ -197,6 +197,8 @@ def process_protection_caseloads(row: pd.Series, country: str):
 
     # Prepare the row data
     row_data = {
+        "name": row["name"],
+        "plan_id": row["planId"],
         "country": countries_mapping.get(country, country),
         "children_in_need": total_children_in_need,
         "targeted_children": total_children_targeted,
@@ -204,7 +206,7 @@ def process_protection_caseloads(row: pd.Series, country: str):
         "cp_targeted": total_children_targeted,
         "cp_beneficiaries": total_children_reached,
         "year": row["planYear"],
-        "plan_type": row["planType"],
+        "plan_type": row["planType"]
     }
 
     # Filter out None or NaN values

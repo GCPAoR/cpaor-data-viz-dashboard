@@ -16,7 +16,7 @@ def _get_abbreviated_number(number: int) -> str:
     elif number < 1000000:
         return str(int(number / 1_000)) + " k"
     else:
-        return str(round(number / 1_000_000, 1)) + " million"
+        return str(round(number / 1_000_000, 2)) + " million"
 
 
 @st.fragment

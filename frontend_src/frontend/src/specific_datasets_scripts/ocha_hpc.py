@@ -421,6 +421,16 @@ def display_country_level_funding(selected_country: str):
 
 def display_cp_beneficiaries(selected_country: str):
     """Plot a grouped barchart related to funding"""
+
+    def pick_valid_row(group):
+        valid_rows = pd.DataFrame()
+        if len(group) >= 2:
+            # Filter out rows where 'name' contains the keyword 'flash'
+            valid_rows = group[~group['name'].str.contains('flash', case=False, na=False)]
+        # If we have any valid rows, pick the first one; otherwise fallback to the first in the group
+        return valid_rows.iloc[0] if not valid_rows.empty else group.iloc[0]
+
+
     year = st.session_state["selected-year"]
     selected_country = country_mapping(selected_country)
 
@@ -436,9 +446,11 @@ def display_cp_beneficiaries(selected_country: str):
     df = df[(df["country"] == selected_country) & (df["year"] <= year)]
     df.reset_index(drop=True, inplace=True)
     # Note: If there are plans of same types, get the first one.
-    df = df.groupby(['year', 'country', 'plan_type'], as_index=False).first()
+
+    df = df.groupby(['year', 'country', 'plan_type'], as_index=False).apply(pick_valid_row).reset_index(drop=True)
 
     df = plan_type_order_handler(df=df)
+
     df = df.drop_duplicates(subset=["year", "country"], keep="first")
     df.rename(
         columns={
@@ -567,7 +579,7 @@ def _get_country_wise_pin_data(df: pd.DataFrame):
     )
 
     all_pin_data = all_pin_data[
-        ["country", "year", "children_in_need", "targeted_children", "tot_pop_in_need", "plan_type"]
+        ["name", "plan_id", "country", "year", "children_in_need", "targeted_children", "tot_pop_in_need", "plan_type"]
     ]
 
     return all_pin_data
@@ -655,6 +667,8 @@ def _display_pin_stackbar(selected_country: str):
     ]
     country_specific_df = plan_type_order_handler(df=country_specific_df)
     country_specific_df.reset_index(drop=True, inplace=True)
+
+    country_specific_df = country_specific_df[~country_specific_df['name'].str.contains('flash', case=False, na=False)]
 
     _custom_title(
         "Child Protection Caseload",
