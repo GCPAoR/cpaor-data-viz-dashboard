@@ -108,7 +108,7 @@ def _get_key_pin_informations_all_years():
     return final_dataset, total_global_funding, total_country_level_funding
 
 
-def _get_key_informations_project_one_year(treated_year: int, timeout: int = 30):
+def _get_key_informations_project_one_year(treated_year: int, timeout: int = 90):
     """
     Retrieves key information related to children in need and population in need from a specified year using an API endpoint.
 
@@ -237,6 +237,9 @@ def handle_measurement_data(row: pd.Series, mon_p_id: int):
     if row.empty:
         return 0
     measurements = row["measurements"]
+    # Incase there is only one measurements use that one.
+    if len(measurements) == 1:
+        mon_p_id = measurements[0]["monitoringPeriodId"]
     for measurement in measurements:
         if measurement["monitoringPeriodId"] == mon_p_id:
             for item_key in measurement.keys():
