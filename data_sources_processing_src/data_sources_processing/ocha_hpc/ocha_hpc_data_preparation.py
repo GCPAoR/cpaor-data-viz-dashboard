@@ -175,14 +175,15 @@ def _get_key_informations_project_one_year(treated_year: int, timeout: int = 90)
             final_dataset = final_dataset._append(protection_caseloads, ignore_index=True)
         # Country level funding
         country_funding = get_country_level_funding(row, country)
+        
         if country_funding:
             total_funding_country_level_df = total_funding_country_level_df._append(country_funding, ignore_index=True)
 
-    total_funding_country_level_df = total_funding_country_level_df.groupby(["country", "year"]).agg({
-        "funding_requested": "sum",
-        "funding_received": "sum",
-    }).reset_index()
-    total_funding_country_level_df.sort_values(by=["country"], inplace=True)
+    # total_funding_country_level_df = total_funding_country_level_df.groupby(["country", "year", "plan_type"]).agg({
+    #     "funding_requested": "sum",
+    #     "funding_received": "sum",
+    # }).reset_index()
+    total_funding_country_level_df.sort_values(by=["country", "year"], inplace=True)
 
     return final_dataset, global_funding_per_year_df, total_funding_country_level_df
 
@@ -359,6 +360,7 @@ def get_country_level_funding(row: pd.Series, country: str):
     total_country_funding_received = financial_received_df.sum()
 
     row_data = {
+        "name": row["name"],
         "country": countries_mapping.get(country, country),
         "funding_requested": total_country_funding_requested,
         "funding_received": total_country_funding_received,

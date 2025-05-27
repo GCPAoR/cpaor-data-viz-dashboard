@@ -330,6 +330,11 @@ def country_mapping(country: str):
 
 def display_country_level_funding(selected_country: str):
     """Plot a grouped barchart related to funding"""
+    def group_filter(group):
+        if len(group) > 1:
+            return group[~group['name'].str.contains('flash', case=False, na=False)].iloc[0]
+        return group.iloc[0]
+
     year = st.session_state["selected-year"]
     selected_country = country_mapping(selected_country)
 
@@ -343,6 +348,9 @@ def display_country_level_funding(selected_country: str):
     df = st.session_state["ocha_hpc_country_funding_df"]
     df = df[(df["country"] == selected_country) & (df["year"] <= year)]
     df.reset_index(drop=True, inplace=True)
+
+    df = plan_type_order_handler(df.copy())
+    df = df.groupby('year').apply(group_filter).reset_index(drop=True)
 
     df.rename(
         columns={
