@@ -611,7 +611,7 @@ def _get_country_wise_children_in_need_data(df: pd.DataFrame):
     country_wise_results = pd.DataFrame()
 
     all_pin_data = df.copy()[
-        ["country", "year", "children_in_need", "tot_pop_in_need"]
+        ["country", "year", "children_in_need", "tot_pop_in_need", "plan_type", "name"]
     ].dropna()
 
     for one_country in all_pin_data.country.unique():
@@ -628,6 +628,13 @@ def _get_country_wise_children_in_need_data(df: pd.DataFrame):
         # ).iloc[0] # latest year
 
         results_one_country = {"country": one_country}
+
+        one_col_one_country_df = plan_type_order_handler(one_col_one_country_df.copy())
+
+        if len(one_col_one_country_df) > 1:
+            one_col_one_country_df = one_col_one_country_df[~one_col_one_country_df['name'].str.contains('flash', case=False, na=False)]
+
+        one_col_one_country_df.reset_index(drop=True, inplace=True)
 
         results_one_col = round(
             one_col_one_country_df["children_in_need"][0]
