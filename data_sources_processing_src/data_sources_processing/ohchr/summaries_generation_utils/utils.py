@@ -17,10 +17,10 @@ def _get_list_of_sentences(lst: List[str], step: int = 5) -> List[List[str]]:
     while (i + step) <= len(
         lst
     ) + 1:  # Adjust the condition to ensure full coverage of the list
-        added_list = lst[i : i + step]
+        added_list = lst[i: i + step]
         if len(added_list) > 1:
             result.append(
-                lst[i : i + step]
+                lst[i: i + step]
             )  # Append the slice of the list to the result list
         i += step - 1  # Move i forward by step size minus 1 for the overlap
 

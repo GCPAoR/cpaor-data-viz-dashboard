@@ -175,7 +175,7 @@ def _get_key_informations_project_one_year(treated_year: int, timeout: int = 90)
             final_dataset = final_dataset._append(protection_caseloads, ignore_index=True)
         # Country level funding
         country_funding = get_country_level_funding(row, country)
-        
+
         if country_funding:
             total_funding_country_level_df = total_funding_country_level_df._append(country_funding, ignore_index=True)
 

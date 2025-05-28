@@ -1,4 +1,3 @@
-import json
 import os
 from ast import literal_eval
 from typing import Any, Dict, List, Union
@@ -305,7 +304,7 @@ def _get_final_results(
                     "Evidence": one_analytical_statement_relevant_entries,
                 }
             )
-    
+
     postprocessed_results_df = pd.DataFrame(postprocessed_results)
     if len(postprocessed_results_df):
         postprocessed_results = postprocessed_results_df.explode("Evidence")

@@ -1,4 +1,3 @@
-from datetime import datetime
 import pandas as pd
 import streamlit as st
 import plotly.express as px
@@ -318,6 +317,7 @@ def display_global_funding():
     else:
         st.write("No funding related data available.")
 
+
 def country_mapping(country: str):
     """Maps country names"""
     mapping = {
@@ -344,7 +344,7 @@ def display_country_level_funding(selected_country: str):
         source="OCHA HPC Plans Summary API",
         date=f"{min(st.session_state['filter-years'])}-{year}"
     )
-    st.markdown("**Note: The funding data is based on appeals outlined in either the HNRP or FA documents. If both type of documents are available for a country, the HNRP will take priority.**")
+    st.markdown("**Note: The funding data is based on appeals outlined in either the HNRP or FA documents. If both type of documents are available for a country, the HNRP will take priority.**")  # noqa
 
     df = st.session_state["ocha_hpc_country_funding_df"]
     df = df[(df["country"] == selected_country) & (df["year"] <= year)]
@@ -438,7 +438,6 @@ def display_cp_beneficiaries(selected_country: str):
             valid_rows = group[~group['name'].str.contains('flash', case=False, na=False)]
         # If we have any valid rows, pick the first one; otherwise fallback to the first in the group
         return valid_rows.iloc[0] if not valid_rows.empty else group.iloc[0]
-
 
     year = st.session_state["selected-year"]
     selected_country = country_mapping(selected_country)
@@ -641,7 +640,7 @@ def _get_country_wise_children_in_need_data(df: pd.DataFrame):
         one_col_one_country_df = plan_type_order_handler(one_col_one_country_df.copy())
 
         if len(one_col_one_country_df) > 1:
-            one_col_one_country_df = one_col_one_country_df[~one_col_one_country_df['name'].str.contains('flash', case=False, na=False)]
+            one_col_one_country_df = one_col_one_country_df[~one_col_one_country_df['name'].str.contains('flash', case=False, na=False)]  # noqa
 
         one_col_one_country_df.reset_index(drop=True, inplace=True)
 
@@ -739,7 +738,7 @@ def _display_pin_stackbar(selected_country: str):
             "annotation": f"\n\n\n\n{ratio_children_in_need_total_people_in_need}% ({_get_abbreviated_number(children_in_need)}) of people are in Need of CP Services. ",  # noqa
             "plot_size": (10, 1.2),
         }
-       
+
         if (
             total_people_in_need
             and ratio_children_targeted_total_people
