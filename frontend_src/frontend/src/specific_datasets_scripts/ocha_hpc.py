@@ -344,6 +344,7 @@ def display_country_level_funding(selected_country: str):
         source="OCHA HPC Plans Summary API",
         date=f"{min(st.session_state['filter-years'])}-{year}"
     )
+    st.markdown("**Note: The funding data is based on appeals outlined in either the HNRP or FA documents. If both type of documents are available for a country, the HNRP will take priority.**")
 
     df = st.session_state["ocha_hpc_country_funding_df"]
     df = df[(df["country"] == selected_country) & (df["year"] <= year)]
