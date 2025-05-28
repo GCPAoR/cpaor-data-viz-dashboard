@@ -84,11 +84,11 @@ class EmbeddingsGenerator:
                 for i in tqdm(
                     range(0, n_input_texts, batch_size), desc="Generating embeddings"
                 ):
-                    sorted_batch = sorted_sentences[i : i + batch_size]
+                    sorted_batch = sorted_sentences[i: i + batch_size]
                     embeddings_batch = self._generate_embeddings_batch(
                         sorted_batch
                     ).cpu()
-                    sorted_inputs_embeddings[i : i + batch_size] = embeddings_batch
+                    sorted_inputs_embeddings[i: i + batch_size] = embeddings_batch
 
         final_embeddings = torch.zeros_like(sorted_inputs_embeddings, dtype=float16)
         final_embeddings[sorted_indices] = sorted_inputs_embeddings

@@ -16,7 +16,7 @@ def _get_abbreviated_number(number: int) -> str:
     elif number < 1000000:
         return str(int(number / 1_000)) + " k"
     else:
-        return str(round(number / 1_000_000, 1)) + " million"
+        return str(round(number / 1_000_000, 2)) + " million"
 
 
 @st.fragment
@@ -85,7 +85,7 @@ def _display_stackbar(displayed_values: dict):
             ha="center",
             va="center",
             color="black",
-            fontsize=12,
+            fontsize=10,
         )
 
     # Make the axes invisible
@@ -98,7 +98,7 @@ def _display_stackbar(displayed_values: dict):
     # Add x-axis ticks for each box delimitation and the 100% value
     # tick_labels = [f"{int(p)}%" for p in percentages] + ["100%"]
     ax.set_xticks(tick_values)
-    ax.set_xticklabels(tick_labels, fontsize=14)
+    ax.set_xticklabels(tick_labels, fontsize=10)
 
     # Remove y-axis and set limits
     ax.get_yaxis().set_visible(False)
@@ -112,7 +112,7 @@ def _display_stackbar(displayed_values: dict):
         ha="center",
         va="center",
         color="black",
-        fontsize=16,
+        fontsize=10,
     )
 
     # Add a horizontal line above the bars indicating the value of the second bar
@@ -132,7 +132,7 @@ def _display_stackbar(displayed_values: dict):
             ha="center",
             va="bottom",
             color="black",
-            fontsize=12,
+            fontsize=10,
             # fontweight='bold',
         )
 

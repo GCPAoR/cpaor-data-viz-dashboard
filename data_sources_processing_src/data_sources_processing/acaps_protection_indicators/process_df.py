@@ -1,4 +1,3 @@
-import json
 import os
 from ast import literal_eval
 from typing import Any, Dict, List, Union
@@ -61,48 +60,11 @@ processed_breakdowns = [
     "targeting_specific_population_groups",
 ]
 
-reliability_scores = [4, 3, 2]
-
 metadata_data_path = os.path.join("/data", "reliefweb_sources_metadata.json")
 
 if not os.path.exists(metadata_data_path):
     os.makedirs(os.path.join("sources_extraction_reliefweb", "data"), exist_ok=True)
     get_reliefweb_organisations(metadata_data_path)
-
-
-# load json data
-with open(
-    metadata_data_path,
-    "r",
-) as f:
-    reliefweb_sources = json.load(f)
-
-
-def _get_source_reliability_score(source_name: str):
-    """
-    Inputs:
-    - source_name (str): The name of the source for which to determine the reliability score.
-
-    Outputs:
-    - reliability_score (int): The reliability score of the source.
-
-    Operation:
-    1. Iterate through each source in 'reliefweb_sources':
-    1.1 If 'source_name' is found within a source:
-        - If 'source_name' contains "UN", return a reliability score of 4.
-        - If the type of the source is "Media", return a reliability score of 2.
-        - Otherwise, return a reliability score of 3.
-    2. If 'source_name' is not found in any of the sources, return a reliability score of 1.
-    """
-
-    for one_original_source in reliefweb_sources:
-        if source_name in one_original_source:
-            if "UN" in source_name:
-                return 4
-            if reliefweb_sources[one_original_source]["type"] == "Media":
-                return 2
-            return 3
-    return 1
 
 
 def _preprocess_col(val: str, col_name: str, studied_indicators: List[str]):
@@ -173,14 +135,6 @@ def _load_dataset(
         )
     )
 
-    protection_indicators_dataset["source_reliability"] = protection_indicators_dataset[
-        "source_name"
-    ].apply(_get_source_reliability_score)
-
-    protection_indicators_dataset = protection_indicators_dataset[
-        protection_indicators_dataset["source_reliability"] > 1
-    ]
-
     return protection_indicators_dataset
 
 
@@ -235,18 +189,7 @@ def _prepare_inference_dataset(all_df: pd.DataFrame, one_country: str):
             ].copy()
 
             processed_df = pd.DataFrame()
-            for one_reliability_scrore in sorted(reliability_scores, reverse=True):
-                df_one_possible_value_reliability = df_one_possible_value[
-                    df_one_possible_value["source_reliability"]
-                    == one_reliability_scrore
-                ]
-                processed_df = pd.concat(
-                    [processed_df, df_one_possible_value_reliability]
-                )
-
-                # prioritize the most reliable sources, if we have enough entries then we stop adding.
-                if len(processed_df) > 5:
-                    break
+            processed_df = pd.concat([processed_df, df_one_possible_value])
 
             # if less than 3 entries and not the general summary, we skip the possible value
             if len(processed_df) < 3 and one_possible_value != "Country Wide":
@@ -361,7 +304,7 @@ def _get_final_results(
                     "Evidence": one_analytical_statement_relevant_entries,
                 }
             )
-    
+
     postprocessed_results_df = pd.DataFrame(postprocessed_results)
     if len(postprocessed_results_df):
         postprocessed_results = postprocessed_results_df.explode("Evidence")

@@ -1,4 +1,3 @@
-from datetime import datetime
 import pandas as pd
 import streamlit as st
 import plotly.express as px
@@ -7,6 +6,20 @@ from frontend.src.utils.utils_functions import (_add_commas, _custom_title,
 from frontend.src.visualizations.barchart import (  # _create_horizontal_single_scale_barplot,
     _create_horizontal_continous_scale_barplot, _create_vertical_barplot,
     _display_stackbar, _get_abbreviated_number)
+
+
+def plan_type_order_handler(df: pd.DataFrame) -> pd.DataFrame:
+    """Order the dataframe based on the plan_type stated"""
+    plan_type_order = ['Humanitarian response plan', 'Humanitarian needs and response plan', 'Flash appeal']
+    df['plan_type_order'] = pd.Categorical(
+        df['plan_type'],
+        categories=plan_type_order,
+        ordered=True
+    )
+    df = df.sort_values(
+        by=['year', 'plan_type_order']
+    )
+    return df
 
 
 def _display_top_countries_with_children_in_need(n_kept_countries: int = 10):
@@ -119,7 +132,7 @@ def _display_evolution_data():
     # one for the sum of children in need and one for the number of country
     grouped_df = (
         df.groupby("year")
-        .agg({"children_in_need": "sum", "country": "count"})
+        .agg({"children_in_need": "sum", "country": "nunique"})
         .reset_index()
         .rename(
             columns={
@@ -170,7 +183,7 @@ def _get_total_CP_caseload_in_need():
 
     df = st.session_state["country_wise_pin_data"].copy()
     total_number_of_children_in_need = int(df["children_in_need"].sum())
-    n_countries = df[df["children_in_need"].notna()].shape[0]
+    n_countries = len(df["country"].unique())
     return _add_commas(total_number_of_children_in_need), n_countries
 
 
@@ -199,7 +212,7 @@ def _get_ratio_children_in_need_to_pop_in_need():
         ratio = 0
 
     ratio = _get_percentage(ratio)
-    number_of_countries = df.shape[0]
+    number_of_countries = len(df["country"].unique())
     return ratio, number_of_countries
 
 
@@ -228,7 +241,7 @@ def _get_ratio_children_targeted_to_children_in_need():
     else:
         ratio = 0
     ratio = _get_percentage(ratio)
-    number_of_countries = df.shape[0]
+    number_of_countries = len(df["country"].unique())
     return ratio, number_of_countries
 
 
@@ -293,7 +306,8 @@ def display_global_funding():
             barmode="group",
             labels={"amount": "Funding Amount (in millions)", "year": "Year"},
             text="amount",
-            hover_data={"Total Countries": True}
+            hover_data={"Total Countries": True},
+            height=None
         )
         fig.update_traces(
             texttemplate='%{y:,} million',
@@ -302,6 +316,7 @@ def display_global_funding():
         st.plotly_chart(fig)
     else:
         st.write("No funding related data available.")
+
 
 def country_mapping(country: str):
     """Maps country names"""
@@ -315,6 +330,11 @@ def country_mapping(country: str):
 
 def display_country_level_funding(selected_country: str):
     """Plot a grouped barchart related to funding"""
+    def group_filter(group):
+        if len(group) > 1:
+            return group[~group['name'].str.contains('flash', case=False, na=False)].iloc[0]
+        return group.iloc[0]
+
     year = st.session_state["selected-year"]
     selected_country = country_mapping(selected_country)
 
@@ -324,10 +344,14 @@ def display_country_level_funding(selected_country: str):
         source="OCHA HPC Plans Summary API",
         date=f"{min(st.session_state['filter-years'])}-{year}"
     )
+    st.markdown("**Note: The funding data is based on appeals outlined in either the HNRP or FA documents. If both type of documents are available for a country, the HNRP will take priority.**")  # noqa
 
     df = st.session_state["ocha_hpc_country_funding_df"]
     df = df[(df["country"] == selected_country) & (df["year"] <= year)]
     df.reset_index(drop=True, inplace=True)
+
+    df = plan_type_order_handler(df.copy())
+    df = df.groupby('year').apply(group_filter).reset_index(drop=True)
 
     df.rename(
         columns={
@@ -359,15 +383,15 @@ def display_country_level_funding(selected_country: str):
             barmode="group",
             labels={"amount": "Funding Amount (in millions)", "year": "Year"},
             text="amount",
-            text_auto=True
+            text_auto=True,
+            height=None
         )
         fig.update_traces(
             texttemplate='%{y:,} million',
             textposition='outside',
             textfont=dict(size=30)
         )
-        fig.update_layout(height=320)
-        st.plotly_chart(fig, height=320)
+        st.plotly_chart(fig)
     else:
         st.write("No funding related data available.")
     # if len(df) > 0:
@@ -406,6 +430,15 @@ def display_country_level_funding(selected_country: str):
 
 def display_cp_beneficiaries(selected_country: str):
     """Plot a grouped barchart related to funding"""
+
+    def pick_valid_row(group):
+        valid_rows = pd.DataFrame()
+        if len(group) >= 2:
+            # Filter out rows where 'name' contains the keyword 'flash'
+            valid_rows = group[~group['name'].str.contains('flash', case=False, na=False)]
+        # If we have any valid rows, pick the first one; otherwise fallback to the first in the group
+        return valid_rows.iloc[0] if not valid_rows.empty else group.iloc[0]
+
     year = st.session_state["selected-year"]
     selected_country = country_mapping(selected_country)
 
@@ -417,11 +450,16 @@ def display_cp_beneficiaries(selected_country: str):
     )
 
     df = st.session_state["all_pin_data"]
+
     df = df[(df["country"] == selected_country) & (df["year"] <= year)]
     df.reset_index(drop=True, inplace=True)
+    # Note: If there are plans of same types, get the first one.
 
-    df = df.groupby(['year', 'country'], as_index=False)[['cp_beneficiaries', 'cp_targeted']].sum()
+    df = df.groupby(['year', 'country', 'plan_type'], as_index=False).apply(pick_valid_row).reset_index(drop=True)
 
+    df = plan_type_order_handler(df=df)
+
+    df = df.drop_duplicates(subset=["year", "country"], keep="first")
     df.rename(
         columns={
             "cp_beneficiaries": "CP Beneficiaries",
@@ -452,15 +490,15 @@ def display_cp_beneficiaries(selected_country: str):
             barmode="group",
             labels={"cp_numbers": "Total numbers(in millions)", "year": "Year"},
             text="cp_numbers",
-            text_auto=True
+            text_auto=True,
+            height=None
         )
         fig.update_traces(
             texttemplate='%{y:,} million',
             textposition='outside',
             textfont=dict(size=20)
         )
-        fig.update_layout(height=320)
-        st.plotly_chart(fig, height=320)
+        st.plotly_chart(fig)
     else:
         st.write("No CP Beneficiaries and Targeted data available.")
 
@@ -536,8 +574,7 @@ def _get_country_wise_pin_data(df: pd.DataFrame):
     # ]
 
     all_pin_data = df.copy()
-    if "selected-year" not in st.session_state:
-        st.session_state["selected-year"] = 2024
+
     all_pin_data = all_pin_data[all_pin_data["year"] == st.session_state["selected-year"]]
     all_pin_data = (
         all_pin_data[
@@ -550,7 +587,7 @@ def _get_country_wise_pin_data(df: pd.DataFrame):
     )
 
     all_pin_data = all_pin_data[
-        ["country", "year", "children_in_need", "targeted_children", "tot_pop_in_need"]
+        ["name", "plan_id", "country", "year", "children_in_need", "targeted_children", "tot_pop_in_need", "plan_type"]
     ]
 
     return all_pin_data
@@ -582,7 +619,7 @@ def _get_country_wise_children_in_need_data(df: pd.DataFrame):
     country_wise_results = pd.DataFrame()
 
     all_pin_data = df.copy()[
-        ["country", "year", "children_in_need", "tot_pop_in_need"]
+        ["country", "year", "children_in_need", "tot_pop_in_need", "plan_type", "name"]
     ].dropna()
 
     for one_country in all_pin_data.country.unique():
@@ -599,6 +636,13 @@ def _get_country_wise_children_in_need_data(df: pd.DataFrame):
         # ).iloc[0] # latest year
 
         results_one_country = {"country": one_country}
+
+        one_col_one_country_df = plan_type_order_handler(one_col_one_country_df.copy())
+
+        if len(one_col_one_country_df) > 1:
+            one_col_one_country_df = one_col_one_country_df[~one_col_one_country_df['name'].str.contains('flash', case=False, na=False)]  # noqa
+
+        one_col_one_country_df.reset_index(drop=True, inplace=True)
 
         results_one_col = round(
             one_col_one_country_df["children_in_need"][0]
@@ -631,10 +675,22 @@ def _display_pin_stackbar(selected_country: str):
     4. Includes a title and source annotation for the visualization.
     """
     country_informations = st.session_state["country_wise_pin_data"]
+    selected_country = country_mapping(selected_country)
+
     country_specific_df = country_informations[
         country_informations["country"] == selected_country
     ]
+    country_specific_df = plan_type_order_handler(df=country_specific_df)
     country_specific_df.reset_index(drop=True, inplace=True)
+
+    country_specific_df = country_specific_df[~country_specific_df['name'].str.contains('flash', case=False, na=False)]
+
+    _custom_title(
+        "Child Protection Caseload",
+        st.session_state["subtitle_size"],
+        source="OCHA HPC Plans Summary API",
+        date=st.session_state["selected-year"],
+    )
 
     if len(country_specific_df) > 0:
         children_in_need = country_specific_df["children_in_need"].values[0]
@@ -682,12 +738,7 @@ def _display_pin_stackbar(selected_country: str):
             "annotation": f"\n\n\n\n{ratio_children_in_need_total_people_in_need}% ({_get_abbreviated_number(children_in_need)}) of people are in Need of CP Services. ",  # noqa
             "plot_size": (10, 1.2),
         }
-        _custom_title(
-            "Child Protection Caseload",
-            st.session_state["subtitle_size"],
-            source="OCHA HPC Plans Summary API",
-            date=st.session_state["selected-year"],
-        )
+
         if (
             total_people_in_need
             and ratio_children_targeted_total_people
@@ -696,3 +747,5 @@ def _display_pin_stackbar(selected_country: str):
             _display_stackbar(numbers_values)
         else:
             st.markdown("Not enough or valid data available to create the plot.")
+    else:
+        st.markdown("No data available for the selected country")

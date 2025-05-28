@@ -168,6 +168,7 @@ def _add_blank_space(n_empty_lines: int):
     for _ in range(n_empty_lines):
         st.write("")
 
+
 def _get_bullet_point_as_highlighted_text_display(
     text: str, background_color: str = "#D2E5B7", font_size: int = 16
 ):
@@ -195,12 +196,12 @@ def _get_bullet_point_as_highlighted_text_display(
     </div>"""
     return custom_css
 
+
 def _display_bullet_point_as_highlighted_text(
     text: str, background_color: str = "#D2E5B7", font_size: int = 16
 ):
     """
     Function to display a bullet point as highlighted markdown text
     """
-    custom_css=_get_bullet_point_as_highlighted_text_display(text, background_color, font_size)
+    custom_css = _get_bullet_point_as_highlighted_text_display(text, background_color, font_size)
     st.markdown(custom_css, unsafe_allow_html=True)
-

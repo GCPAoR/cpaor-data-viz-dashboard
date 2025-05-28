@@ -54,9 +54,9 @@ def _show_methodological_details():
     _custom_title("Security and Accessibility", 24)
     st.markdown(
         """
-    The application is designed with a focus on security, ensuring that sensitive data is protected through access control measures.
-    It is accessible across multiple devices, providing a consistent user experience that facilitates global access by child protection
-    coordinators and other stakeholders.
+    The application is designed with a focus on security. Sensitive data might be protected through access control measures.
+    It is accessible across multiple devices, providing a consistent user experience that facilitates global access by child
+    protection actors and other stakeholders.
     """
     )
 
@@ -71,12 +71,12 @@ def _show_methodological_details():
     - **[ACLED Methodology](https://www.acleddata.com/wp-content/uploads/2017/12/Methodology-Overview_FINAL.pdf)**: Update every 7 days.
     - **[ACAPS Protection Indicators](https://www.acaps.org/fileadmin/Dataset/Codebook/20230227_acaps_dataset_protection_indicators_codebook.pdf)**: Update every 7 days.
     - **[ACAPS INFORM Severity Index](https://www.acaps.org/fileadmin/Dataset/Methodology_files/20201019_inform_severity_index_methodology_update.pdf)** Update every 10 days.
-    - **[Humanitarian Reference Maps](http://fieldmaps.io/)**: Update 360 days.
-    - **[IPC Scales](https://www.ipcinfo.org/fileadmin/user_upload/ipcinfo/docs/communication_tools/brochures/IPC_Brochure_Understanding_the_IPC_Scales.pdf)**: Update 60 days.
-    - **[IDMC Monitoring Tools](https://www.internal-displacement.org/monitoring-tools/)**: Update 60 days.
-    - **[OCHA HPC Humanitarian Programme Cycle](https://github.com/UN-OCHA/hpc-api/wiki)**: Update 90 days.
-    - **[OHCHR, UN treaty body Database, Committee on the rights of the Child](https://www.ohchr.org/en/resources/databases)**: Update 360 days
-    - **[UNICEF Indicators](https://data.unicef.org/wp-content/uploads/2018/03/Progress-for-Every-Child-ANNEXES-03.06.2018.pdf), [Methodological Work](https://mics.unicef.org/methodological-work), [Indicator Manual](https://www.unicef.org/media/55526/file/UNICEF%20Strategic%20Plan%20Goal%20Area%203%20Indicator%20Manual%20Ver.%201.7.pdf)**: Update 360 days.
+    - **[Humanitarian Reference Maps](http://fieldmaps.io/)**: Update every 360 days.
+    - **[IPC Scales](https://www.ipcinfo.org/fileadmin/user_upload/ipcinfo/docs/communication_tools/brochures/IPC_Brochure_Understanding_the_IPC_Scales.pdf)**: Update every 60 days.
+    - **[IDMC Monitoring Tools](https://www.internal-displacement.org/monitoring-tools/)**: Update every 360 days.
+    - **[OCHA HPC Humanitarian Programme Cycle](https://github.com/UN-OCHA/hpc-api/wiki)**: Update every 90 days.
+    - **[OHCHR, UN treaty body Database, Committee on the rights of the Child](https://www.ohchr.org/en/resources/databases)**: Update every 360 days
+    - **[UNICEF Indicators](https://data.unicef.org/wp-content/uploads/2018/03/Progress-for-Every-Child-ANNEXES-03.06.2018.pdf), [Methodological Work](https://mics.unicef.org/methodological-work), [Indicator Manual](https://www.unicef.org/media/55526/file/UNICEF%20Strategic%20Plan%20Goal%20Area%203%20Indicator%20Manual%20Ver.%201.7.pdf)**: Update every 360 days.
 
     Global Child Protection Area of Responsibility (GCP AoR) does not bear responsibility for the data provided. Users are encouraged to refer to
     the specific methodologies of each data source to understand the methods and appropriate use of the indicators provided.

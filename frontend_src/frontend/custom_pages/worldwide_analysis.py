@@ -182,4 +182,5 @@ def main_page():
             source="OCHA HPC Plans Summary API",
             date=f"{min(st.session_state['filter-years'])}-{st.session_state['selected-year']}"
         )
+        st.markdown("**Note: The overall funding includes all the types of appeals such as HNRPs, FAs or Regional Appeals.**")
         display_global_funding()

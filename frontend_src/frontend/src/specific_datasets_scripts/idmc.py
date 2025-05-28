@@ -48,14 +48,14 @@ def _display_one_cause_results(df: pd.DataFrame, displacement_cause: str):
     )
 
     age_values = df[(df["Cause"] == displacement_cause) & (df.Sex == "Both sexes")]
-    if len(age_values)==0:
+    if len(age_values) == 0:
         st.markdown(f"No data available for {displacement_cause.lower()} displacement")
         return
 
     max_year = age_values["Year"].max()
 
     age_values = age_values[age_values.Year == max_year]
-    if len(age_values)==0:
+    if len(age_values) == 0:
         st.markdown(f"No data available for {displacement_cause.lower()} displacement")
         return
     age_values = age_values[age_groups].values[0]

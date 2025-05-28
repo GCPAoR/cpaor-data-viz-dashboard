@@ -4,14 +4,12 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 from frontend.src.utils.utils_functions import _custom_title
-from frontend.src.visualizations.maps_creation import \
-    _display_map_img  # _create_map_placeholder_plotly,
+from frontend.src.visualizations.maps_creation import _display_map_img
 
 
 def _load_acled_data():
 
     number_of_events_targeting_civilians_countries_mapping = {
-        #"Central African Republic": "CAR",
         "Democratic Republic of Congo": "Congo DRC",
         "eSwatini": "Eswatini",
         "Turkey": "Türkiye",
@@ -71,7 +69,7 @@ def _display_number_of_events_targetting_civilians(selected_country: str):
 
     one_country_number_of_events_targeting_civilians.reset_index(drop=True, inplace=True)
 
-    one_country_number_of_events_targeting_civilians['year'] = one_country_number_of_events_targeting_civilians['year'].astype(int)
+    one_country_number_of_events_targeting_civilians['year'] = one_country_number_of_events_targeting_civilians['year'].astype(int)  # noqa
 
     if len(one_country_number_of_events_targeting_civilians) > 0:
         one_country_number_of_events_targeting_civilians.sort_values(by="year", inplace=True)

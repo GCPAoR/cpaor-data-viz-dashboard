@@ -1,12 +1,13 @@
 import pandas as pd
 import streamlit as st
 from frontend.src.utils.utils_functions import (
-    _add_blank_space, _custom_title, _get_bullet_point_as_highlighted_text_display)
+    _custom_title, _get_bullet_point_as_highlighted_text_display)
 from frontend.src.visualizations.barchart import \
     _create_horizontal_continous_scale_barplot  # _create_horizontal_single_scale_barplot,
 
 
 country_names_mapping = {"DRC": "Congo DRC", "CAR": "Central African Republic"}
+
 
 def _clean_columns(df: pd.DataFrame) -> pd.DataFrame:
     """

@@ -1,5 +1,5 @@
-
 import streamlit as st
+
 
 @st.dialog("Disclaimer and Terms of Use", width="large")
 def show_disclaimer(local_storage):
@@ -10,11 +10,11 @@ def show_disclaimer(local_storage):
     expressed or implied, regarding the accuracy, completeness, or suitability for any particular
     purpose of the information available. The GCP AoR is not liable for any loss, damage, or
     liability arising from the use of this platform, and all use is at the user’s own risk.<br>
-    
+
     <b>Content and Updates</b><br>
     The GCP AoR may update or modify content on this platform without notice. Users are
     advised not to rely solely on the information provided here for critical decisions.<br>
-    
+
     <b>Third-Party Links and Information</b><br>
     This platform may include links to third-party websites and may contain advice, opinions,
     and statements from external providers. Reliance upon any such advice, opinion, statement,
@@ -36,7 +36,7 @@ def show_disclaimer(local_storage):
     generated content and reserves the right to modify or remove such content at any time. <br>
 
     By using this platform, I acknowledge and agree to these terms.
-    
+
     """
     st.html(text)
 

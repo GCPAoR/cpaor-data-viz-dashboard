@@ -7,6 +7,13 @@ import streamlit as st
 from shapely.geometry import mapping, shape
 
 
+countries_mapping = {
+    "Venezuela (Bolivarian Republic of)": "Venezuela",
+    "Syrian Arab Republic": "Syria",
+    "Iran (Islamic Republic of)": "Iran"
+}
+
+
 def _convert_geometries_to_geojson(
     polygon, tolerance: float, return_extreme_points: bool
 ):
@@ -32,7 +39,7 @@ def _convert_geometries_to_geojson(
     preprocessed_val = shape(polygon)
 
     processed_polygon = mapping(
-        preprocessed_val.simplify(tolerance=tolerance, preserve_topology=False)
+        preprocessed_val.simplify(tolerance=tolerance, preserve_topology=True)
     )
     returned_data = {"geometry": processed_polygon}
 
@@ -69,6 +76,8 @@ def _load_gpkg_adm0(file_path: str):
     7. Returns the completed GeoJSON object.
     """
 
+    # Note for Admin 0 gpkg file, get it from here: https://fieldmaps.io/data/adm0
+
     geojson_obj = {"type": "FeatureCollection", "features": []}
 
     # Open GeoPackage file and iterate over features to filter them
@@ -77,12 +86,15 @@ def _load_gpkg_adm0(file_path: str):
     ) as src:
         for feature in src:
             # Check if the feature satisfies the SQL filter condition for rows
-            if feature["properties"]["adm0_name"] in st.session_state["countries"]:
-                # Filter columns based on the SQL query
-                filtered_properties = {"name": feature["properties"]["adm0_name"]}
+            adm0_name = feature["properties"]["adm0_name"]
+            adm0_name = countries_mapping.get(adm0_name, adm0_name)
 
+            if adm0_name in st.session_state["countries"]:
+                # Filter columns based on the SQL query
+
+                filtered_properties = {"name": adm0_name}
                 processed_data = _convert_geometries_to_geojson(
-                    feature["geometry"], tolerance=0.3, return_extreme_points=False
+                    feature["geometry"], tolerance=0.1, return_extreme_points=True
                 )
 
                 filtered_feature = {
@@ -92,7 +104,6 @@ def _load_gpkg_adm0(file_path: str):
                 }
 
                 geojson_obj["features"].append(filtered_feature)
-
     return geojson_obj
 
 
@@ -120,7 +131,6 @@ def _load_polygons_adm0():
     loaded_data_path = os.path.join(adm0_processed_data, "adm0_polygons.geojson")
 
     if not os.path.exists(loaded_data_path):
-
         geojson_countries_file = _load_gpkg_adm0(
             os.path.join(st.session_state["original_polygons_data_path"], "adm0_polygons.gpkg")
         )
