@@ -59,18 +59,20 @@ def _get_number_of_events_evolution(events_df: pd.DataFrame, save_path: os.PathL
         ["country", "year", "fatalities"]
     ].rename(columns={"fatalities": "Number of Events"})
 
+    number_of_events_targeting_civilians_df["Number of Events"] = number_of_events_targeting_civilians_df["Number of Events"].astype(int)
+
+    number_of_events_targeting_civilians_df = (
+        number_of_events_targeting_civilians_df.groupby(
+            ["country", "year"], as_index=False
+        ).agg({"Number of Events": "sum"})
+    ).reset_index(drop=True)
+
     number_of_events_targeting_civilians_df = pd.concat(
         [
             past_number_of_events_targeting_civilians_df,
             number_of_events_targeting_civilians_df,
         ]
-    )
-
-    number_of_events_targeting_civilians_df = (
-        number_of_events_targeting_civilians_df.groupby(
-            ["country", "year"], as_index=False
-        ).agg({"Number of Events": "count"})
-    ).reset_index()
+    ).drop_duplicates(subset=["country", "year"], keep="last").sort_values(["country", "year"], ascending=True).reset_index(drop=True)
 
     number_of_events_targeting_civilians_df.to_csv(save_path, index=False)
 
@@ -287,7 +289,6 @@ def _get_acled_data(datasets_metadata: Dict[str, Any], data_output_path: os.Path
         start_date = "-".join(datasets_metadata["last_update_time"].split("-")[::-1])
     # Fetch data for all countries and combine
     for country in tqdm(countries_list, desc="Processing ACLED countries"):
-
         data = fetch_country_data(country, datasets_metadata["website_url"], start_date)
 
         if "data" in data and data["data"]:
@@ -297,20 +298,23 @@ def _get_acled_data(datasets_metadata: Dict[str, Any], data_output_path: os.Path
             )
             events_df = pd.concat([events_df, one_country_df])
 
-    events_df["year"] = events_df["year"].astype(int)
+    if len(events_df):
+        events_df["year"] = events_df["year"].astype(int)
 
-    _get_number_of_events_evolution(
-        events_df,
-        os.path.join(data_output_path, "acled", "number_events_evolution.csv"),
-    )
-    _get_individual_events_targetting_civilians_df(
-        events_df,
-        save_path=os.path.join(
-            data_output_path, "acled", "individual_events_targetting_civilians_new.csv"
-        ),
-        mapping_acled_to_fieldmaps_path=os.path.join(
-            data_output_path, "acled", "mapping_acled_to_fieldmaps.json"
-        ),
-    )
+        _get_number_of_events_evolution(
+            events_df,
+            os.path.join(data_output_path, "acled", "number_events_evolution.csv"),
+        )
+        _get_individual_events_targetting_civilians_df(
+            events_df,
+            save_path=os.path.join(
+                data_output_path, "acled", "individual_events_targetting_civilians_new.csv"
+            ),
+            mapping_acled_to_fieldmaps_path=os.path.join(
+                data_output_path, "acled", "mapping_acled_to_fieldmaps.json"
+            ),
+        )
+    else:
+        print("The ACLED events data is empty.")
 
     return datasets_metadata
