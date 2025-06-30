@@ -11,14 +11,14 @@ terraform {
     key    = "cpaor_state/terraform.tfstate"
     region = ""
     #   dynamodb_table  = "terraform-lock-integration-db"
-    encrypt                = true
+    encrypt = true
     #profile                = "cpaor_terraform"
     skip_region_validation = true
   }
 }
 
 provider "aws" {
-  region  = var.aws_region
+  region = var.aws_region
   #profile = var.aws_profile
   #shared_credentials_files = ["~/.aws/credentials"]
 }
@@ -64,7 +64,9 @@ module "streamlit" {
   efs_volume_id = module.efilesystem.efs_volume_id
 
   # secrets
-  streamlit_password_arn = module.secrets.streamlit_password_arn
+  streamlit_password_arn        = module.secrets.streamlit_password_arn
+  streamlit_app_environment_arn = module.secrets.streamlit_app_environment_arn
+  streamlit_ga_tracking_id_arn  = module.secrets.streamlit_ga_tracking_id_arn
 
 }
 
