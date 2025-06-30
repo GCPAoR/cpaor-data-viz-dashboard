@@ -3,13 +3,38 @@ import os
 
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 from streamlit_local_storage import LocalStorage
+
+import dotenv
+
+dotenv.load_dotenv()
 
 from frontend.src.disclaimer.message import show_disclaimer
 from frontend.src.utils.utils_functions import _custom_title
 
+APP_ENVIRONMENT = os.getenv("APP_ENVIRONMENT", "local")
+GA_TRACKING_ID = os.getenv("GA_TRACKING_ID", None)
+
 app_icon_path = os.path.join("./frontend/images", "cpaor_icon.png")
 st.set_page_config(page_title="CPAoR", layout="wide", page_icon=app_icon_path)
+
+# Google Analytics script starts
+if APP_ENVIRONMENT == "production" and GA_TRACKING_ID is not None:
+    ga_script = f"""
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={GA_TRACKING_ID}"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){{dataLayer.push(arguments);}}
+    gtag('js', new Date());
+    gtag('config', '{GA_TRACKING_ID}');
+    </script>
+    """
+
+    # Inject into the page
+    components.html(ga_script, height=0, width=0)
+# Google Analytics script ends
 
 st.session_state["base_data_folder"] = "/data"
 
