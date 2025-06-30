@@ -12,14 +12,16 @@ data "template_file" "config" {
   template = file("./modules/ecs/server/templates/ecr_image/image.json")
 
   vars = {
-    app_image              = local.app_image_url
-    app_port               = var.app_port
-    fargate_cpu            = var.fargate_cpu
-    fargate_memory         = var.fargate_memory
-    aws_region             = var.aws_region
-    environment            = var.environment
-    container_name         = var.ecs_container_name
-    streamlit_password_arn = var.streamlit_password_arn
+    app_image                     = local.app_image_url
+    app_port                      = var.app_port
+    fargate_cpu                   = var.fargate_cpu
+    fargate_memory                = var.fargate_memory
+    aws_region                    = var.aws_region
+    environment                   = var.environment
+    container_name                = var.ecs_container_name
+    streamlit_password_arn        = var.streamlit_password_arn
+    streamlit_app_environment_arn = var.streamlit_app_environment_arn
+    streamlit_ga_tracking_id_arn  = var.streamlit_ga_tracking_id_arn
   }
 }
 

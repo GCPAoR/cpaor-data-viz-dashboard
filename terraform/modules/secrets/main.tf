@@ -17,3 +17,11 @@ data "aws_ssm_parameter" "acaps_password" {
 data "aws_ssm_parameter" "streamlit_pwd" {
   name = "streamlit_password"
 }
+
+data "aws_ssm_parameter" "app_environment" {
+  name = "app_environment"
+}
+
+data "aws_ssm_parameter" "ga_tracking_id" {
+  name = "ga_tracking_id"
+}

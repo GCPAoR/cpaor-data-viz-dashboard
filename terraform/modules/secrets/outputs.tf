@@ -17,3 +17,11 @@ output "acaps_password_arn" {
 output "streamlit_password_arn" {
   value = data.aws_ssm_parameter.streamlit_pwd.arn
 }
+
+output "streamlit_app_environment_arn" {
+  value = data.aws_ssm_parameter.app_environment.arn
+}
+
+output "streamlit_ga_tracking_id_arn" {
+  value = data.aws_ssm_parameter.ga_tracking_id.arn
+}

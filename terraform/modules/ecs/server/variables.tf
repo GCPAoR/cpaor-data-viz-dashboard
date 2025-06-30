@@ -79,3 +79,5 @@ variable "evaluation_period_min" {
 
 # secrets
 variable "streamlit_password_arn" {}
+variable "streamlit_app_environment_arn" {}
+variable "streamlit_ga_tracking_id_arn" {}

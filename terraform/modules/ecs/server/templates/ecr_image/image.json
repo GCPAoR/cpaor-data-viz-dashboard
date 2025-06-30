@@ -46,6 +46,14 @@
         {
           "name": "STREAMLIT_USER_PASSWORD",
           "valueFrom": "${streamlit_password_arn}"
+        },
+        {
+          "name": "APP_ENVIRONMENT",
+          "valueFrom": "${streamlit_app_environment_arn}"
+        },
+        {
+          "name": "GA_TRACKING_ID",
+          "valueFrom": "${streamlit_ga_tracking_id_arn}"
         }
       ]
     }
