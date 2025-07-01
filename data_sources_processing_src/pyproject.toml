@@ -1,28 +1,57 @@
-[tool.poetry]
-name = "CPAoR Project"
+[project]
+name = "cpaor_project"
 version = "1.0.0"
 description = ""
-authors = ["CPAoR developers"]
+authors = [{ name="CPAoR developers", email = "ranjan.shrestha@togglecorp.com"}]
+requires-python = ">=3.11,<3.12"
+readme = "README.md"
+dependencies = [
+    "nltk==3.8.1",
+    "pandas==2.2.2",
+    "pytesseract",
+    "python-dotenv==1.0.1",
+    "python_docx==1.1.0",
+    "tqdm==4.66.2",
+    "transformers==4.38.0",
+    "openpyxl==3.1.2",
+    "pymupdf==1.23.26",
+    "openai==1.14.1",
+    "beautifulsoup4==4.12.3",
+    "torch @ https://download.pytorch.org/whl/cpu-cxx11-abi/torch-2.0.0%2Bcpu.cxx11.abi-cp311-cp311-linux_x86_64.whl",
+    "aiohttp==3.10.5",
+    "numpy<=2",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-nltk = "^3.8.1"
-pandas = "^2.2.2"
-pytesseract = "*"
-python-dotenv = "1.0.1"
-python_docx = "^1.1.0"
-tqdm = "^4.66.2"
-transformers = "^4.38.0"
-openpyxl = "^3.1.2"
-pymupdf = "^1.23.26"
-openai = "^1.14.1"
-beautifulsoup4 = "^4.12.3"
-torch = {url = "https://download.pytorch.org/whl/cpu-cxx11-abi/torch-2.0.0%2Bcpu.cxx11.abi-cp311-cp311-linux_x86_64.whl"}
-aiohttp = "3.10.5"
-numpy = "<2"
+[tool.pyright]
+exclude = [
+    "**/__pycache__",
+    "**/snap_test_*.py",
+    ".venv/",
+    "**/migrations/*.py",
+]
+extraPaths = ["libs/pystac-monty"]
+reportMissingImports = true
+reportMissingTypeStubs = false
+venvPath = "."
+venv = ".venv"
 
-[tool.poetry.dev-dependencies]
+[tool.ruff]
+line-length = 125
+extend-exclude = [
+    ".git",
+    ".pytest_cache",
+    ".venv",
+    "venv",
+    "**/migrations/*",
+    "__pycache__",
+    "**/terraform/*",
+]
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.ruff.lint]
+ignore = ["C901", "E701", "E203"]
+extend-select = ["I", "E", "F", "W"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402"]
+"/**/tests/*_mock_data.py" = ["E501"]
+"**/snap_test_*.py" = ["E501"]
