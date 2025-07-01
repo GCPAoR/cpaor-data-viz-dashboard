@@ -49,18 +49,15 @@ def _get_number_of_events_evolution(events_df: pd.DataFrame, save_path: os.PathL
     if os.path.exists(save_path):
         past_number_of_events_targeting_civilians_df = pd.read_csv(save_path)
     else:
-        past_number_of_events_targeting_civilians_df = pd.DataFrame(columns=["country", "year", "Number of Events"])
+        past_number_of_events_targeting_civilians_df = pd.DataFrame(columns=["country", "year", "fatalities", "Number of Events"])
 
-    number_of_events_targeting_civilians_df = events_df.copy()[["country", "year", "fatalities"]].rename(
-        columns={"fatalities": "Number of Events"}
-    )
+    events_df["fatalities"] = events_df["fatalities"].astype(int)
 
-    number_of_events_targeting_civilians_df["Number of Events"] = number_of_events_targeting_civilians_df[
-        "Number of Events"
-    ].astype(int)
+    number_of_events_targeting_civilians_df = events_df.copy()
+    number_of_events_targeting_civilians_df["Number of Events"] = number_of_events_targeting_civilians_df.groupby(["country", "year"])["year"].transform("count")
 
     number_of_events_targeting_civilians_df = (
-        number_of_events_targeting_civilians_df.groupby(["country", "year"], as_index=False).agg({"Number of Events": "sum"})
+        number_of_events_targeting_civilians_df.groupby(["country", "year"], as_index=False).agg({"fatalities": "sum", "Number of Events": "first"})
     ).reset_index(drop=True)
 
     number_of_events_targeting_civilians_df = (
@@ -131,22 +128,31 @@ def _get_individual_events_targetting_civilians_df(
 
     min_year = 2023
     number_of_fatalities_df = number_of_fatalities_df[number_of_fatalities_df["year"] >= min_year]
-    number_of_fatalities_df = pd.concat([past_number_of_fatalities_df, number_of_fatalities_df])
+    number_of_fatalities_df.drop(columns=["year"], inplace=True)
 
-    number_of_fatalities_df = (
-        number_of_fatalities_df.groupby(
-            ["country", "admin1", "event_date", "latitude", "longitude", "event_type"],
-            as_index=False,
-        )
-        .agg({"fatalities": "sum"})
-        .reset_index()
-    )
+    number_of_fatalities_df = pd.concat(
+        [past_number_of_fatalities_df, number_of_fatalities_df], axis=0
+    ).copy()
 
-    number_of_fatalities_df.to_csv(save_path, index=False)
+    number_of_fatalities_df["latitude"] = pd.to_numeric(number_of_fatalities_df["latitude"], errors="coerce")
+    number_of_fatalities_df["longitude"] = pd.to_numeric(number_of_fatalities_df["longitude"], errors="coerce")
+    number_of_fatalities_df["fatalities"] = pd.to_numeric(number_of_fatalities_df["fatalities"], errors="coerce")
+    number_of_fatalities_df[["country", "admin1", "event_type"]] = number_of_fatalities_df[["country", "admin1", "event_type"]].astype("string")
+    number_of_fatalities_df["event_date"] = pd.to_datetime(number_of_fatalities_df["event_date"])
+
+    for col in ["country", "admin1", "event_type"]:
+        number_of_fatalities_df[col] = number_of_fatalities_df[col].str.strip().str.replace("'", "")
+    number_of_fatalities_df["latitude"] = number_of_fatalities_df["latitude"].round(4)
+    number_of_fatalities_df["longitude"] = number_of_fatalities_df["longitude"].round(4)
+
+    df_clean = number_of_fatalities_df.copy().reset_index(drop=True)
+    number_of_fatalities_df_grp = df_clean.groupby(["country", "admin1", "event_date", "latitude", "longitude", "event_type"], as_index=False).agg({"fatalities": "sum"})
+    number_of_fatalities_df_grp.to_csv(save_path, index=False)
 
 
-# Function to fetch data for a country
+
 def fetch_country_data(country, url, start_date: str):
+    """Fetch data for a country"""
     response = requests.get(
         url,
         params={
