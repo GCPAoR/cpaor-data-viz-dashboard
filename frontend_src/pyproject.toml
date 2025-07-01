@@ -1,26 +1,54 @@
-[tool.poetry]
-name = "CPAoR Project"
+[project]
+name = "cpaor_project"
 version = "1.0.0"
 description = ""
-authors = ["CPAoR developers"]
+authors = [{ name = "CPAoR developers", email = "ranjan.shrestha@togglecorp.com"}]
+requires-python = ">=3.11,<3.12"
+readme = "README.md"
+dependencies = [
+    "pandas==2.2.2",
+    "plotly==5.19.0",
+    "python-dotenv==1.0.1",
+    "streamlit==1.41.0",
+    "tqdm==4.66.2",
+    "matplotlib==3.8.0",
+    "fiona==1.9.5",
+    "geopandas==0.14.3",
+    "openpyxl==3.1.2",
+    "streamlit-local-storage==0.0.25",
+    "numpy<=2",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-pandas = "^2.2.2"
-plotly = "^5.19.0"
-python-dotenv = "1.0.1"
-streamlit = "^1.41.0"
-tqdm = "^4.66.2"
-matplotlib = "^3.8.0"
-fiona = "^1.9.5"
-geopandas = "^0.14.3"
-openpyxl = "^3.1.2"
-streamlit-local-storage = "^0.0.25"
-numpy = "<2"
+[tool.pyright]
+exclude = [
+    "**/__pycache__",
+    "**/snap_test_*.py",
+    ".venv/",
+    "**/migrations/*.py",
+]
+extraPaths = ["libs/pystac-monty"]
+reportMissingImports = true
+reportMissingTypeStubs = false
+venvPath = "."
+venv = ".venv"
 
+[tool.ruff]
+line-length = 125
+extend-exclude = [
+    ".git",
+    ".pytest_cache",
+    ".venv",
+    "venv",
+    "**/migrations/*",
+    "__pycache__",
+    "**/terraform/*",
+]
 
-[tool.poetry.dev-dependencies]
+[tool.ruff.lint]
+ignore = ["C901", "E701", "E203"]
+extend-select = ["I", "E", "F", "W"]
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402"]
+"/**/tests/*_mock_data.py" = ["E501"]
+"**/snap_test_*.py" = ["E501"]
