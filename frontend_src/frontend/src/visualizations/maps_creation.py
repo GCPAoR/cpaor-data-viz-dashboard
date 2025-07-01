@@ -3,6 +3,7 @@ from typing import Dict, List, Literal
 import pandas as pd
 import pydeck as pdk
 import streamlit as st
+
 from frontend.src.utils.load_geodata import _load_polygons_adm1
 
 lat_range = 180
@@ -32,7 +33,9 @@ def _get_mean(data: List[float]):
 
 def _display_legend(mapping_dict: Dict[str, List[int]]):
     # Generate HTML for the legend
-    legend_html = "<div style='display: flex; flex-direction: row; align-items: center; justify-content: flex-end; flex-wrap: wrap;'>"  # noqa
+    legend_html = (
+        "<div style='display: flex; flex-direction: row; align-items: center; justify-content: flex-end; flex-wrap: wrap;'>"  # noqa
+    )
     for tag_name, color in mapping_dict.items():
         hex_color = _rgb_to_hex(color)
         # Increased margin-right for more spacing between items
@@ -94,7 +97,6 @@ def _create_polygons_map_placeholder_pdk(
     8. Displays a legend for the map.
     """
     with st.spinner("Loading the map..."):
-
         # Create a PyDeck layer
         layer = pdk.Layer(
             "GeoJsonLayer",
@@ -144,11 +146,7 @@ def _create_polygons_map_placeholder_pdk(
             initial_view_state=view_state,
             map_style="light",
             tooltip={
-                "text": (
-                    "{legend}"
-                    if display_type == "Country"
-                    else "TEXT HERE: {name}\nTag: {legend_name}"
-                ),
+                "text": ("{legend}" if display_type == "Country" else "TEXT HERE: {name}\nTag: {legend_name}"),
                 "style": {"backgroundColor": "white", "color": "black"},
             },
             height=displayed_height,
@@ -191,7 +189,6 @@ def _create_points_map_placeholder_pdk(
     8. Renders the map using Streamlit's `st.pydeck_chart`.
     """
     with st.spinner("Loading the map..."):
-
         # Create a PyDeck layer
         layer0 = pdk.Layer(
             "GeoJsonLayer",
@@ -290,9 +287,7 @@ def _display_map_img(displayed_df: pd.DataFrame, country_name: str):
        showing administrative regions and their aggregated data.
     """
     count_df = displayed_df.copy()
-    count_df = count_df.groupby("admin1", as_index=False).agg(
-        {"event_date": "count", "fatalities": "sum"}
-    )
+    count_df = count_df.groupby("admin1", as_index=False).agg({"event_date": "count", "fatalities": "sum"})
     # st.dataframe(displayed_df)
     admin_level_data = {}
     for _, row in count_df.iterrows():
@@ -302,18 +297,13 @@ def _display_map_img(displayed_df: pd.DataFrame, country_name: str):
         }
 
     # if not os.path.exists(country_map_path):
-    geojson_country_polygons, extreme_points = _load_polygons_adm1(
-        country_name, [country_name]
-    )
+    geojson_country_polygons, extreme_points = _load_polygons_adm1(country_name, [country_name])
 
     for feature in geojson_country_polygons["features"]:
-
         # event counts
         name = feature["properties"]["name"]
         feature["name"] = name
-        features_props = admin_level_data.get(
-            name, {"Events Count": "0", "Total Fatalities": "0"}
-        )
+        features_props = admin_level_data.get(name, {"Events Count": "0", "Total Fatalities": "0"})
         feature["Events Count"] = features_props["Events Count"]
         feature["Total Fatalities"] = features_props["Total Fatalities"]
 
@@ -330,7 +320,6 @@ def _display_map_img(displayed_df: pd.DataFrame, country_name: str):
         # feature["IPC Percentage"] = shown_percentage_val
 
     if len(geojson_country_polygons["features"]) > 0:
-
         _create_points_map_placeholder_pdk(
             geojson_country_polygons,
             displayed_df,

@@ -1,16 +1,16 @@
 import streamlit as st
+
 from frontend.src.utils.utils_functions import _custom_title
 
 
 def _show_methodological_details():
-
     # Add the main content
     st.markdown(
         """
-    This product showcases a comprehensive collection of data sources and indicators pertinent to child protection (using the Needs Identification Analysis Framework (NIAF) as a basis),
-    streamlined through a central online platform. Utilizing open-source technologies, the application enhances the
-    coordination and management of humanitarian data, facilitating rapid access to vital information and analytics
-    for child protection efforts globally.
+    This product showcases a comprehensive collection of data sources and indicators pertinent to child protection
+    (using the Needs Identification Analysis Framework (NIAF) as a basis), streamlined through a central online platform.
+    Utilizing open-source technologies, the application enhances the coordination and management of humanitarian data,
+    facilitating rapid access to vital information and analytics for child protection efforts globally.
     """
     )
 
@@ -22,9 +22,9 @@ def _show_methodological_details():
     for advanced data manipulation and analysis. Its extensive libraries support a variety of functionalities from
     data scraping to deep learning, making it ideal for backend development.
 
-    **Streamlit:** This open-source framework allows for the quick creation of interactive and user-friendly web applications.
-    Streamlit interfaces seamlessly with Python, enabling real-time data updates and interactive visualization, which are crucial
-    for dynamic data displays and user engagement.
+    **Streamlit:** This open-source framework allows for the quick creation of interactive and user-friendly web application.
+    Streamlit interfaces seamlessly with Python, enabling real-time data updates and interactive visualization, which
+    are crucial for dynamic data displays and user engagement.
     """
     )
 
@@ -32,21 +32,21 @@ def _show_methodological_details():
     _custom_title("Application Features", 24)
     st.markdown(
         """
-    **Interactive Dashboards:** Users can interact with a variety of data visualizations, including risk maps, country profiles,
-    and child protection summaries. These dashboards dynamically adapt to new data, providing up-to-date insights.
+    **Interactive Dashboards:** Users can interact with a variety of data visualizations, including risk maps, country
+    profiles, and child protection summaries. These dashboards dynamically adapt to new data, providing up-to-date insights.
 
-    **Automated Data Integration:** Leveraging APIs from key humanitarian organizations, the platform automates the data collection
-    and integration process, ensuring a consistent and reliable data flow.
+    **Automated Data Integration:** Leveraging APIs from key humanitarian organizations, the platform automates the data
+    collection and integration process, ensuring a consistent and reliable data flow.
 
-    **Natural Language Processing (NLP):** Utilizing NLP techniques, the application processes vast amounts of unstructured data from
-    diverse reports and documents. This feature automatically tags, summarizes, and extracts crucial information, transforming verbose
-    documents into concise, actionable insights.
+    **Natural Language Processing (NLP):** Utilizing NLP techniques, the application processes vast amounts of unstructured
+    data from diverse reports and documents. This feature automatically tags, summarizes, and extracts crucial information,
+    transforming verbose documents into concise, actionable insights.
 
-    **Machine Learning Analysis:** The application employs machine learning algorithms to analyze trends and patterns within the data,
-    supporting decision-making processes.
+    **Machine Learning Analysis:** The application employs machine learning algorithms to analyze trends and patterns within
+    the data, supporting decision-making processes.
 
-    **Customizable Indicators and Filters:** Users can select specific indicators and filters to view customized data sets that meet
-    their unique requirements, enhancing the app’s utility.
+    **Customizable Indicators and Filters:** Users can select specific indicators and filters to view customized data sets
+    that meet their unique requirements, enhancing the app’s utility.
     """
     )
 
@@ -62,13 +62,19 @@ def _show_methodological_details():
 
     # Section: Data Sources
     _custom_title("Update Frequency of Data Sources", 24)
+
+    # ruff: noqa: E501
     st.markdown(
         """
-    This product is updated every 10 days, and scripts are run to update each data source at different intervals, depending on the source's data update schedule. Please refer to the specific methodology of each data source to understand their individual update frequencies:
+    This product is updated every 10 days, and scripts are run to update each data source at different intervals, depending
+    on the source's data update schedule. Please refer to the specific methodology of each data source to understand their
+    individual update frequencies:
 
-    The data displayed in this application is sourced from various respected organizations, including ACLED, ACAPS, UNICEF, IPC, OHCHR, and IDMC.
-    Each source has its own methodology, which can be accessed through the following links to ensure the accurate interpretation and use of the data:
-    - **[ACLED Methodology](https://www.acleddata.com/wp-content/uploads/2017/12/Methodology-Overview_FINAL.pdf)**: Update every 7 days.
+    The data displayed in this application is sourced from various respected organizations, including ACLED, ACAPS, UNICEF,
+    IPC, OHCHR, and IDMC. Each source has its own methodology, which can be accessed through the following links to ensure
+    the accurate interpretation and use of the data:
+    - **[ACLED Methodology](https://www.acleddata.com/wp-content/uploads/2017/12/Methodology-Overview_FINAL.pdf)**: Update
+    every 7 days.
     - **[ACAPS Protection Indicators](https://www.acaps.org/fileadmin/Dataset/Codebook/20230227_acaps_dataset_protection_indicators_codebook.pdf)**: Update every 7 days.
     - **[ACAPS INFORM Severity Index](https://www.acaps.org/fileadmin/Dataset/Methodology_files/20201019_inform_severity_index_methodology_update.pdf)** Update every 10 days.
     - **[Humanitarian Reference Maps](http://fieldmaps.io/)**: Update every 360 days.
@@ -78,8 +84,9 @@ def _show_methodological_details():
     - **[OHCHR, UN treaty body Database, Committee on the rights of the Child](https://www.ohchr.org/en/resources/databases)**: Update every 360 days
     - **[UNICEF Indicators](https://data.unicef.org/wp-content/uploads/2018/03/Progress-for-Every-Child-ANNEXES-03.06.2018.pdf), [Methodological Work](https://mics.unicef.org/methodological-work), [Indicator Manual](https://www.unicef.org/media/55526/file/UNICEF%20Strategic%20Plan%20Goal%20Area%203%20Indicator%20Manual%20Ver.%201.7.pdf)**: Update every 360 days.
 
-    Global Child Protection Area of Responsibility (GCP AoR) does not bear responsibility for the data provided. Users are encouraged to refer to
-    the specific methodologies of each data source to understand the methods and appropriate use of the indicators provided.
+    Global Child Protection Area of Responsibility (GCP AoR) does not bear responsibility for the data provided. Users are
+    encouraged to refer to the specific methodologies of each data source to understand the methods and appropriate use of
+    the indicators provided.
     """
     )
 

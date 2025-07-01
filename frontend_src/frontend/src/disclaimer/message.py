@@ -3,7 +3,7 @@ import streamlit as st
 
 @st.dialog("Disclaimer and Terms of Use", width="large")
 def show_disclaimer(local_storage):
-    """ Show disclaimer message at the startup """
+    """Show disclaimer message at the startup"""
     text = """
     The information provided on this platform is for informational purposes only. The Global
     Child Protection Area of Responsibility (GCP AoR) makes no representations or warranties,

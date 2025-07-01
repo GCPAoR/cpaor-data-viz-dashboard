@@ -1,23 +1,31 @@
 import streamlit as st
+
 from frontend.src.specific_datasets_scripts.acaps_inform_severity import (
-    _display_crises_list, _show_barriers_goods_services,
-    _show_impact_of_the_crisis, _show_physical_environment)
+    _display_crises_list,
+    _show_barriers_goods_services,
+    _show_impact_of_the_crisis,
+    _show_physical_environment,
+)
 from frontend.src.specific_datasets_scripts.acaps_protection_indicators import (
-    _display_main_summary, _display_specific_protection_indicators)
+    _display_main_summary,
+    _display_specific_protection_indicators,
+)
 from frontend.src.specific_datasets_scripts.acled import (
-    _display_acled_map_data, _display_number_of_events_targetting_civilians)
-from frontend.src.specific_datasets_scripts.idmc import \
-    _get_displacement_numbers
+    _display_acled_map_data,
+    _display_number_of_events_targetting_civilians,
+)
+from frontend.src.specific_datasets_scripts.idmc import _get_displacement_numbers
 from frontend.src.specific_datasets_scripts.ipc import _plot_ipc_results
 from frontend.src.specific_datasets_scripts.ocha_hpc import (
     _display_pin_stackbar,
     display_country_level_funding,
-    display_cp_beneficiaries
+    display_cp_beneficiaries,
 )
-from frontend.src.specific_datasets_scripts.ohchr import \
-    country_wise_legal_framework
+from frontend.src.specific_datasets_scripts.ohchr import country_wise_legal_framework
 from frontend.src.specific_datasets_scripts.unicef_data_processing import (
-    _display_child_protection_risks, _display_tabular_mortality_rates)
+    _display_child_protection_risks,
+    _display_tabular_mortality_rates,
+)
 from frontend.src.utils.utils_functions import _add_blank_space, _custom_title
 
 
@@ -68,9 +76,7 @@ def _display_all_data(selected_country: str):
         display_country_level_funding(selected_country)
         _display_crises_list(selected_country)
 
-    _custom_title(
-        "Causes & Underlying Factors", font_size=30
-    )
+    _custom_title("Causes & Underlying Factors", font_size=30)
     st.write(" ")
     physical_env_col, _, impact_of_the_crisis_col = st.columns([0.47, 0.06, 0.47])
     with physical_env_col:
