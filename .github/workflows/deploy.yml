@@ -14,14 +14,20 @@ jobs:
     steps:
       - uses: actions/checkout@main
         with:
-          submodules: true
+          submodules: false
 
       - uses: actions/setup-python@v5
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-      - name: Sync
-        run: uv sync --all-extras
+      - name: Sync uv with data processing
+        run: |
+          cd data_sources_processing_src
+          uv sync --all-extras
+      - name: Sync uv with streamit
+        run: |
+          cd frontend_src
+          uv sync --all-extras
       - uses: pre-commit/action@main
   build-prod:
     name: Build and push images
