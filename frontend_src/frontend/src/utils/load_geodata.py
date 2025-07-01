@@ -6,17 +6,14 @@ import fiona
 import streamlit as st
 from shapely.geometry import mapping, shape
 
-
 countries_mapping = {
     "Venezuela (Bolivarian Republic of)": "Venezuela",
     "Syrian Arab Republic": "Syria",
-    "Iran (Islamic Republic of)": "Iran"
+    "Iran (Islamic Republic of)": "Iran",
 }
 
 
-def _convert_geometries_to_geojson(
-    polygon, tolerance: float, return_extreme_points: bool
-):
+def _convert_geometries_to_geojson(polygon, tolerance: float, return_extreme_points: bool):
     """
     Converts a polygon geometry to GeoJSON format with optional simplification and extraction of extreme points.
 
@@ -38,9 +35,7 @@ def _convert_geometries_to_geojson(
     """
     preprocessed_val = shape(polygon)
 
-    processed_polygon = mapping(
-        preprocessed_val.simplify(tolerance=tolerance, preserve_topology=True)
-    )
+    processed_polygon = mapping(preprocessed_val.simplify(tolerance=tolerance, preserve_topology=True))
     returned_data = {"geometry": processed_polygon}
 
     if return_extreme_points:
@@ -81,9 +76,7 @@ def _load_gpkg_adm0(file_path: str):
     geojson_obj = {"type": "FeatureCollection", "features": []}
 
     # Open GeoPackage file and iterate over features to filter them
-    with fiona.open(
-        file_path, vfs="{}".format(file_path), enabled_drivers="GeoJSON"
-    ) as src:
+    with fiona.open(file_path, vfs="{}".format(file_path), enabled_drivers="GeoJSON") as src:
         for feature in src:
             # Check if the feature satisfies the SQL filter condition for rows
             adm0_name = feature["properties"]["adm0_name"]
@@ -149,10 +142,7 @@ def _load_polygons_adm0():
 ################# LOAD ADM1 POLYGONS ####################  # noqa
 
 
-def _update_min_max(
-    extreme_points: Dict[str, float], new_extreme_points: Dict[str, float]
-):
-
+def _update_min_max(extreme_points: Dict[str, float], new_extreme_points: Dict[str, float]):
     extreme_points = {
         "minx": (
             min(extreme_points["minx"], new_extreme_points["minx"])
@@ -179,9 +169,7 @@ def _update_min_max(
     return extreme_points
 
 
-def _load_gpkg_adm1(
-    file_path: str, used_countries: List[str]
-):  # Not mentioning 'geometry' in imported_columns
+def _load_gpkg_adm1(file_path: str, used_countries: List[str]):  # Not mentioning 'geometry' in imported_columns
     """
     Loads administrative level 1 polygons (regions) from a GeoPackage file and returns GeoJSON data.
 
@@ -207,9 +195,7 @@ def _load_gpkg_adm1(
 
     # Open GeoPackage file and iterate over features to filter them
     filtered_features = {"type": "FeatureCollection", "features": []}
-    with fiona.open(
-        file_path, vfs="{}".format(file_path), enabled_drivers="GeoJSON"
-    ) as src:
+    with fiona.open(file_path, vfs="{}".format(file_path), enabled_drivers="GeoJSON") as src:
         for feature in src:
             # Check if the feature satisfies the SQL filter condition for rows
             country_official_name = feature["properties"]["adm0_name"]
@@ -229,9 +215,7 @@ def _load_gpkg_adm1(
                 }
 
                 # update extreme_points
-                extreme_points = _update_min_max(
-                    extreme_points, geojson_geometry["extreme_points"]
-                )
+                extreme_points = _update_min_max(extreme_points, geojson_geometry["extreme_points"])
 
                 filtered_features["features"].append(filtered_feature)
 
@@ -261,12 +245,9 @@ def _load_polygons_adm1(treated_country: str, geodata_countries: List[str]):
     adm1_processed_data = os.path.join(st.session_state["geolocation_processed_data_path"], "adm1_polygons")
     os.makedirs(adm1_processed_data, exist_ok=True)
 
-    loaded_data_path = os.path.join(
-        adm1_processed_data, f"{treated_country.replace('/', '-')}.geojson"
-    )
+    loaded_data_path = os.path.join(adm1_processed_data, f"{treated_country.replace('/', '-')}.geojson")
 
     if not os.path.exists(loaded_data_path):
-
         geojson_country_file, extreme_points = _load_gpkg_adm1(
             os.path.join(st.session_state["original_polygons_data_path"], "adm1_polygons.gpkg"),
             geodata_countries,

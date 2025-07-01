@@ -1,10 +1,13 @@
 import pandas as pd
 import streamlit as st
-from frontend.src.utils.utils_functions import (
-    _custom_title, _get_bullet_point_as_highlighted_text_display)
-from frontend.src.visualizations.barchart import \
-    _create_horizontal_continous_scale_barplot  # _create_horizontal_single_scale_barplot,
 
+from frontend.src.utils.utils_functions import (
+    _custom_title,
+    _get_bullet_point_as_highlighted_text_display,
+)
+from frontend.src.visualizations.barchart import (
+    _create_horizontal_continous_scale_barplot,
+)  # _create_horizontal_single_scale_barplot,
 
 country_names_mapping = {"DRC": "Congo DRC", "CAR": "Central African Republic"}
 
@@ -38,13 +41,11 @@ def _load_information_severity_index_data():
 
     df_countries = _clean_columns(df_countries)
 
-    df_countries["Last updated"] = pd.to_datetime(
-        df_countries["Last updated"]
-    ).dt.strftime("%d-%m-%Y")
+    df_countries["Last updated"] = pd.to_datetime(df_countries["Last updated"]).dt.strftime("%d-%m-%Y")
 
-    df_countries = df_countries[
-        df_countries.COUNTRY.isin(st.session_state["countries"])
-    ].rename(columns={"INFORM Severity category.1": "INFORM Severity category name"})
+    df_countries = df_countries[df_countries.COUNTRY.isin(st.session_state["countries"])].rename(
+        columns={"INFORM Severity category.1": "INFORM Severity category name"}
+    )
 
     st.session_state["inform_severity_last_updated"] = "-".join(
         df_countries["Last updated"].max().split("-")[1:]
@@ -53,9 +54,7 @@ def _load_information_severity_index_data():
     return df_countries
 
 
-def _load_crisis_specific_df_many_empty_rows(
-    selected_country: str, sheet_name: str, initial_row_number: int
-):
+def _load_crisis_specific_df_many_empty_rows(selected_country: str, sheet_name: str, initial_row_number: int):
     """
     Loads a specific crisis-related DataFrame with potentially many empty rows from an Excel sheet.
 
@@ -89,21 +88,15 @@ def _load_crisis_specific_df_many_empty_rows(
         )
         .iloc[initial_row_number:]
     )
-    crisis_wide_df["COUNTRY"] = crisis_wide_df["COUNTRY"].apply(
-        lambda x: country_names_mapping.get(x, x)
-    )
-    crisis_wide_df = crisis_wide_df[
-        crisis_wide_df["COUNTRY"] == selected_country
-    ].replace("x", 0)
+    crisis_wide_df["COUNTRY"] = crisis_wide_df["COUNTRY"].apply(lambda x: country_names_mapping.get(x, x))
+    crisis_wide_df = crisis_wide_df[crisis_wide_df["COUNTRY"] == selected_country].replace("x", 0)
 
     crisis_wide_df = _clean_columns(crisis_wide_df)
 
     return crisis_wide_df
 
 
-def _load_crisis_specific_df_few_empty_rows(
-    selected_country: str, sheet_name: str, initial_row_number: int
-):
+def _load_crisis_specific_df_few_empty_rows(selected_country: str, sheet_name: str, initial_row_number: int):
     """
     Loads a specific crisis-related DataFrame with few empty rows from an Excel sheet.
 
@@ -136,9 +129,7 @@ def _get_list_of_crises(selected_country: str):
     """
     Function to get a list of crises from the INFORM Severity Index data.
     """
-    treated_crises = _load_crisis_specific_df_many_empty_rows(
-        selected_country, "Impact of the crisis", 3
-    )
+    treated_crises = _load_crisis_specific_df_many_empty_rows(selected_country, "Impact of the crisis", 3)
     treated_crises = treated_crises[treated_crises["COUNTRY"] == selected_country]
 
     treated_crises = treated_crises["CRISIS"].unique()
@@ -164,9 +155,7 @@ def _show_physical_environment(selected_country: str):
         source="ACAPS, INFORM Severity Index",
         date=st.session_state["inform_severity_last_updated"],
     )
-    df_main_sheet = _load_crisis_specific_df_many_empty_rows(
-        selected_country, "INFORM Severity - all crises", 2
-    )
+    df_main_sheet = _load_crisis_specific_df_many_empty_rows(selected_country, "INFORM Severity - all crises", 2)
     if len(df_main_sheet) == 0:
         st.markdown(f"No information available for {selected_country}")
         return
@@ -183,17 +172,15 @@ def _show_physical_environment(selected_country: str):
 
     complexity_of_the_crisis_indicators = ["Safety and security", "Humanitarian access"]
     complexity_of_the_crisis_df = (
-        _load_crisis_specific_df_many_empty_rows(
-            selected_country, "Complexity of the crisis", 3
-        )[complexity_of_the_crisis_indicators]
+        _load_crisis_specific_df_many_empty_rows(selected_country, "Complexity of the crisis", 3)[
+            complexity_of_the_crisis_indicators
+        ]
         .max(axis=0)
         .to_frame()
         .T
     )
 
-    final_df = pd.concat(
-        [results_main_sheet, complexity_of_the_crisis_df], axis=1
-    ).T.rename(columns={0: "Value"})
+    final_df = pd.concat([results_main_sheet, complexity_of_the_crisis_df], axis=1).T.rename(columns={0: "Value"})
     final_df["Indicator"] = final_df.index
     # final_df["Indicator"] = final_df["Indicator"].apply(lambda x: mapping_index_to_shown_val.get(x, x))
     final_df.reset_index(drop=True, inplace=True)
@@ -231,9 +218,7 @@ def _show_impact_of_the_crisis(selected_country: str):
     columns = list(columns_to_shown_val.keys())
 
     df = (
-        _load_crisis_specific_df_many_empty_rows(
-            selected_country, "Impact of the crisis", 3
-        )[columns]
+        _load_crisis_specific_df_many_empty_rows(selected_country, "Impact of the crisis", 3)[columns]
         .max(axis=0)
         .to_frame()
         .rename(columns={0: "Value"})
@@ -291,9 +276,7 @@ def _show_barriers_goods_services(selected_country: str):
     }
     original_col_names = list(columns_to_show_name.keys())
     df = (
-        _load_crisis_specific_df_many_empty_rows(
-            selected_country, "Complexity of the crisis", 3
-        )[original_col_names]
+        _load_crisis_specific_df_many_empty_rows(selected_country, "Complexity of the crisis", 3)[original_col_names]
         .max(axis=0)
         .to_frame()
         .T
@@ -327,7 +310,7 @@ def _display_crises_list(selected_country: str):
         source="ACAPS, INFORM Severity Index",
         date=st.session_state["inform_severity_last_updated"],
     )
-    items = ''
+    items = ""
     for one_crisis in crises:
         custom_css = _get_bullet_point_as_highlighted_text_display(one_crisis)
         items += custom_css

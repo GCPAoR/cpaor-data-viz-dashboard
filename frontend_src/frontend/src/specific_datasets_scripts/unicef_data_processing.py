@@ -4,6 +4,7 @@ from typing import List
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+
 from frontend.src.utils.utils_functions import _add_blank_space, _custom_title
 
 countries_mapping = {
@@ -65,9 +66,7 @@ def _import_merge_multiple_df(links):
     return pd.concat([_import_preprocess_df(link) for link in links])
 
 
-def _standard_unicef_data_import(
-    selected_country, df_path: os.PathLike, df_links: List[str]
-):
+def _standard_unicef_data_import(selected_country, df_path: os.PathLike, df_links: List[str]):
     """
     Fetches and preprocesses UNICEF data from the specified CSV file path and links.
     """
@@ -130,13 +129,8 @@ def _get_unicef_global_db_5_14_mortality_rate_df():
 
     # def _read_preprocess_one_df(sheet_name: str) -> pd.DataFrame:
     df = pd.read_excel(df_path, sheet_name=sheet_name, header=14).iloc[:-2]
-    df["Country.Name"] = df["Country.Name"].apply(
-        lambda x: unicef_countries_mapping.get(x, x)
-    )
-    df = df[
-        (df["Uncertainty.Bounds*"] == "Median")
-        & (df["Country.Name"].isin(st.session_state["countries"]))
-    ]
+    df["Country.Name"] = df["Country.Name"].apply(lambda x: unicef_countries_mapping.get(x, x))
+    df = df[(df["Uncertainty.Bounds*"] == "Median") & (df["Country.Name"].isin(st.session_state["countries"]))]
     number_associated_cols = [col for col in df.columns if _str_contains_digit(col)]
     df = df[["Country.Name", "Uncertainty.Bounds*"] + number_associated_cols]
 
@@ -188,15 +182,9 @@ def _get_mortality_rate_df(df_path: os.PathLike):
             (unicef_mortality_rates_df["SEX"] == "_T")
             & (unicef_mortality_rates_df["Indicator"] != "Mortality rate age 5-24")
         ]
-        unicef_mortality_rates_df = pd.concat(
-            [unicef_mortality_rates_df, global_db_5_14_mortality_rate]
-        )
-        unicef_mortality_rates_df["TIME_PERIOD"] = unicef_mortality_rates_df[
-            "TIME_PERIOD"
-        ].astype(int)
-        unicef_mortality_rates_df = unicef_mortality_rates_df[
-            unicef_mortality_rates_df["TIME_PERIOD"] >= 1990
-        ]
+        unicef_mortality_rates_df = pd.concat([unicef_mortality_rates_df, global_db_5_14_mortality_rate])
+        unicef_mortality_rates_df["TIME_PERIOD"] = unicef_mortality_rates_df["TIME_PERIOD"].astype(int)
+        unicef_mortality_rates_df = unicef_mortality_rates_df[unicef_mortality_rates_df["TIME_PERIOD"] >= 1990]
         unicef_mortality_rates_df.to_csv(df_path, index=False)
 
     unicef_mortality_rates_df = unicef_mortality_rates_df[
@@ -227,14 +215,10 @@ def _display_number_cards(text: str):
 
 def _custom_font(title: str, text: str, date: int = None, font_size: int = 17):
     # clean_text = text.replace("All Sexes: ", "")
-    clean_text = (
-        f"{text})".replace("()", "")
-        .replace(", )", ")")
-        .replace(".)", ".")
-        .replace("(.", ".")
-        .replace("..", ".")
+    clean_text = f"{text})".replace("()", "").replace(", )", ")").replace(".)", ".").replace("(.", ".").replace("..", ".")
+    output = (
+        f"""<p style="font-size: {font_size}px; font-family: Arial, sans-serif;"><strong>{title}</strong>: {clean_text} """  # noqa
     )
-    output = f"""<p style="font-size: {font_size}px; font-family: Arial, sans-serif;"><strong>{title}</strong>: {clean_text} """  # noqa
     if date:
         output += f"""<em>(Year: {date})</em>"""
     output += "</p>"
@@ -280,7 +264,6 @@ def _show_one_number_results(df: pd.DataFrame, title: str):
 
     shown_string = ""
     for one_sex in sexes:
-
         shown_sex_name = sex_to_gender[one_sex]
         df_one_sex = df[df["SEX"] == one_sex]
 
@@ -334,13 +317,16 @@ def _show_one_number_results(df: pd.DataFrame, title: str):
                 yaxis_tickfont=dict(size=14),  # Bigger y-axis tick labels
                 legend_title_font=dict(size=16),  # Bigger legend title font
                 legend_font=dict(size=14),  # Bigger legend text,
-                margin=dict(t=50, b=50, l=50, r=50)
+                margin=dict(t=50, b=50, l=50, r=50),
                 # title=None
             )
             fig.update_xaxes(
-                tickmode='linear',  # Force linear spacing of ticks
+                tickmode="linear",  # Force linear spacing of ticks
                 dtick=1,  # Show every year
-                range=[min(df['TIME_PERIOD']), max(df['TIME_PERIOD'])]  # Extend range to include last year
+                range=[
+                    min(df["TIME_PERIOD"]),
+                    max(df["TIME_PERIOD"]),
+                ],  # Extend range to include last year
             )
             st.plotly_chart(fig, use_container_width=True)
 
@@ -365,9 +351,7 @@ def _get_nb_deprivations_df(selected_country: str, df_path: os.PathLike):
     )
 
 
-def _get_percentage_adults_think_physical_punishement_good_df(
-    selected_country: str, df_path: os.PathLike
-):
+def _get_percentage_adults_think_physical_punishement_good_df(selected_country: str, df_path: os.PathLike):
     """
     Fetches and displays the percentage of adults who think that physical punishment
     is necessary to raise/educate children from the specified CSV file.
@@ -400,9 +384,7 @@ def _get_young_women_married_df(selected_country: str, df_path: os.PathLike):
     """
     Fetches and displays the percentage of young women married.
     """
-    df = _standard_unicef_data_import(
-        selected_country, df_path, [young_women_married_link]
-    )
+    df = _standard_unicef_data_import(selected_country, df_path, [young_women_married_link])
     _show_one_number_results(
         df,
         title="Percentage of women (aged 20-24 years) married or in union before age 18",
@@ -411,18 +393,14 @@ def _get_young_women_married_df(selected_country: str, df_path: os.PathLike):
 
 def _get_children_detention_rate_df(selected_country: str, df_path: os.PathLike):
     """Fetches and displays the rate of children in detention from the specified CSV file."""
-    df = _standard_unicef_data_import(
-        selected_country, df_path, [children_detention_rate_link]
-    )
+    df = _standard_unicef_data_import(selected_country, df_path, [children_detention_rate_link])
 
     _show_one_number_results(df, "Rate of children in detention")
 
 
 def _get_children_residential_care_rate_df(selected_country: str, df_path: os.PathLike):
     """Fetches and displays the rate of children in residential care from the specified CSV file."""
-    df = _standard_unicef_data_import(
-        selected_country, df_path, [children_residential_care_rate_link]
-    )
+    df = _standard_unicef_data_import(selected_country, df_path, [children_residential_care_rate_link])
 
     _show_one_number_results(df, "Rate of children in residential care")
 
@@ -488,9 +466,7 @@ def _get_refugee_host_per_country_df(selected_country: str, df_path: os.PathLike
     - None
     """
 
-    df = _standard_unicef_data_import(
-        selected_country, df_path, [refugee_host_per_country_link]
-    )
+    df = _standard_unicef_data_import(selected_country, df_path, [refugee_host_per_country_link])
 
     _show_one_number_results(df, "Refugees by host country (per 1000 population)")
 
@@ -530,33 +506,43 @@ def _display_child_protection_risks(selected_country: str):
         with shown_columns[0]:
             _get_out_of_school_rate(
                 selected_country,
-                os.path.join(st.session_state["unicef_data_folder_path"], "out_of_school_rate_df.csv"),
+                os.path.join(
+                    st.session_state["unicef_data_folder_path"],
+                    "out_of_school_rate_df.csv",
+                ),
             )
 
         with shown_columns[2]:
             _get_nb_deprivations_df(
                 selected_country,
-                os.path.join(st.session_state["unicef_data_folder_path"], "nb_deprivations_df.csv"),
+                os.path.join(
+                    st.session_state["unicef_data_folder_path"],
+                    "nb_deprivations_df.csv",
+                ),
             )
             _add_blank_space(1)
             _get_refugee_host_per_country_df(
                 selected_country,
                 os.path.join(
-                    st.session_state["unicef_data_folder_path"], "refugee_host_per_country_df.csv"
+                    st.session_state["unicef_data_folder_path"],
+                    "refugee_host_per_country_df.csv",
                 ),
             )
             _add_blank_space(1)
             _get_children_detention_rate_df(
                 selected_country,
-                os.path.join(st.session_state["unicef_data_folder_path"], "children_detention_rate_df.csv"),
+                os.path.join(
+                    st.session_state["unicef_data_folder_path"],
+                    "children_detention_rate_df.csv",
+                ),
             )
 
         with shown_columns[4]:
-
             _get_children_residential_care_rate_df(
                 selected_country,
                 os.path.join(
-                    st.session_state["unicef_data_folder_path"], "children_residential_care_rate_df.csv"
+                    st.session_state["unicef_data_folder_path"],
+                    "children_residential_care_rate_df.csv",
                 ),
             )
             _add_blank_space(1)
@@ -571,7 +557,8 @@ def _display_child_protection_risks(selected_country: str):
             _get_percentage_sexual_violence_df(
                 selected_country,
                 os.path.join(
-                    st.session_state["unicef_data_folder_path"], "percentage_sexual_violence_df.csv"
+                    st.session_state["unicef_data_folder_path"],
+                    "percentage_sexual_violence_df.csv",
                 ),
             )
 
@@ -626,12 +613,8 @@ def _create_mortality_rate_viz(original_df: pd.DataFrame):
 
     one_country_mortality_rate = pd.DataFrame()
     for indicator in indicators:
-        one_country_mortality_rate = one_country_mortality_rate._append(
-            df[df["Indicator"] == indicator]
-        )
-        one_country_mortality_rate["Indicator"] = one_country_mortality_rate[
-            "Indicator"
-        ].replace(indicators)
+        one_country_mortality_rate = one_country_mortality_rate._append(df[df["Indicator"] == indicator])
+        one_country_mortality_rate["Indicator"] = one_country_mortality_rate["Indicator"].replace(indicators)
 
     # one_country_mortality_rate.sort_values(by="Indicator", ascending=True, inplace=True)
 
@@ -664,12 +647,15 @@ def _create_mortality_rate_viz(original_df: pd.DataFrame):
         yaxis_tickfont=dict(size=14),  # Bigger y-axis tick labels
         legend_title_font=dict(size=16),  # Bigger legend title font
         legend_font=dict(size=14),  # Bigger legend text
-        margin=dict(t=50, b=50, l=50, r=50)  # Add padding around plot
+        margin=dict(t=50, b=50, l=50, r=50),  # Add padding around plot
     )
     fig.update_xaxes(
-        tickmode='linear',  # Force linear spacing of ticks
+        tickmode="linear",  # Force linear spacing of ticks
         dtick=1,  # Show every year
-        range=[min(one_country_mortality_rate['TIME_PERIOD']), max(one_country_mortality_rate['TIME_PERIOD'])]  # Extend range to include last year
+        range=[
+            min(one_country_mortality_rate["TIME_PERIOD"]),
+            max(one_country_mortality_rate["TIME_PERIOD"]),
+        ],  # Extend range to include last year
     )
 
     st.plotly_chart(fig, use_container_width=True)
@@ -698,15 +684,11 @@ def _display_tabular_mortality_rates(selected_country: str):
     )
 
     # Filter based on selected country
-    mortality_rate_df = mortality_rate_df[
-        mortality_rate_df["Geographic area"] == selected_country
-    ]
+    mortality_rate_df = mortality_rate_df[mortality_rate_df["Geographic area"] == selected_country]
     mortality_rate_df.reset_index(drop=True, inplace=True)
 
     if len(mortality_rate_df) == 0:
-        _custom_title(
-            "Consequences for Children's Protection", font_size=30, source="UNICEF"
-        )
+        _custom_title("Consequences for Children's Protection", font_size=30, source="UNICEF")
         st.markdown(f"No data available for this country {selected_country}.")
     else:
         _create_mortality_rate_viz(mortality_rate_df)

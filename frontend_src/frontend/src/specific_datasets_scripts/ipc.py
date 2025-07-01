@@ -1,8 +1,11 @@
 import pandas as pd
 import streamlit as st
+
 from frontend.src.utils.utils_functions import _custom_title
 from frontend.src.visualizations.barchart import (
-    _create_horizontal_continous_scale_barplot, _get_abbreviated_number)
+    _create_horizontal_continous_scale_barplot,
+    _get_abbreviated_number,
+)
 
 
 def _load_preprocess_ipc_data():
@@ -85,9 +88,7 @@ def _load_preprocess_ipc_data():
             "Number": "Number of Food Insecure People",
         }
     )
-    df["Number of Food Insecure People"] = df["Number of Food Insecure People"].astype(
-        int
-    )
+    df["Number of Food Insecure People"] = df["Number of Food Insecure People"].astype(int)
     df["Country"] = df["Country abrv"].apply(lambda x: abrev2country.get(x, x))
     df = df[df["Country"].isin(st.session_state["countries"])]
     # st.dataframe(df)
@@ -114,16 +115,10 @@ def _plot_ipc_results(selected_country: str):
     """
 
     ipc_one_country_values_df = st.session_state["ipc_df"].copy()
-    ipc_one_country_values_df = ipc_one_country_values_df[
-        ipc_one_country_values_df["Country"] == selected_country
-    ]
+    ipc_one_country_values_df = ipc_one_country_values_df[ipc_one_country_values_df["Country"] == selected_country]
 
     if len(ipc_one_country_values_df) == 0:
-        _custom_title(
-            "Food Insecurity",
-            font_size=st.session_state["subtitle_size"],
-            source="IPC"
-        )
+        _custom_title("Food Insecurity", font_size=st.session_state["subtitle_size"], source="IPC")
         st.markdown(f"No Information for Food Security for {selected_country}")
         return
 
@@ -135,9 +130,7 @@ def _plot_ipc_results(selected_country: str):
 
     st.session_state[f"max_date_ipc_{selected_country}"] = max_date.strftime("%b %Y")
 
-    ipc_one_country_values_df = ipc_one_country_values_df[
-        ipc_one_country_values_df["Formatted Date"] == max_date
-    ]
+    ipc_one_country_values_df = ipc_one_country_values_df[ipc_one_country_values_df["Formatted Date"] == max_date]
 
     _custom_title(
         "Food Insecurity",
@@ -150,9 +143,9 @@ def _plot_ipc_results(selected_country: str):
         ["Date of analysis", "Region Name", "Number of Food Insecure People"]
     ].sort_values(by="Number of Food Insecure People", ascending=True)
 
-    ipc_one_country_values_df["Shown Number"] = ipc_one_country_values_df[
-        "Number of Food Insecure People"
-    ].apply(_get_abbreviated_number)
+    ipc_one_country_values_df["Shown Number"] = ipc_one_country_values_df["Number of Food Insecure People"].apply(
+        _get_abbreviated_number
+    )
 
     # st.dataframe(ipc_one_country_values_df)
 

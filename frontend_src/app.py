@@ -1,17 +1,16 @@
 import json
 import os
 
+import dotenv
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 from streamlit_local_storage import LocalStorage
 
-import dotenv
-
-dotenv.load_dotenv()
-
 from frontend.src.disclaimer.message import show_disclaimer
 from frontend.src.utils.utils_functions import _custom_title
+
+dotenv.load_dotenv()
 
 APP_ENVIRONMENT = os.getenv("APP_ENVIRONMENT", "local")
 GA_TRACKING_ID = os.getenv("GA_TRACKING_ID", None)
@@ -38,9 +37,7 @@ if APP_ENVIRONMENT == "production" and GA_TRACKING_ID is not None:
 
 st.session_state["base_data_folder"] = "/data"
 
-st.session_state["tabular_data_data_path"] = os.path.join(
-    st.session_state["base_data_folder"], "datasources"
-)
+st.session_state["tabular_data_data_path"] = os.path.join(st.session_state["base_data_folder"], "datasources")
 
 local_storage = LocalStorage()
 
@@ -85,7 +82,9 @@ else:
         _get_country_wise_children_in_need_data,
         _get_country_wise_pin_data,
     )
-    from frontend.src.specific_datasets_scripts.ohchr import country_wise_legal_framework
+    from frontend.src.specific_datasets_scripts.ohchr import (
+        country_wise_legal_framework,
+    )
 
     # from src.utils.pop_up import _show_pop_up
     from frontend.src.utils.load_geodata import _load_polygons_adm0
@@ -140,17 +139,11 @@ else:
     )
     st.session_state["inform_severity_df"] = _load_information_severity_index_data()
 
-    st.session_state["selected_tags"] = list(
-        st.session_state["tag_name_to_indicators"].keys()
-    ) + ["Legal Framework"]
+    st.session_state["selected_tags"] = list(st.session_state["tag_name_to_indicators"].keys()) + ["Legal Framework"]
 
-    st.session_state["pin_df_path"] = os.path.join(
-        st.session_state["tabular_data_data_path"], "ocha_hpc", "OCHA PIN.csv"
-    )
+    st.session_state["pin_df_path"] = os.path.join(st.session_state["tabular_data_data_path"], "ocha_hpc", "OCHA PIN.csv")
     st.session_state["all_pin_data"] = pd.read_csv(st.session_state["pin_df_path"])
-    st.session_state["country_wise_pin_data"] = _get_country_wise_pin_data(
-        st.session_state["all_pin_data"]
-    )
+    st.session_state["country_wise_pin_data"] = _get_country_wise_pin_data(st.session_state["all_pin_data"])
     st.session_state["ocha_hpc_min_year"] = st.session_state["all_pin_data"]["year"].min()
     st.session_state["ocha_hpc_max_year"] = st.session_state["all_pin_data"]["year"].max()
 
@@ -170,8 +163,8 @@ else:
     else:
         st.session_state["ocha_hpc_country_funding_df"] = pd.DataFrame()
 
-    st.session_state["country_wise_children_in_need_data"] = (
-        _get_country_wise_children_in_need_data(st.session_state["all_pin_data"])
+    st.session_state["country_wise_children_in_need_data"] = _get_country_wise_children_in_need_data(
+        st.session_state["all_pin_data"]
     )
 
     _load_acled_data()
@@ -196,22 +189,18 @@ else:
             "acaps_protection_indicators_tags.json",
         ),
         "r",
-        encoding="utf-8"
+        encoding="utf-8",
     ) as f:
         st.session_state["acaps_protection_indicators_child_related_tags"] = json.load(f)
 
-    st.session_state["original_polygons_data_path"] = os.path.join(
-        st.session_state["base_data_folder"], "polygons_data"
-    )
+    st.session_state["original_polygons_data_path"] = os.path.join(st.session_state["base_data_folder"], "polygons_data")
     # os.makedirs(original_data_path, exist_ok=True)
 
     st.session_state["geolocation_processed_data_path"] = os.path.join(
         st.session_state["original_polygons_data_path"], "processed_data"
     )
 
-    st.session_state["unicef_data_folder_path"] = os.path.join(
-        st.session_state["tabular_data_data_path"], "unicef"
-    )
+    st.session_state["unicef_data_folder_path"] = os.path.join(st.session_state["tabular_data_data_path"], "unicef")
 
     st.session_state["ipc_df"] = _load_preprocess_ipc_data()
 
@@ -240,7 +229,7 @@ else:
             "grouped_legal_framework_indicators.json",
         ),
         "r",
-        encoding="utf-8"
+        encoding="utf-8",
     ) as f:
         st.session_state["legal_framework_indicators"] = json.load(f)
 
@@ -258,17 +247,14 @@ else:
         }
 
         for feature in geojson_country_polygons["features"]:
-
             country_name = feature["properties"]["name"]
             if country_name in inform_severity_values:
                 one_country_values = inform_severity_values[country_name]
                 inform_index_properties = one_country_values["Situation Severity"]
                 if inform_index_properties != "x":
-                    feature["properties"]["fill_color"] = (
-                        severity_mapping_tag_name_to_color_main_countries[
-                            inform_index_properties
-                        ]
-                    )
+                    feature["properties"]["fill_color"] = severity_mapping_tag_name_to_color_main_countries[
+                        inform_index_properties
+                    ]
                 else:
                     feature["properties"]["fill_color"] = default_filling_color
                 legend = f" -- {country_name} --"
@@ -358,7 +344,8 @@ else:
             )
         with tabs_col:
             st.session_state["tabs"] = st.radio(
-                'asda', [
+                "asda",
+                [
                     "Global Overview",
                     "Country Profile",
                     "Legal Framework",
@@ -378,17 +365,10 @@ else:
                     vertical_alignment="bottom",
                 )
 
-                # with year_filter_column:
-                #     disable_year_selection = st.session_state["tabs"] == "Methodology" or st.session_state["tabs"] == "Methodology"
-                #     st.session_state["selected_year"] = st.selectbox(
-                #         "Year",
-                #         st.session_state["filter-years"],
-                #         index=4,
-                #         key="selected-year",
-                #         disabled=disable_year_selection,
-                #     )
                 with country_filter_column:
-                    disable_country_selection = st.session_state["tabs"] == "Global Overview" or st.session_state["tabs"] == "Methodology"
+                    disable_country_selection = (
+                        st.session_state["tabs"] == "Global Overview" or st.session_state["tabs"] == "Methodology"
+                    )
                     st.session_state["selected_country"] = _country_selection_filter(
                         "country-profile",
                         disable_country_selection,
@@ -437,7 +417,8 @@ else:
                     Please contact us at
                     <a href="mailto:SWZ-gcpaor-data-unit@unicef.org">gcpaor-data-unit@unicef.org</a>
                     if you have any questions.
-                    For more information about the applications and features, data sources and terms of use, please consult the Methodology page.
+                    For more information about the applications and features, data sources and terms of use,
+                    please consult the Methodology page.
                 </div>
             """
             st.markdown(footer_styles, unsafe_allow_html=True)
