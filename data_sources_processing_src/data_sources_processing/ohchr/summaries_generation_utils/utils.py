@@ -14,14 +14,10 @@ def _get_list_of_sentences(lst: List[str], step: int = 5) -> List[List[str]]:
     i = 0
 
     result = []  # Initialize an empty list to store the slices
-    while (i + step) <= len(
-        lst
-    ) + 1:  # Adjust the condition to ensure full coverage of the list
-        added_list = lst[i: i + step]
+    while (i + step) <= len(lst) + 1:  # Adjust the condition to ensure full coverage of the list
+        added_list = lst[i : i + step]
         if len(added_list) > 1:
-            result.append(
-                lst[i: i + step]
-            )  # Append the slice of the list to the result list
+            result.append(lst[i : i + step])  # Append the slice of the list to the result list
         i += step - 1  # Move i forward by step size minus 1 for the overlap
 
     return result  # Return the list of lists
@@ -34,9 +30,7 @@ def _get_sentences_groups(text: str, n_sentences_per_group: int) -> List[str]:
 
 
 def _load_countries(country: str):
-    countries_list = pd.read_csv(
-        os.path.join("/data", "report_countries.csv"), header=None
-    )[0].tolist()
+    countries_list = pd.read_csv(os.path.join("/data", "report_countries.csv"), header=None)[0].tolist()
     if country == "all":
         processed_countries = countries_list
     elif country in countries_list:

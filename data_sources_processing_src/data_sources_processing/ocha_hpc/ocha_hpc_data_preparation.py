@@ -1,10 +1,11 @@
-import os
-from typing import Any, Dict
-import requests
 import logging
-from tqdm import tqdm
+import os
 from datetime import datetime
+from typing import Any, Dict
+
 import pandas as pd
+import requests
+from tqdm import tqdm
 
 logging.basicConfig(
     level=logging.DEBUG,  # Set the logging level
@@ -31,29 +32,14 @@ children_in_need_desc_names = [
 ]
 
 
-def _get_ocha_hpc_data(
-    datasets_metadata: Dict[str, Any], data_output_path: os.PathLike
-):
-
+def _get_ocha_hpc_data(datasets_metadata: Dict[str, Any], data_output_path: os.PathLike):
     caseload_data, global_funding, country_funding = _get_key_pin_informations_all_years()
     caseload_data.to_csv(
-        os.path.join(
-            data_output_path, "ocha_hpc", datasets_metadata["saved_file_name"]
-        ),
+        os.path.join(data_output_path, "ocha_hpc", datasets_metadata["saved_file_name"]),
         index=False,
     )
-    global_funding.to_csv(
-        os.path.join(
-            data_output_path, "ocha_hpc", datasets_metadata["global_funding"]
-        ),
-        index=False
-    )
-    country_funding.to_csv(
-        os.path.join(
-            data_output_path, "ocha_hpc", datasets_metadata["country_funding"]
-        ),
-        index=False
-    )
+    global_funding.to_csv(os.path.join(data_output_path, "ocha_hpc", datasets_metadata["global_funding"]), index=False)
+    country_funding.to_csv(os.path.join(data_output_path, "ocha_hpc", datasets_metadata["country_funding"]), index=False)
     return datasets_metadata
 
 
@@ -87,9 +73,7 @@ def _get_key_pin_informations_all_years():
         output_df, global_funding, country_level_funding = _get_key_informations_project_one_year(year)
 
         if len(output_df) > 0:
-            final_dataset = final_dataset._append(
-                output_df
-            )
+            final_dataset = final_dataset._append(output_df)
         if len(global_funding):
             total_global_funding = total_global_funding._append(global_funding)
         if len(country_level_funding):
@@ -160,7 +144,8 @@ def _get_key_informations_project_one_year(treated_year: int, timeout: int = 90)
     # Apply filters
     # includedGHO == True ensures only one country is in planCountries
     all_data = all_data[
-        (all_data.includedGHO) & (all_data.planType.isin(["Humanitarian response plan", "Flash appeal", "Humanitarian needs and response plan"]))
+        (all_data.includedGHO)
+        & (all_data.planType.isin(["Humanitarian response plan", "Flash appeal", "Humanitarian needs and response plan"]))
     ]
 
     global_funding_per_year_df = get_global_funding(all_data=all_data, treated_year=treated_year)
@@ -194,7 +179,9 @@ def process_protection_caseloads(row: pd.Series, country: str):
     if row_data_df.empty:
         return
 
-    total_children_targeted, total_children_reached, total_children_in_need, total_population_in_need = calculate_caseloads_statistics(row_data_df)
+    total_children_targeted, total_children_reached, total_children_in_need, total_population_in_need = (
+        calculate_caseloads_statistics(row_data_df)
+    )
 
     # Prepare the row data
     row_data = {
@@ -207,7 +194,7 @@ def process_protection_caseloads(row: pd.Series, country: str):
         "cp_targeted": total_children_targeted,
         "cp_beneficiaries": total_children_reached,
         "year": row["planYear"],
-        "plan_type": row["planType"]
+        "plan_type": row["planType"],
     }
 
     # Filter out None or NaN values
@@ -218,7 +205,7 @@ def process_protection_caseloads(row: pd.Series, country: str):
 def extract_iso3(plan_countries: list[dict]):
     """Extract all ISO3"""
     try:
-        return [country['iso3'] for country in plan_countries if 'iso3' in country]
+        return [country["iso3"] for country in plan_countries if "iso3" in country]
     except (ValueError, SyntaxError):
         return []
 
@@ -277,16 +264,17 @@ def calculate_caseloads_statistics(data_df: pd.DataFrame):
     if not cp_caseloads_final_df.empty:
         cp_caseloads_final_df = cp_caseloads_final_df.copy()
         cp_caseloads_final_df.loc[:, "children_reached"] = cp_caseloads_final_df.apply(
-            lambda row: handle_measurement_data(row, row["monitoring_period_id"]),
-            axis=1
+            lambda row: handle_measurement_data(row, row["monitoring_period_id"]), axis=1
         )
 
         total_children_targeted = calculate_sum(cp_caseloads_final_df["target"])
         total_children_in_need = calculate_sum(cp_caseloads_final_df["inNeed"])
 
-        total_children_reached = cp_caseloads_final_df["children_reached"].apply(
-            lambda x: float(x) if x is not None or (isinstance(x, str) and x.isnumeric()) else 0
-        ).sum()
+        total_children_reached = (
+            cp_caseloads_final_df["children_reached"]
+            .apply(lambda x: float(x) if x is not None or (isinstance(x, str) and x.isnumeric()) else 0)
+            .sum()
+        )
     else:
         total_children_in_need = total_children_targeted = total_children_reached = 0
 
@@ -297,12 +285,7 @@ def calculate_caseloads_statistics(data_df: pd.DataFrame):
     else:
         total_population_in_need = None
 
-    return (
-        total_children_targeted,
-        total_children_reached,
-        total_children_in_need,
-        total_population_in_need
-    )
+    return (total_children_targeted, total_children_reached, total_children_in_need, total_population_in_need)
 
 
 def get_global_funding(all_data: pd.DataFrame, treated_year: int):
@@ -322,19 +305,21 @@ def get_global_funding(all_data: pd.DataFrame, treated_year: int):
     total_children_targeted, total_children_reached, _, _ = calculate_caseloads_statistics(all_data)
 
     # Extract ISO3 codes
-    filtered_all_data = all_data[all_data['financialData'].apply(lambda x: len(x) > 0)]
-    iso3_list = filtered_all_data['planCountries'].apply(extract_iso3).explode().dropna().unique().tolist()
+    filtered_all_data = all_data[all_data["financialData"].apply(lambda x: len(x) > 0)]
+    iso3_list = filtered_all_data["planCountries"].apply(extract_iso3).explode().dropna().unique().tolist()
 
-    return pd.DataFrame([
-        {
-            "year": treated_year,
-            "funding_requested": total_global_funding_requested,
-            "funding_received": total_global_funding_received,
-            "cp_targeted": total_children_targeted,
-            "cp_beneficiaries": total_children_reached,
-            "total_countries": len(iso3_list)
-        }
-    ])
+    return pd.DataFrame(
+        [
+            {
+                "year": treated_year,
+                "funding_requested": total_global_funding_requested,
+                "funding_received": total_global_funding_received,
+                "cp_targeted": total_children_targeted,
+                "cp_beneficiaries": total_children_reached,
+                "total_countries": len(iso3_list),
+            }
+        ]
+    )
 
 
 def get_country_level_funding(row: pd.Series, country: str):
@@ -365,6 +350,6 @@ def get_country_level_funding(row: pd.Series, country: str):
         "funding_requested": total_country_funding_requested,
         "funding_received": total_country_funding_received,
         "year": row["planYear"],
-        "plan_type": row["planType"]
+        "plan_type": row["planType"],
     }
     return row_data

@@ -40,20 +40,14 @@ def _extract_org_metadata(org_url):
     content = bs(response.text, "html.parser")
 
     # Extracting the required information
-    organisation_type_element = content.find(
-        "dt", class_="rw-entity-meta__tag-label--type"
-    )
+    organisation_type_element = content.find("dt", class_="rw-entity-meta__tag-label--type")
     if organisation_type_element and organisation_type_element.find_next_sibling("dd"):
-        organisation_type = organisation_type_element.find_next_sibling(
-            "dd"
-        ).text.strip()
+        organisation_type = organisation_type_element.find_next_sibling("dd").text.strip()
     else:
         organisation_type = "UNKNOWN"  # Or some default value, e.g., "N/A"
 
     # Headquarters extraction with safety check
-    headquarters_element = content.find(
-        "dt", class_="rw-entity-meta__tag-label--headquarters"
-    )
+    headquarters_element = content.find("dt", class_="rw-entity-meta__tag-label--headquarters")
     if headquarters_element and headquarters_element.find_next_sibling("dd"):
         headquarters = headquarters_element.find_next_sibling("dd").text.strip()
     else:
@@ -61,11 +55,7 @@ def _extract_org_metadata(org_url):
 
     # Homepage extraction with safety check
     homepage_element = content.find("dt", class_="rw-entity-meta__tag-label--homepage")
-    if (
-        homepage_element
-        and homepage_element.find_next_sibling("dd")
-        and homepage_element.find_next_sibling("dd").find("a")
-    ):
+    if homepage_element and homepage_element.find_next_sibling("dd") and homepage_element.find_next_sibling("dd").find("a"):
         homepage = homepage_element.find_next_sibling("dd").find("a")["href"]
     else:
         homepage = "UNKNOWN"  # Or some default URL or placeholder
@@ -113,9 +103,7 @@ def get_reliefweb_organisations(source_metadata_path: os.PathLike):
 
     span_tags = container.find_all("span")
 
-    _, n_data_per_page, tot_number_of_data = (
-        int(tag.text.replace(",", "")) for tag in span_tags
-    )
+    _, n_data_per_page, tot_number_of_data = (int(tag.text.replace(",", "")) for tag in span_tags)
     # Find all span tags
 
     page_wise_url = sources_url + "?page={}"
@@ -129,9 +117,7 @@ def get_reliefweb_organisations(source_metadata_path: os.PathLike):
     all_sources = defaultdict(dict)
     with tqdm(total=tot_number_of_data) as pbar:
         for page in range(tot_n_pages):
-            response = requests.post(
-                page_wise_url.format(page), data=json.dumps({"limit": 6})
-            )
+            response = requests.post(page_wise_url.format(page), data=json.dumps({"limit": 6}))
             soup = bs(response.text, "html.parser")
 
             articles = soup.find_all("article", class_="rw-river-article--card")
@@ -139,12 +125,8 @@ def get_reliefweb_organisations(source_metadata_path: os.PathLike):
             # Extract information for each article
             for article in articles:
                 # Extract organization name and URL
-                org_name = article.find(
-                    "h3", class_="rw-river-article__title"
-                ).text.strip()
-                org_url = article.find("h3", class_="rw-river-article__title").find(
-                    "a"
-                )["href"]
+                org_name = article.find("h3", class_="rw-river-article__title").text.strip()
+                org_url = article.find("h3", class_="rw-river-article__title").find("a")["href"]
 
                 org_metadata = {"url": org_url}
 

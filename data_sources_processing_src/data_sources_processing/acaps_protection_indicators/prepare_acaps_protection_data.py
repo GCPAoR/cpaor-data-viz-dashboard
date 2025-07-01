@@ -6,10 +6,13 @@ from datetime import datetime
 from typing import Any, Dict
 
 import pandas as pd
-from data_sources_processing.acaps_protection_indicators.generate_predictions import \
-    _generate_general_summary
+
+from data_sources_processing.acaps_protection_indicators.generate_predictions import _generate_general_summary
 from data_sources_processing.acaps_protection_indicators.process_df import (
-    _get_final_results, _load_dataset, _prepare_inference_dataset)
+    _get_final_results,
+    _load_dataset,
+    _prepare_inference_dataset,
+)
 
 logging.basicConfig(
     level=logging.DEBUG,  # Set the logging level
@@ -62,23 +65,17 @@ def generate_summaries(
         raw_dataset_file_name = "sample_" + raw_dataset_file_name
     raw_dataset_path = os.path.join(raw_dataset_folder_name, raw_dataset_file_name)
 
-    protection_indicators_data_path = os.path.join(
-        save_path, "acaps_protection_indicators_tags.json"
-    )
+    protection_indicators_data_path = os.path.join(save_path, "acaps_protection_indicators_tags.json")
     with open(protection_indicators_data_path, "r") as file:
         protection_indicators_data = json.load(file)
 
-    latest_inference_date = pd.to_datetime(
-        datasets_metadata["latest_file_info"]["file_time"], format="%d-%m-%Y"
-    )
+    latest_inference_date = pd.to_datetime(datasets_metadata["latest_file_info"]["file_time"], format="%d-%m-%Y")
 
     protection_indicators_original_dataset = _load_dataset(
         datasets_metadata, raw_dataset_path, use_sample, protection_indicators_data
     )
     if not use_sample:
-        to_be_processed_countries = sorted(
-            protection_indicators_original_dataset.country.unique().tolist()
-        )
+        to_be_processed_countries = sorted(protection_indicators_original_dataset.country.unique().tolist())
     else:
         to_be_processed_countries = ["Ukraine"]
 
@@ -92,10 +89,7 @@ def generate_summaries(
     # display(protection_indicators_original_dataset.head())
 
     for i, one_country in enumerate(to_be_processed_countries):
-
-        country_output_path = os.path.join(
-            processed_data_folder_name, f"{one_country}.csv"
-        )
+        country_output_path = os.path.join(processed_data_folder_name, f"{one_country}.csv")
         # if os.path.exists(country_output_path):
         #     print(
         #         f"------------------------------ {i+1}/{n_processed_countries} - {one_country} already processed------------------------------"  # noqa
@@ -103,12 +97,10 @@ def generate_summaries(
         #     continue
 
         logger.info(
-            f"------------------------------ {i+1}/{n_processed_countries} - {one_country} processing------------------------------"  # noqa
+            f"------------------------------ {i + 1}/{n_processed_countries} - {one_country} processing------------------------------"  # noqa
         )
 
-        inference_dataset = _prepare_inference_dataset(
-            protection_indicators_original_dataset, one_country
-        )
+        inference_dataset = _prepare_inference_dataset(protection_indicators_original_dataset, one_country)
         # print(inference_dataset[needed_cols_for_filter])
         # print("first inference datset", inference_dataset.shape)
 
@@ -116,9 +108,7 @@ def generate_summaries(
             past_summaries_one_country = pd.read_csv(
                 country_output_path  # , engine="openpyxl"
             ).ffill()
-            past_summaries_one_country["Last Date"] = pd.to_datetime(
-                past_summaries_one_country["Last Date"]
-            )
+            past_summaries_one_country["Last Date"] = pd.to_datetime(past_summaries_one_country["Last Date"])
 
             already_processed_df = past_summaries_one_country[
                 past_summaries_one_country["Last Date"] < latest_inference_date
@@ -137,9 +127,7 @@ def generate_summaries(
             #     ):
             #         same_rows_df = same_rows_df._append(row)
 
-            inference_dataset = inference_dataset[
-                inference_dataset["Last Date"] >= latest_inference_date
-            ]
+            inference_dataset = inference_dataset[inference_dataset["Last Date"] >= latest_inference_date]
             # print("second inference datset", inference_dataset.shape)
 
             # print("already processed df", already_processed_df.shape)
@@ -148,7 +136,7 @@ def generate_summaries(
 
         if len(inference_dataset) == 0:
             logger.info(
-                f"------------------------------ {i+1}/{n_processed_countries} - {one_country} no new data------------------------------"  # noqa
+                f"------------------------------ {i + 1}/{n_processed_countries} - {one_country} no new data------------------------------"  # noqa
             )
             continue
 
@@ -185,7 +173,5 @@ def generate_summaries(
         time.sleep(10)
 
     if not use_sample:
-        datasets_metadata["latest_file_info"]["file_time"] = datetime.now().strftime(
-            "%d-%m-%Y"
-        )
+        datasets_metadata["latest_file_info"]["file_time"] = datetime.now().strftime("%d-%m-%Y")
     return datasets_metadata

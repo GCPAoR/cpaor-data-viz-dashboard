@@ -3,10 +3,11 @@ from ast import literal_eval
 from typing import Any, Dict, List, Union
 
 import pandas as pd
-from data_sources_processing.acaps_protection_indicators.pull_data import \
-    pull_acaps_protection_indicators
-from data_sources_processing.acaps_protection_indicators.sources_extraction_reliefweb.extract_map_sources_reliefweb import \
-    get_reliefweb_organisations
+
+from data_sources_processing.acaps_protection_indicators.pull_data import pull_acaps_protection_indicators
+from data_sources_processing.acaps_protection_indicators.sources_extraction_reliefweb.extract_map_sources_reliefweb import (
+    get_reliefweb_organisations,
+)
 
 
 def _flatten_list(lst):
@@ -74,15 +75,7 @@ def _preprocess_col(val: str, col_name: str, studied_indicators: List[str]):
     if col_name == "country":
         output = output.replace("TÃ¼rkiye", "Türkiye")
     if col_name == "indicator":
-        output = list(
-            set(
-                [
-                    t.replace("childrenâ€™s", "children's")
-                    for t in output
-                    if t in studied_indicators
-                ]
-            )
-        )
+        output = list(set([t.replace("childrenâ€™s", "children's") for t in output if t in studied_indicators]))
     return output
 
 
@@ -128,11 +121,9 @@ def _load_dataset(
             lambda x: _preprocess_col(x, col, protection_indicators_data["indicator"])
         )
 
-    protection_indicators_dataset["adm1_eng_name"] = (
-        protection_indicators_dataset.apply(
-            lambda x: ["Country Wide"] if x["countrywide"] else x["adm1_eng_name"],
-            axis=1,
-        )
+    protection_indicators_dataset["adm1_eng_name"] = protection_indicators_dataset.apply(
+        lambda x: ["Country Wide"] if x["countrywide"] else x["adm1_eng_name"],
+        axis=1,
     )
 
     return protection_indicators_dataset
@@ -176,16 +167,11 @@ def _prepare_inference_dataset(all_df: pd.DataFrame, one_country: str):
     df_one_country = all_df[all_df["country"] == one_country].copy()
 
     for one_breakdown_column in processed_breakdowns:
-
-        all_possible_values = set(
-            _flatten_list(df_one_country[one_breakdown_column].values)
-        )
+        all_possible_values = set(_flatten_list(df_one_country[one_breakdown_column].values))
 
         for one_possible_value in all_possible_values:
             df_one_possible_value = df_one_country[
-                df_one_country[one_breakdown_column].apply(
-                    lambda x: one_possible_value in x
-                )
+                df_one_country[one_breakdown_column].apply(lambda x: one_possible_value in x)
             ].copy()
 
             processed_df = pd.DataFrame()
@@ -196,9 +182,7 @@ def _prepare_inference_dataset(all_df: pd.DataFrame, one_country: str):
                 continue
 
             processed_df["source_date"] = pd.to_datetime(processed_df["source_date"])
-            processed_df = processed_df.sort_values(
-                by="source_date", ascending=False
-            ).head(20)
+            processed_df = processed_df.sort_values(by="source_date", ascending=False).head(20)
 
             to_be_processed_entries = []
             for i, (_, row) in enumerate(processed_df.iterrows()):
@@ -217,9 +201,7 @@ def _prepare_inference_dataset(all_df: pd.DataFrame, one_country: str):
             final_outputs = final_outputs._append(
                 {
                     "country": one_country,
-                    "Breakdown Column": one_breakdown_column.replace(
-                        "adm1_eng_name", "Geolocation"
-                    )
+                    "Breakdown Column": one_breakdown_column.replace("adm1_eng_name", "Geolocation")
                     .replace(
                         "targeting_specific_population_groups",
                         "Targeting Specific Population Groups",
@@ -236,9 +218,7 @@ def _prepare_inference_dataset(all_df: pd.DataFrame, one_country: str):
     return final_outputs
 
 
-def _get_final_results(
-    df: pd.DataFrame, final_results: List[Dict[str, Union[str, List[int]]]]
-):
+def _get_final_results(df: pd.DataFrame, final_results: List[Dict[str, Union[str, List[int]]]]):
     """
     Inputs:
     - df (pd.DataFrame): The original DataFrame containing the entries with columns
@@ -285,13 +265,10 @@ def _get_final_results(
             original_entry = df.iloc[i]
             relevant_entries = original_entry["entries"]
             one_analytical_statement_text: str = one_analytical_statement["Text"]
-            one_analytical_statement_relevant_ids: List[str] = one_analytical_statement[
-                "ID"
-            ]
+            one_analytical_statement_relevant_ids: List[str] = one_analytical_statement["ID"]
 
             one_analytical_statement_relevant_entries = [
-                relevant_entries[int(one_id)]
-                for one_id in one_analytical_statement_relevant_ids
+                relevant_entries[int(one_id)] for one_id in one_analytical_statement_relevant_ids
             ]
 
             postprocessed_results.append(
@@ -309,18 +286,12 @@ def _get_final_results(
     if len(postprocessed_results_df):
         postprocessed_results = postprocessed_results_df.explode("Evidence")
 
-        postprocessed_results["Source Original Text"] = postprocessed_results[
-            "Evidence"
-        ].apply(lambda x: x["text"].replace("\n", " "))
-        postprocessed_results["Source Name"] = postprocessed_results["Evidence"].apply(
-            lambda x: x["source_name"]
+        postprocessed_results["Source Original Text"] = postprocessed_results["Evidence"].apply(
+            lambda x: x["text"].replace("\n", " ")
         )
-        postprocessed_results["Source Date"] = postprocessed_results["Evidence"].apply(
-            lambda x: x["source_date"]
-        )
-        postprocessed_results["Source Link"] = postprocessed_results["Evidence"].apply(
-            lambda x: x["source_link"]
-        )
+        postprocessed_results["Source Name"] = postprocessed_results["Evidence"].apply(lambda x: x["source_name"])
+        postprocessed_results["Source Date"] = postprocessed_results["Evidence"].apply(lambda x: x["source_date"])
+        postprocessed_results["Source Link"] = postprocessed_results["Evidence"].apply(lambda x: x["source_link"])
 
         # new row value for rows where "Value" is "Country Wide"
         postprocessed_results["Value"] = postprocessed_results.apply(
@@ -328,20 +299,18 @@ def _get_final_results(
             axis=1,
         )
         postprocessed_results["Breakdown Column"] = postprocessed_results.apply(
-            lambda x: (
-                "1 - General Summary"
-                if x["Value"] == "1 - General Summary"
-                else x["Breakdown Column"]
-            ),
+            lambda x: ("1 - General Summary" if x["Value"] == "1 - General Summary" else x["Breakdown Column"]),
             axis=1,
         )
 
         return postprocessed_results
-    return pd.DataFrame({
-        "Country": [],
-        "Breakdown Column": [],
-        "Value": [],
-        "Last Date": [],
-        "Generated Text": [],
-        "Evidence": [],
-    })
+    return pd.DataFrame(
+        {
+            "Country": [],
+            "Breakdown Column": [],
+            "Value": [],
+            "Last Date": [],
+            "Generated Text": [],
+            "Evidence": [],
+        }
+    )
