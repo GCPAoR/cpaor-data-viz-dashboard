@@ -1,11 +1,15 @@
 import pandas as pd
 import streamlit as st
+
 from frontend.src.specific_datasets_scripts.acaps_inform_severity import (
-    _get_list_of_crises, _load_crisis_specific_df_few_empty_rows,
-    _load_crisis_specific_df_many_empty_rows)
+    _get_list_of_crises,
+    _load_crisis_specific_df_few_empty_rows,
+    _load_crisis_specific_df_many_empty_rows,
+)
 from frontend.src.utils.utils_functions import _add_blank_space, _custom_title
-from frontend.src.visualizations.barchart import \
-    _create_horizontal_continous_scale_barplot  # _create_horizontal_single_scale_barplot,
+from frontend.src.visualizations.barchart import (
+    _create_horizontal_continous_scale_barplot,
+)  # _create_horizontal_single_scale_barplot,
 
 
 @st.fragment
@@ -93,7 +97,7 @@ def _display_crisis_wise_analysis(selected_country: str):
     df_hum_access = _load_crisis_specific_df_many_empty_rows(
         selected_country, sheet_name="Complexity of the crisis", initial_row_number=3
     )
-    
+
     _custom_title(
         "",
         font_size=6,
@@ -102,9 +106,7 @@ def _display_crisis_wise_analysis(selected_country: str):
     )
 
     if treated_crises:
-        selected_crisis = st.selectbox(
-            "Select Crisis/Driver", treated_crises, key="crisis_wise_analysis", index=0
-        )
+        selected_crisis = st.selectbox("Select Crisis/Driver", treated_crises, key="crisis_wise_analysis", index=0)
         _add_blank_space(1)
     else:
         st.markdown(f"No crisis available for the country {selected_country}")
@@ -113,9 +115,7 @@ def _display_crisis_wise_analysis(selected_country: str):
     _custom_title("Selected crisis: " + selected_crisis, 30)
     _add_blank_space(1)
 
-    hum_access_score = df_hum_access[df_hum_access["CRISIS"] == selected_crisis][
-        "Humanitarian access"
-    ].values[0]
+    hum_access_score = df_hum_access[df_hum_access["CRISIS"] == selected_crisis]["Humanitarian access"].values[0]
     _custom_title(f"Humanitarian Access Score: {hum_access_score}", 25)
 
     _add_blank_space(1)
@@ -136,8 +136,7 @@ def _display_crisis_wise_analysis(selected_country: str):
                         selected_country, sheet_name, columns_info["initial_row_number"]
                     )
                     df_one_sheet = df_one_sheet[
-                        (df_one_sheet["CRISIS"] == selected_crisis)
-                        & (df_one_sheet["COUNTRY"] == selected_country)
+                        (df_one_sheet["CRISIS"] == selected_crisis) & (df_one_sheet["COUNTRY"] == selected_country)
                     ]
 
                     _custom_title(sheet_name, 25)
@@ -147,8 +146,7 @@ def _display_crisis_wise_analysis(selected_country: str):
 
                     else:
                         values_one_sheet = {
-                            col: df_one_sheet[col.replace("\n", " ")].values[0]
-                            for col in columns_info["columns"]
+                            col: df_one_sheet[col.replace("\n", " ")].values[0] for col in columns_info["columns"]
                         }
 
                         # height_per_indicator = 50
@@ -156,9 +154,7 @@ def _display_crisis_wise_analysis(selected_country: str):
                         #     len(columns_info["columns"]) * height_per_indicator * 0.8
                         #     + 70
                         # )
-                        displayed_df = pd.DataFrame(
-                            values_one_sheet.items(), columns=["Category", "Score"]
-                        )
+                        displayed_df = pd.DataFrame(values_one_sheet.items(), columns=["Category", "Score"])
                         percentage_bool = columns_info["column_types"] == "percentage"
                         if percentage_bool:
                             displayed_df["Score Text"] = displayed_df["Score"].apply(
@@ -167,9 +163,7 @@ def _display_crisis_wise_analysis(selected_country: str):
                             displayed_df["Score"] = displayed_df["Score"] * 100
                             max_val = 100
                         else:
-                            displayed_df["Score Text"] = displayed_df["Score"].apply(
-                                lambda x: f"{round(x, 2)}"
-                            )
+                            displayed_df["Score Text"] = displayed_df["Score"].apply(lambda x: f"{round(x, 2)}")
                             max_val = 5
                         columns_info["visualization_function"](
                             displayed_df,

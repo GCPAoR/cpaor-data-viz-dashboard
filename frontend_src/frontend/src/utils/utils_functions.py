@@ -51,22 +51,22 @@ def _load_protection_indicators_data(selected_country: str):
         if os.path.exists(df_path):
             st.session_state[f"protection_df_{selected_country}"] = pd.read_csv(df_path)
 
-            st.session_state[f"protection_df_{selected_country}"]["Source Date"] = (
-                pd.to_datetime(
-                    st.session_state[f"protection_df_{selected_country}"]["Source Date"], format="mixed"
-                )
+            st.session_state[f"protection_df_{selected_country}"]["Source Date"] = pd.to_datetime(
+                st.session_state[f"protection_df_{selected_country}"]["Source Date"],
+                format="mixed",
             )
 
             st.session_state[f"possible_breakdowns_{selected_country}"] = [
                 b
-                for b in st.session_state[f"protection_df_{selected_country}"][
-                    "Breakdown Column"
-                ].unique()
+                for b in st.session_state[f"protection_df_{selected_country}"]["Breakdown Column"].unique()
                 if b != "1 - General Summary"
             ]
 
             st.session_state[f"protection_df_max_date_{selected_country}"] = (
-                pd.to_datetime(st.session_state[f"protection_df_{selected_country}"]["Source Date"], format="mixed")
+                pd.to_datetime(
+                    st.session_state[f"protection_df_{selected_country}"]["Source Date"],
+                    format="mixed",
+                )
                 .max()
                 .strftime("%m-%Y")
             )
@@ -136,7 +136,7 @@ def _custom_title(
 
     if is_large_font:
         st.markdown("**************************************************************")
-
+    # ruff: noqa: E501
     st.markdown(
         f"""
     <div style="margin-top: {margin_top}px; margin-bottom: 0px; font-size: {font_size}px; {text_color} font-weight: bold; {text_transform}">
@@ -161,7 +161,7 @@ def _custom_title(
 
 
 def _get_percentage(number):
-    return f"{round(number*100)}%"
+    return f"{round(number * 100)}%"
 
 
 def _add_blank_space(n_empty_lines: int):
@@ -169,9 +169,7 @@ def _add_blank_space(n_empty_lines: int):
         st.write("")
 
 
-def _get_bullet_point_as_highlighted_text_display(
-    text: str, background_color: str = "#D2E5B7", font_size: int = 16
-):
+def _get_bullet_point_as_highlighted_text_display(text: str, background_color: str = "#D2E5B7", font_size: int = 16):
     """
     Function to display a bullet point as highlighted markdown text
     """
@@ -197,9 +195,7 @@ def _get_bullet_point_as_highlighted_text_display(
     return custom_css
 
 
-def _display_bullet_point_as_highlighted_text(
-    text: str, background_color: str = "#D2E5B7", font_size: int = 16
-):
+def _display_bullet_point_as_highlighted_text(text: str, background_color: str = "#D2E5B7", font_size: int = 16):
     """
     Function to display a bullet point as highlighted markdown text
     """

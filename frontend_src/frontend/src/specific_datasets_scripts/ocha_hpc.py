@@ -1,24 +1,29 @@
 import pandas as pd
-import streamlit as st
 import plotly.express as px
-from frontend.src.utils.utils_functions import (_add_commas, _custom_title,
-                                                _get_percentage)
+import streamlit as st
+
+from frontend.src.utils.utils_functions import (
+    _add_commas,
+    _custom_title,
+    _get_percentage,
+)
 from frontend.src.visualizations.barchart import (  # _create_horizontal_single_scale_barplot,
-    _create_horizontal_continous_scale_barplot, _create_vertical_barplot,
-    _display_stackbar, _get_abbreviated_number)
+    _create_horizontal_continous_scale_barplot,
+    _create_vertical_barplot,
+    _display_stackbar,
+    _get_abbreviated_number,
+)
 
 
 def plan_type_order_handler(df: pd.DataFrame) -> pd.DataFrame:
     """Order the dataframe based on the plan_type stated"""
-    plan_type_order = ['Humanitarian response plan', 'Humanitarian needs and response plan', 'Flash appeal']
-    df['plan_type_order'] = pd.Categorical(
-        df['plan_type'],
-        categories=plan_type_order,
-        ordered=True
-    )
-    df = df.sort_values(
-        by=['year', 'plan_type_order']
-    )
+    plan_type_order = [
+        "Humanitarian response plan",
+        "Humanitarian needs and response plan",
+        "Flash appeal",
+    ]
+    df["plan_type_order"] = pd.Categorical(df["plan_type"], categories=plan_type_order, ordered=True)
+    df = df.sort_values(by=["year", "plan_type_order"])
     return df
 
 
@@ -51,20 +56,14 @@ def _display_top_countries_with_children_in_need(n_kept_countries: int = 10):
     sorted_df = (
         st.session_state["country_wise_children_in_need_data"]
         .copy()
-        .sort_values(by="proportion_children_in_need", ascending=False)[
-            ["country", "proportion_children_in_need"]
-        ]
+        .sort_values(by="proportion_children_in_need", ascending=False)[["country", "proportion_children_in_need"]]
         .head(n_kept_countries)
         .iloc[::-1]
     )
-    sorted_df["proportion_children_in_need"] = (
-        sorted_df["proportion_children_in_need"] * 100
-    )
+    sorted_df["proportion_children_in_need"] = sorted_df["proportion_children_in_need"] * 100
     # max_val = sorted_df["proportion_children_in_need"].max()  # * 100
 
-    sorted_df["shown_proportion_children_in_need"] = sorted_df[
-        "proportion_children_in_need"
-    ].apply(lambda x: f"{x}%")
+    sorted_df["shown_proportion_children_in_need"] = sorted_df["proportion_children_in_need"].apply(lambda x: f"{x}%")
     # sorted_df["shown_proportion_children_in_need"] = sorted_df[
     #     "proportion_children_in_need"
     # ].apply(_get_percentage)
@@ -119,11 +118,7 @@ def _display_evolution_data():
 
     """
 
-    df = (
-        st.session_state["all_pin_data"]
-        .copy()[["country", "year", "children_in_need"]]
-        .dropna()
-    )
+    df = st.session_state["all_pin_data"].copy()[["country", "year", "children_in_need"]].dropna()
 
     df = df[df["year"] <= st.session_state["selected-year"]]
     df.reset_index(drop=True, inplace=True)
@@ -251,7 +246,7 @@ def _get_cp_beneficiaries():
     df.reset_index(drop=True, inplace=True)
     cp_beneficiaries = df["cp_beneficiaries"].iat[0]
     if cp_beneficiaries >= 1_000_000:
-        cp_beneficiaries = f"{round(cp_beneficiaries/1_000_000, 2)} million"
+        cp_beneficiaries = f"{round(cp_beneficiaries / 1_000_000, 2)} million"
     total_countries = df["total_countries"].iat[0]
     return cp_beneficiaries, total_countries
 
@@ -270,18 +265,16 @@ def display_global_funding():
     """Plot a grouped barchart related to funding"""
     global_funding_df = st.session_state["ocha_hpc_global_funding_df"]
     # Filter based on selected year
-    global_funding_df = global_funding_df[
-        global_funding_df["year"] <= st.session_state["selected-year"]
-    ]
+    global_funding_df = global_funding_df[global_funding_df["year"] <= st.session_state["selected-year"]]
     global_funding_df.reset_index(drop=True, inplace=True)
 
     global_funding_df.rename(
         columns={
             "funding_requested": "Funding Requested",
             "funding_received": "Funding Received",
-            "total_countries": "Total Countries"
+            "total_countries": "Total Countries",
         },
-        inplace=True
+        inplace=True,
     )
 
     if len(global_funding_df):
@@ -301,18 +294,15 @@ def display_global_funding():
             color="Funding Type",
             color_discrete_map={
                 "Funding Requested": "#D6E9DF",
-                "Funding Received": "#B1DBC3"
+                "Funding Received": "#B1DBC3",
             },
             barmode="group",
             labels={"amount": "Funding Amount (in millions)", "year": "Year"},
             text="amount",
             hover_data={"Total Countries": True},
-            height=None
+            height=None,
         )
-        fig.update_traces(
-            texttemplate='%{y:,} million',
-            textposition='outside'
-        )
+        fig.update_traces(texttemplate="%{y:,} million", textposition="outside")
         st.plotly_chart(fig)
     else:
         st.write("No funding related data available.")
@@ -323,16 +313,17 @@ def country_mapping(country: str):
     mapping = {
         "Congo DRC": "Democratic Republic of the Congo",
         "Palestine": "Occupied Palestinian Territory",
-        "Türkiye": "Turkey"
+        "Türkiye": "Turkey",
     }
     return mapping.get(country, country)
 
 
 def display_country_level_funding(selected_country: str):
     """Plot a grouped barchart related to funding"""
+
     def group_filter(group):
         if len(group) > 1:
-            return group[~group['name'].str.contains('flash', case=False, na=False)].iloc[0]
+            return group[~group["name"].str.contains("flash", case=False, na=False)].iloc[0]
         return group.iloc[0]
 
     year = st.session_state["selected-year"]
@@ -342,23 +333,26 @@ def display_country_level_funding(selected_country: str):
         "Received Funding vs Requested Funding",
         st.session_state["subtitle_size"],
         source="OCHA HPC Plans Summary API",
-        date=f"{min(st.session_state['filter-years'])}-{year}"
+        date=f"{min(st.session_state['filter-years'])}-{year}",
     )
-    st.markdown("**Note: The funding data is based on appeals outlined in either the HNRP or FA documents. If both type of documents are available for a country, the HNRP will take priority.**")  # noqa
+    st.markdown(
+        "**Note: The funding data is based on appeals outlined in either the HNRP or FA documents.\
+        If both type of documents are available for a country, the HNRP will take priority.**"
+    )  # noqa
 
     df = st.session_state["ocha_hpc_country_funding_df"]
     df = df[(df["country"] == selected_country) & (df["year"] <= year)]
     df.reset_index(drop=True, inplace=True)
 
     df = plan_type_order_handler(df.copy())
-    df = df.groupby('year').apply(group_filter).reset_index(drop=True)
+    df = df.groupby("year").apply(group_filter).reset_index(drop=True)
 
     df.rename(
         columns={
             "funding_requested": "Funding Requested",
-            "funding_received": "Funding Received"
+            "funding_received": "Funding Received",
         },
-        inplace=True
+        inplace=True,
     )
 
     if len(df):
@@ -378,18 +372,18 @@ def display_country_level_funding(selected_country: str):
             color="Funding Type",
             color_discrete_map={
                 "Funding Requested": "#D6E9DF",
-                "Funding Received": "#B1DBC3"
+                "Funding Received": "#B1DBC3",
             },
             barmode="group",
             labels={"amount": "Funding Amount (in millions)", "year": "Year"},
             text="amount",
             text_auto=True,
-            height=None
+            height=None,
         )
         fig.update_traces(
-            texttemplate='%{y:,} million',
-            textposition='outside',
-            textfont=dict(size=30)
+            texttemplate="%{y:,} million",
+            textposition="outside",
+            textfont=dict(size=30),
         )
         st.plotly_chart(fig)
     else:
@@ -435,7 +429,7 @@ def display_cp_beneficiaries(selected_country: str):
         valid_rows = pd.DataFrame()
         if len(group) >= 2:
             # Filter out rows where 'name' contains the keyword 'flash'
-            valid_rows = group[~group['name'].str.contains('flash', case=False, na=False)]
+            valid_rows = group[~group["name"].str.contains("flash", case=False, na=False)]
         # If we have any valid rows, pick the first one; otherwise fallback to the first in the group
         return valid_rows.iloc[0] if not valid_rows.empty else group.iloc[0]
 
@@ -446,7 +440,7 @@ def display_cp_beneficiaries(selected_country: str):
         "CP Beneficiaries vs CP Targeted",
         st.session_state["subtitle_size"],
         source="OCHA HPC Plans Summary API",
-        date=f"{min(st.session_state['filter-years'])}-{year}"
+        date=f"{min(st.session_state['filter-years'])}-{year}",
     )
 
     df = st.session_state["all_pin_data"]
@@ -455,17 +449,14 @@ def display_cp_beneficiaries(selected_country: str):
     df.reset_index(drop=True, inplace=True)
     # Note: If there are plans of same types, get the first one.
 
-    df = df.groupby(['year', 'country', 'plan_type'], as_index=False).apply(pick_valid_row).reset_index(drop=True)
+    df = df.groupby(["year", "country", "plan_type"], as_index=False).apply(pick_valid_row).reset_index(drop=True)
 
     df = plan_type_order_handler(df=df)
 
     df = df.drop_duplicates(subset=["year", "country"], keep="first")
     df.rename(
-        columns={
-            "cp_beneficiaries": "CP Beneficiaries",
-            "cp_targeted": "CP Targeted"
-        },
-        inplace=True
+        columns={"cp_beneficiaries": "CP Beneficiaries", "cp_targeted": "CP Targeted"},
+        inplace=True,
     )
 
     if len(df):
@@ -485,18 +476,18 @@ def display_cp_beneficiaries(selected_country: str):
             color="CP Type",
             color_discrete_map={
                 "CP Beneficiaries": "#D6E9DF",
-                "CP Targeted": "#B1DBC3"
+                "CP Targeted": "#B1DBC3",
             },
             barmode="group",
             labels={"cp_numbers": "Total numbers(in millions)", "year": "Year"},
             text="cp_numbers",
             text_auto=True,
-            height=None
+            height=None,
         )
         fig.update_traces(
-            texttemplate='%{y:,} million',
-            textposition='outside',
-            textfont=dict(size=20)
+            texttemplate="%{y:,} million",
+            textposition="outside",
+            textfont=dict(size=20),
         )
         st.plotly_chart(fig)
     else:
@@ -587,7 +578,16 @@ def _get_country_wise_pin_data(df: pd.DataFrame):
     )
 
     all_pin_data = all_pin_data[
-        ["name", "plan_id", "country", "year", "children_in_need", "targeted_children", "tot_pop_in_need", "plan_type"]
+        [
+            "name",
+            "plan_id",
+            "country",
+            "year",
+            "children_in_need",
+            "targeted_children",
+            "tot_pop_in_need",
+            "plan_type",
+        ]
     ]
 
     return all_pin_data
@@ -618,14 +618,11 @@ def _get_country_wise_children_in_need_data(df: pd.DataFrame):
     """
     country_wise_results = pd.DataFrame()
 
-    all_pin_data = df.copy()[
-        ["country", "year", "children_in_need", "tot_pop_in_need", "plan_type", "name"]
-    ].dropna()
+    all_pin_data = df.copy()[["country", "year", "children_in_need", "tot_pop_in_need", "plan_type", "name"]].dropna()
 
     for one_country in all_pin_data.country.unique():
         one_col_one_country_df = all_pin_data[
-            (all_pin_data["country"] == one_country) &
-            (all_pin_data["year"] == st.session_state["selected-year"])
+            (all_pin_data["country"] == one_country) & (all_pin_data["year"] == st.session_state["selected-year"])
         ]
         one_col_one_country_df.reset_index(drop=True, inplace=True)
 
@@ -640,25 +637,22 @@ def _get_country_wise_children_in_need_data(df: pd.DataFrame):
         one_col_one_country_df = plan_type_order_handler(one_col_one_country_df.copy())
 
         if len(one_col_one_country_df) > 1:
-            one_col_one_country_df = one_col_one_country_df[~one_col_one_country_df['name'].str.contains('flash', case=False, na=False)]  # noqa
+            one_col_one_country_df = one_col_one_country_df[
+                ~one_col_one_country_df["name"].str.contains("flash", case=False, na=False)
+            ]  # noqa
 
         one_col_one_country_df.reset_index(drop=True, inplace=True)
 
         results_one_col = round(
-            one_col_one_country_df["children_in_need"][0]
-            / one_col_one_country_df["tot_pop_in_need"][0],
+            one_col_one_country_df["children_in_need"][0] / one_col_one_country_df["tot_pop_in_need"][0],
             2,
         )
 
-        results_one_country["children_in_need"] = int(
-            one_col_one_country_df["children_in_need"][0]
-        )
+        results_one_country["children_in_need"] = int(one_col_one_country_df["children_in_need"][0])
         results_one_country["proportion_children_in_need"] = results_one_col
         results_one_country["year"] = one_col_one_country_df["year"][0]
 
-        country_wise_results = country_wise_results._append(
-            results_one_country, ignore_index=True
-        )
+        country_wise_results = country_wise_results._append(results_one_country, ignore_index=True)
 
     return country_wise_results
 
@@ -677,13 +671,11 @@ def _display_pin_stackbar(selected_country: str):
     country_informations = st.session_state["country_wise_pin_data"]
     selected_country = country_mapping(selected_country)
 
-    country_specific_df = country_informations[
-        country_informations["country"] == selected_country
-    ]
+    country_specific_df = country_informations[country_informations["country"] == selected_country]
     country_specific_df = plan_type_order_handler(df=country_specific_df)
     country_specific_df.reset_index(drop=True, inplace=True)
 
-    country_specific_df = country_specific_df[~country_specific_df['name'].str.contains('flash', case=False, na=False)]
+    country_specific_df = country_specific_df[~country_specific_df["name"].str.contains("flash", case=False, na=False)]
 
     _custom_title(
         "Child Protection Caseload",
@@ -705,12 +697,10 @@ def _display_pin_stackbar(selected_country: str):
             total_people_in_need = 0
 
         ratio_children_targeted_total_people = (
-            round(children_targeted / total_people_in_need * 100)
-            if children_targeted and total_people_in_need else 0
+            round(children_targeted / total_people_in_need * 100) if children_targeted and total_people_in_need else 0
         )
         ratio_children_in_need_total_people_in_need = (
-            round(children_in_need / total_people_in_need * 100)
-            if children_in_need and total_people_in_need else 0
+            round(children_in_need / total_people_in_need * 100) if children_in_need and total_people_in_need else 0
         )
 
         numbers_values = {
@@ -739,11 +729,7 @@ def _display_pin_stackbar(selected_country: str):
             "plot_size": (10, 1.2),
         }
 
-        if (
-            total_people_in_need
-            and ratio_children_targeted_total_people
-            and ratio_children_in_need_total_people_in_need
-        ):
+        if total_people_in_need and ratio_children_targeted_total_people and ratio_children_in_need_total_people_in_need:
             _display_stackbar(numbers_values)
         else:
             st.markdown("Not enough or valid data available to create the plot.")

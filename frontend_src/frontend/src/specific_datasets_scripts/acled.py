@@ -3,12 +3,12 @@ import os
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+
 from frontend.src.utils.utils_functions import _custom_title
 from frontend.src.visualizations.maps_creation import _display_map_img
 
 
 def _load_acled_data():
-
     number_of_events_targeting_civilians_countries_mapping = {
         "Democratic Republic of Congo": "Congo DRC",
         "eSwatini": "Eswatini",
@@ -20,19 +20,13 @@ def _load_acled_data():
         "number_events_evolution.csv",
     )
 
-    number_of_events_targeting_civilians_df = pd.read_csv(
-        number_of_events_targeting_civilians_df_path
+    number_of_events_targeting_civilians_df = pd.read_csv(number_of_events_targeting_civilians_df_path)
+
+    number_of_events_targeting_civilians_df["country"] = number_of_events_targeting_civilians_df["country"].replace(
+        number_of_events_targeting_civilians_countries_mapping
     )
 
-    number_of_events_targeting_civilians_df["country"] = (
-        number_of_events_targeting_civilians_df["country"].replace(
-            number_of_events_targeting_civilians_countries_mapping
-        )
-    )
-
-    st.session_state["number_of_events_targeting_civilians_df"] = (
-        number_of_events_targeting_civilians_df
-    )
+    st.session_state["number_of_events_targeting_civilians_df"] = number_of_events_targeting_civilians_df
 
     st.session_state["individual_events_targetting_civilians"] = pd.read_csv(
         os.path.join(
@@ -41,14 +35,10 @@ def _load_acled_data():
             "individual_events_targetting_civilians_new.csv",
         )
     )
-    st.session_state["individual_events_targetting_civilians"]["country"] = (
-        st.session_state["individual_events_targetting_civilians"]["country"].replace(
-            number_of_events_targeting_civilians_countries_mapping
-        )
-    )
-    st.session_state["acled_last_updated"] = st.session_state[
-        "number_of_events_targeting_civilians_df"
-    ]["year"].max()
+    st.session_state["individual_events_targetting_civilians"]["country"] = st.session_state[
+        "individual_events_targetting_civilians"
+    ]["country"].replace(number_of_events_targeting_civilians_countries_mapping)
+    st.session_state["acled_last_updated"] = st.session_state["number_of_events_targeting_civilians_df"]["year"].max()
 
 
 @st.fragment
@@ -63,13 +53,15 @@ def _display_number_of_events_targetting_civilians(selected_country: str):
     4. Constructs a line chart using Altair to visualize the number of events over the years.
     """
 
-    one_country_number_of_events_targeting_civilians = st.session_state[
-        "number_of_events_targeting_civilians_df"
-    ][st.session_state["number_of_events_targeting_civilians_df"].country == selected_country].copy()
+    one_country_number_of_events_targeting_civilians = st.session_state["number_of_events_targeting_civilians_df"][
+        st.session_state["number_of_events_targeting_civilians_df"].country == selected_country
+    ].copy()
 
     one_country_number_of_events_targeting_civilians.reset_index(drop=True, inplace=True)
 
-    one_country_number_of_events_targeting_civilians['year'] = one_country_number_of_events_targeting_civilians['year'].astype(int)  # noqa
+    one_country_number_of_events_targeting_civilians["year"] = one_country_number_of_events_targeting_civilians[
+        "year"
+    ].astype(int)  # noqa
 
     if len(one_country_number_of_events_targeting_civilians) > 0:
         one_country_number_of_events_targeting_civilians.sort_values(by="year", inplace=True)
@@ -79,7 +71,7 @@ def _display_number_of_events_targetting_civilians(selected_country: str):
             margin_bottom=20,
             font_size=st.session_state["subtitle_size"],
             source="ACLED",
-            date=st.session_state["acled_last_updated"]
+            date=st.session_state["acled_last_updated"],
         )
         fig = px.line(
             one_country_number_of_events_targeting_civilians,
@@ -101,15 +93,15 @@ def _display_number_of_events_targetting_civilians(selected_country: str):
             yaxis_tickfont=dict(size=14),  # Bigger y-axis tick labels
             legend_title_font=dict(size=16),  # Bigger legend title font
             legend_font=dict(size=14),  # Bigger legend text,
-            margin=dict(t=50, b=50, l=50, r=50)
+            margin=dict(t=50, b=50, l=50, r=50),
             # title=None
         )
         fig.update_xaxes(
             dtick=1,  # Show every year
             range=[
-                min(one_country_number_of_events_targeting_civilians['year']),
-                max(one_country_number_of_events_targeting_civilians['year'])
-            ]  # Ensure the x-axis covers all years
+                min(one_country_number_of_events_targeting_civilians["year"]),
+                max(one_country_number_of_events_targeting_civilians["year"]),
+            ],  # Ensure the x-axis covers all years
         )
         st.plotly_chart(fig, use_container_width=True)
 
@@ -141,41 +133,28 @@ def _display_acled_map_data(selected_country: str):
     )
 
     if f"events_dataset_{selected_country}" not in st.session_state:
-
-        st.session_state[f"events_dataset_{selected_country}"] = st.session_state[
-            "individual_events_targetting_civilians"
-        ][
-            st.session_state["individual_events_targetting_civilians"].country
-            == selected_country
+        st.session_state[f"events_dataset_{selected_country}"] = st.session_state["individual_events_targetting_civilians"][
+            st.session_state["individual_events_targetting_civilians"].country == selected_country
         ]
         if len(st.session_state[f"events_dataset_{selected_country}"]) == 0:
-            st.markdown(
-                f"No information available for the protection-related-events for {selected_country}"
-            )
+            st.markdown(f"No information available for the protection-related-events for {selected_country}")
             return
         st.session_state["events_list"] = (
-            st.session_state[f"events_dataset_{selected_country}"]["event_type"]
-            .unique()
-            .tolist()
+            st.session_state[f"events_dataset_{selected_country}"]["event_type"].unique().tolist()
         )
-        st.session_state["events_list"] = ["All"] + sorted(
-            st.session_state["events_list"]
-        )
+        st.session_state["events_list"] = ["All"] + sorted(st.session_state["events_list"])
 
     displayed_df = st.session_state[f"events_dataset_{selected_country}"].copy()
     displayed_df["event_date"] = pd.to_datetime(displayed_df["event_date"])
 
     if displayed_df.empty:
-        st.markdown(
-            f"No information available for the year {st.session_state['acled_last_updated']}"
-        )
+        st.markdown(f"No information available for the year {st.session_state['acled_last_updated']}")
         return
 
     with st.container():
         filter_col, date_range_col = st.columns([0.5, 0.5])
 
         with filter_col:
-
             event_type = st.selectbox(
                 "Select Event Type",
                 st.session_state["events_list"],
@@ -202,8 +181,6 @@ def _display_acled_map_data(selected_country: str):
 
     event_text = "All Events" if event_type == "All" else event_type
 
-    st.markdown(
-        f"**Events Map ({event_text}, {past_date}, {displayed_df.shape[0]} total events)**"
-    )
+    st.markdown(f"**Events Map ({event_text}, {past_date}, {displayed_df.shape[0]} total events)**")
     # Add more content here
     _display_map_img(displayed_df, selected_country)

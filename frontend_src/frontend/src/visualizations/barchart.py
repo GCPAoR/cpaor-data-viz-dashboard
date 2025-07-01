@@ -3,8 +3,9 @@ from typing import Tuple
 import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
-from frontend.src.utils.utils_functions import _add_source
 from matplotlib.colors import LinearSegmentedColormap
+
+from frontend.src.utils.utils_functions import _add_source
 
 
 def _get_abbreviated_number(number: int) -> str:
@@ -40,24 +41,14 @@ def _display_stackbar(displayed_values: dict):
 
     n_segments = len(displayed_values["original_numbers"])
 
-    tick_values = [
-        displayed_values["original_numbers"][i]["value"] for i in range(n_segments)
-    ]
-    labels = [
-        displayed_values["original_numbers"][i]["label"] for i in range(n_segments)
-    ]
-    colors = [
-        displayed_values["original_numbers"][i]["color"] for i in range(n_segments)
-    ]
-    tick_labels = [
-        displayed_values["original_numbers"][i]["number_annotation"]
-        for i in range(n_segments)
-    ]
+    tick_values = [displayed_values["original_numbers"][i]["value"] for i in range(n_segments)]
+    labels = [displayed_values["original_numbers"][i]["label"] for i in range(n_segments)]
+    colors = [displayed_values["original_numbers"][i]["color"] for i in range(n_segments)]
+    tick_labels = [displayed_values["original_numbers"][i]["number_annotation"] for i in range(n_segments)]
 
     # Bar segments
     segments = [displayed_values["original_numbers"][0]["value"]] + [
-        displayed_values["original_numbers"][i]["value"]
-        - displayed_values["original_numbers"][i - 1]["value"]
+        displayed_values["original_numbers"][i]["value"] - displayed_values["original_numbers"][i - 1]["value"]
         for i in range(1, n_segments)
     ]
 
@@ -244,9 +235,7 @@ def _add_scores_text_horizontal_plot(ax, scores, shown_score_values):
         )
 
 
-def _add_plot_legend(
-    ax, title: str = None, x_ax_title: str = None, y_ax_title: str = None
-):
+def _add_plot_legend(ax, title: str = None, x_ax_title: str = None, y_ax_title: str = None):
     # make the title bold
     if title:
         ax.set_title(title, fontsize=20)

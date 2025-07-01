@@ -3,9 +3,13 @@ import re
 
 import pandas as pd
 import streamlit as st
+
 from frontend.src.utils.utils_functions import (
-    _add_blank_space, _convert_to_datetime, _custom_title,
-    _display_bullet_point_as_highlighted_text)
+    _add_blank_space,
+    _convert_to_datetime,
+    _custom_title,
+    _display_bullet_point_as_highlighted_text,
+)
 
 yes_color = "#95C651"
 no_color = "#86789C"
@@ -27,9 +31,9 @@ def _load_country_summaries_indicators(data_path: os.PathLike):
     Function to load the country summaries indicators
     """
     country_summaries_dataset = pd.read_excel(data_path).ffill()
-    country_summaries_dataset["Formatted Submitted Date"] = country_summaries_dataset[
-        "Submitted Date"
-    ].apply(_convert_to_datetime)
+    country_summaries_dataset["Formatted Submitted Date"] = country_summaries_dataset["Submitted Date"].apply(
+        _convert_to_datetime
+    )
     displayed_indicators = country_summaries_dataset.Tag.unique()
     return country_summaries_dataset, displayed_indicators
 
@@ -120,9 +124,7 @@ def _display_indicator_box(
     with st.container():
         # Replace special characters in the indicator for safe HTML/JS usage
         no_special_character_indicator = _replace_special_chars(indicator)
-        short_name_indicator = indicator.replace("Armed forces", "AF").replace(
-            "Armed Groups", "AG"
-        )
+        short_name_indicator = indicator.replace("Armed forces", "AF").replace("Armed Groups", "AG")
 
         # Markdown style adjustments for the indicator box
         st.markdown(
@@ -205,9 +207,9 @@ def _display_one_box_results(country_summaries_dataset, one_indicator):
        box with a color indicating 'NOT AVAILABLE'.
 
     """
-    one_indicator_results = country_summaries_dataset[
-        country_summaries_dataset["Indicator"] == one_indicator
-    ]["Laws Summary"].values[0]
+    one_indicator_results = country_summaries_dataset[country_summaries_dataset["Indicator"] == one_indicator][
+        "Laws Summary"
+    ].values[0]
 
     displayed_color = _get_color(one_indicator_results)
 
@@ -277,16 +279,13 @@ def _display_legal_framework_indicator_boxes(
         ) = st.columns([0.35, 0.1, 0.1, 0.01, 0.1, 0.01, 0.2, 0.1])
         with title_col:
             added_text = (
-                "For more information, see the 'LEGAL FRAMEWORK' tab of the dashboard."
-                if not display_all_tags
-                else ""
+                "For more information, see the 'LEGAL FRAMEWORK' tab of the dashboard." if not display_all_tags else ""
             )
             _custom_title(
                 "Legal Framework & Rule of Law",
                 st.session_state["subtitle_size"],
                 source="OHCHR, UN Treaty Bodies Dataset, Committee on the Rights of the Child, State Parties Reporting",
-                date="Last update date: "
-                + st.session_state[f"date_ohchr_{selected_country}"],
+                date="Last update date: " + st.session_state[f"date_ohchr_{selected_country}"],
                 additional_text=added_text,
             )
         with yes_col:
@@ -294,23 +293,15 @@ def _display_legal_framework_indicator_boxes(
         with no_col:
             _display_legend_box("NO ", no_color, max_width=100, height=40)
         with no_infos_col:
-            _display_legend_box(
-                "NOT AVAILABLE ", no_info_color, max_width=100, height=40
-            )
+            _display_legend_box("NOT AVAILABLE ", no_info_color, max_width=100, height=40)
 
-    for tag_id, (tagname, tag_indicators) in enumerate(
-        st.session_state["legal_framework_indicators"].items()
-    ):
-
+    for tag_id, (tagname, tag_indicators) in enumerate(st.session_state["legal_framework_indicators"].items()):
         if display_all_tags:
             _add_blank_space(1)
-            _custom_title(f"{tag_id+1}) {tagname}", 20)
+            _custom_title(f"{tag_id + 1}) {tagname}", 20)
         if display_all_tags or (tagname.strip() == "Action Plans and laws"):
-            shown_columns = st.columns(
-                [1, 0.02, 1, 0.02, 1, 0.02, 1, 0.02, 1, 0.02, 1, 0.02, 1]
-            )
+            shown_columns = st.columns([1, 0.02, 1, 0.02, 1, 0.02, 1, 0.02, 1, 0.02, 1, 0.02, 1])
             for indicator_id, one_indicator in enumerate(tag_indicators):
-
                 # display rows and columns
                 nb = (2 * indicator_id) % 12
                 with shown_columns[nb].container():
@@ -320,9 +311,7 @@ def _display_legal_framework_indicator_boxes(
                     )
 
 
-def _display_results_one_indicator(
-    country_summaries_datset: pd.DataFrame, one_indicator: str
-):
+def _display_results_one_indicator(country_summaries_datset: pd.DataFrame, one_indicator: str):
     """
     Displays results for a specific indicator in a country summaries dataset.
 
@@ -358,9 +347,7 @@ def _display_results_one_indicator(
     else:
         color = _get_color(laws_summary[0])
 
-    _display_bullet_point_as_highlighted_text(
-        one_indicator.replace("Chid", "Child"), color
-    )
+    _display_bullet_point_as_highlighted_text(one_indicator.replace("Chid", "Child"), color)
     if one_indicator_doc_title.iloc[0] == "-":
         st.markdown("No information extracted for this indicator.")
     else:
@@ -395,49 +382,31 @@ def country_wise_legal_framework(selected_country: str, display_detailed_results
        using `_display_results_one_indicator`.
 
     """
-    if (
-        f"legal_framework_summaries_country_path_{selected_country}"
-        not in st.session_state
-    ):
-        st.session_state[
-            f"legal_framework_summaries_country_path_{selected_country}"
-        ] = os.path.join(
+    if f"legal_framework_summaries_country_path_{selected_country}" not in st.session_state:
+        st.session_state[f"legal_framework_summaries_country_path_{selected_country}"] = os.path.join(
             st.session_state["legal_framework_summaries_data_path"],
             f"{selected_country}.xlsx",
         )
 
-    if not os.path.exists(
-        st.session_state[f"legal_framework_summaries_country_path_{selected_country}"]
-    ):
-
+    if not os.path.exists(st.session_state[f"legal_framework_summaries_country_path_{selected_country}"]):
         _custom_title(
             "Legal Framework & Rule of Law",
             st.session_state["subtitle_size"],
             source="OHCHR",
             # date=st.session_state[f"date_ohchr_{selected_country}"],
         )
-        st.markdown(
-            f"No information available for the legal framework for {selected_country}"
-        )
+        st.markdown(f"No information available for the legal framework for {selected_country}")
         return
 
     if f"country_summaries_dataset_{selected_country}" not in st.session_state:
-        country_summaries_dataset, displayed_indicators = (
-            _load_country_summaries_indicators(
-                st.session_state[
-                    f"legal_framework_summaries_country_path_{selected_country}"
-                ]
-            )
+        country_summaries_dataset, displayed_indicators = _load_country_summaries_indicators(
+            st.session_state[f"legal_framework_summaries_country_path_{selected_country}"]
         )
-        st.session_state[f"country_summaries_dataset_{selected_country}"] = (
-            country_summaries_dataset
-        )
+        st.session_state[f"country_summaries_dataset_{selected_country}"] = country_summaries_dataset
 
         st.session_state[f"date_ohchr_{selected_country}"] = (
             pd.to_datetime(
-                country_summaries_dataset[
-                    country_summaries_dataset["Submitted Date"] != "-"
-                ]["Submitted Date"],
+                country_summaries_dataset[country_summaries_dataset["Submitted Date"] != "-"]["Submitted Date"],
                 format="%d %b %Y",
             )
             .max()
@@ -453,18 +422,11 @@ def country_wise_legal_framework(selected_country: str, display_detailed_results
 
     if display_detailed_results:
         st.write("")
-        _custom_title(
-            "Legal Framework Detailed Results", st.session_state["subtitle_size"]
-        )
+        _custom_title("Legal Framework Detailed Results", st.session_state["subtitle_size"])
         st.write("")
 
-        for tag_id, (tagname, tag_indicators) in enumerate(
-            st.session_state["legal_framework_indicators"].items()
-        ):
-
-            _custom_title(
-                f"{tag_id+1}) {tagname}", st.session_state["subsubtitle_size"]
-            )
+        for tag_id, (tagname, tag_indicators) in enumerate(st.session_state["legal_framework_indicators"].items()):
+            _custom_title(f"{tag_id + 1}) {tagname}", st.session_state["subsubtitle_size"])
 
             for one_indicator in tag_indicators:
                 _display_results_one_indicator(

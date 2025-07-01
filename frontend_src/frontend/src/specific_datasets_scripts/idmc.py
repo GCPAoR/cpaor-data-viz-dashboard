@@ -1,8 +1,11 @@
 import pandas as pd
 import streamlit as st
+
 from frontend.src.utils.utils_functions import _custom_title
-from frontend.src.visualizations.barchart import (_display_stackbar,
-                                                  _get_abbreviated_number)
+from frontend.src.visualizations.barchart import (
+    _display_stackbar,
+    _get_abbreviated_number,
+)
 
 
 @st.fragment
@@ -13,9 +16,7 @@ def _load_idmc_data():
     mapping_countries = {
         "Dem. Rep. Congo": "Congo DRC",
     }
-    df = pd.read_excel(
-        st.session_state["idmc_data_path"], sheet_name="3_IDPs_SADD_estimates"
-    )
+    df = pd.read_excel(st.session_state["idmc_data_path"], sheet_name="3_IDPs_SADD_estimates")
     df["Country"] = df["Country"].apply(lambda x: mapping_countries.get(x, x))
     df = df[df["Country"].isin(st.session_state["countries"])]
 

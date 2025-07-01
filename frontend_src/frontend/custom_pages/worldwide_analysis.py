@@ -1,17 +1,20 @@
 import streamlit as st
+
 from frontend.src.specific_datasets_scripts.ocha_hpc import (
-    _display_evolution_data, _display_top_countries_with_children_in_need,
+    _display_evolution_data,
+    _display_top_countries_with_children_in_need,
+    _get_cp_beneficiaries,
     _get_ratio_children_in_need_to_pop_in_need,
     _get_ratio_children_targeted_to_children_in_need,
-    _get_total_CP_caseload_in_need,
     _get_ratio_global_funding,
-    _get_cp_beneficiaries,
-    display_global_funding
+    _get_total_CP_caseload_in_need,
+    display_global_funding,
 )
 from frontend.src.utils.utils_functions import _custom_title
 from frontend.src.visualizations.barchart import _get_abbreviated_number
-from frontend.src.visualizations.maps_creation import \
-    _create_polygons_map_placeholder_pdk
+from frontend.src.visualizations.maps_creation import (
+    _create_polygons_map_placeholder_pdk,
+)
 
 
 @st.fragment
@@ -45,9 +48,7 @@ def main_page():
         )
 
         # Define the custom style for the first box
-        total_number_of_children_in_need, n_countries_number_of_children_in_need = (
-            _get_total_CP_caseload_in_need()
-        )
+        total_number_of_children_in_need, n_countries_number_of_children_in_need = _get_total_CP_caseload_in_need()
 
         shown_total_number_of_children_in_need = _get_abbreviated_number(
             int(total_number_of_children_in_need.replace(",", ""))
@@ -88,7 +89,7 @@ def main_page():
             }
         </style>
         """
-
+        # ruff: noqa: E501
         key_figures = f"""
         <div class="key-figure-container">
             <div
@@ -145,17 +146,13 @@ def main_page():
             date=st.session_state["inform_severity_last_updated"],
         )
         with st.container():
-            _create_polygons_map_placeholder_pdk(
-                st.session_state["geojson_country_polygons"], display_type="Country"
-            )
+            _create_polygons_map_placeholder_pdk(st.session_state["geojson_country_polygons"], display_type="Country")
 
     for _ in range(2):
         st.markdown("")
 
     with st.container():
-        top_countries_with_children_in_need_col, _, children_in_need_evolution_col = (
-            st.columns((0.5, 0.05, 0.45))
-        )
+        top_countries_with_children_in_need_col, _, children_in_need_evolution_col = st.columns((0.5, 0.05, 0.45))
         with top_countries_with_children_in_need_col:
             _custom_title(
                 "Top Countries- % Child Protection Caseload (in Need) vs Total PiN",
@@ -170,7 +167,7 @@ def main_page():
                 "Evolution of CP Caseload (in Need)",
                 st.session_state["subtitle_size"],
                 source="OCHA HPC Plans Summary API",
-                date=f"{min(st.session_state['filter-years'])}-{st.session_state['selected-year']}"
+                date=f"{min(st.session_state['filter-years'])}-{st.session_state['selected-year']}",
             )
             st.markdown("## ")
             _display_evolution_data()
@@ -180,7 +177,7 @@ def main_page():
             "Funding requested vs Funding received",
             st.session_state["subtitle_size"],
             source="OCHA HPC Plans Summary API",
-            date=f"{min(st.session_state['filter-years'])}-{st.session_state['selected-year']}"
+            date=f"{min(st.session_state['filter-years'])}-{st.session_state['selected-year']}",
         )
         st.markdown("**Note: The overall funding includes the HNRPs, FAs. Regional Appeals are excluded.**")
         display_global_funding()
