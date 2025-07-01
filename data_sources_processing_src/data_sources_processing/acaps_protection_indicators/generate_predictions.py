@@ -1,7 +1,7 @@
-import os
 import asyncio
 import json
 import logging
+import os
 import re
 import ssl
 from ast import literal_eval
@@ -245,9 +245,7 @@ async def call_chatgpt_bulk(
     semaphore = asyncio.Semaphore(rate_limit)  # Control concurrency level
     async with aiohttp.ClientSession() as session:
         # Create a tqdm async progress bar
-        progress_bar = tqdm(
-            total=len(messages), desc="Generating report summaries", position=0
-        )
+        progress_bar = tqdm(total=len(messages), desc="Generating report summaries", position=0)
 
         async def wrapped_call(session, message):
             # Wrap your call in a function that updates the progress bar
@@ -263,9 +261,7 @@ async def call_chatgpt_bulk(
 
         # Use asyncio.TaskGroup for managing tasks
         async with asyncio.TaskGroup() as tg:
-            tasks = [
-                tg.create_task(wrapped_call(session, message)) for message in messages
-            ]
+            tasks = [tg.create_task(wrapped_call(session, message)) for message in messages]
             responses = await asyncio.gather(*tasks)
 
         # Ensure the progress bar closes properly
@@ -321,12 +317,7 @@ def _generate_general_summary(df: pd.DataFrame) -> str:
                 },
                 {
                     "role": "user",
-                    "content": json.dumps(
-                        {
-                            entry_id: entry["text"]
-                            for entry_id, entry in enumerate(single_entries)
-                        }
-                    ),
+                    "content": json.dumps({entry_id: entry["text"] for entry_id, entry in enumerate(single_entries)}),
                 },
             ]
         )
