@@ -7,11 +7,9 @@ import os
 import pandas as pd
 import torch
 from nltk.tokenize import word_tokenize
-from summaries_generation_utils.generate_embeddings import (
-    EmbeddingsGenerator, _generate_embeddings)
+from summaries_generation_utils.generate_embeddings import EmbeddingsGenerator, _generate_embeddings
 from summaries_generation_utils.openai_async import call_chatgpt_bulk
-from summaries_generation_utils.utils import (_flatten_list_of_lists,
-                                              _load_preprocess_df, _load_tags)
+from summaries_generation_utils.utils import _flatten_list_of_lists, _load_preprocess_df, _load_tags
 from tqdm import tqdm
 
 logging.basicConfig(
@@ -73,9 +71,7 @@ class ResultsGenerator:
         n_most_simialr_entries,
         n_grouped_sentences,
     ):
-        self.input_file_path = os.path.join(
-            ohchr_data_path, "input_data", "all-docs.csv"
-        )
+        self.input_file_path = os.path.join(ohchr_data_path, "input_data", "all-docs.csv")
         self.n_most_simialr_entries = n_most_simialr_entries
         self.n_grouped_sentences = n_grouped_sentences
         self.tags_list = _load_tags()
@@ -93,14 +89,10 @@ class ResultsGenerator:
         self.processed_countries = [
             one_country
             for one_country in self.processed_countries
-            if not os.path.exists(
-                os.path.join(self.output_folder_path, f"{one_country}.xlsx")
-            )
+            if not os.path.exists(os.path.join(self.output_folder_path, f"{one_country}.xlsx"))
         ]
 
-    def _generate_general_summary(
-        self, df: pd.DataFrame, prompt: str, one_indicator: str, one_country: str
-    ) -> str:
+    def _generate_general_summary(self, df: pd.DataFrame, prompt: str, one_indicator: str, one_country: str) -> str:
         sentences = json.dumps(
             [
                 {
@@ -151,12 +143,8 @@ class ResultsGenerator:
 
         df_one_country = df.copy()
 
-        one_indicator_embeddings = self.embeddings_generator(
-            [f"query: {one_indicator}"]
-        )
-        inputs_embeddings = torch.tensor(
-            df_one_country["Embeddings"].tolist(), dtype=torch.float16
-        )
+        one_indicator_embeddings = self.embeddings_generator([f"query: {one_indicator}"])
+        inputs_embeddings = torch.tensor(df_one_country["Embeddings"].tolist(), dtype=torch.float16)
         embedding_similarity = (
             torch.matmul(
                 inputs_embeddings.float(),
@@ -167,16 +155,12 @@ class ResultsGenerator:
         )
 
         # descending argsort to get the most similar embeddings
-        most_similar_indices = torch.argsort(embedding_similarity, descending=True)[
-            : self.n_most_simialr_entries
-        ]
+        most_similar_indices = torch.argsort(embedding_similarity, descending=True)[: self.n_most_simialr_entries]
 
         most_relevant_df = df_one_country.iloc[most_similar_indices]
         return most_relevant_df
 
-    def _create_indicator_wise_relevant_entries_df(
-        self, df: pd.DataFrame, country: str
-    ):
+    def _create_indicator_wise_relevant_entries_df(self, df: pd.DataFrame, country: str):
         """
         Inputs:
             - df (pd.DataFrame): DataFrame with document and indicator information.
@@ -210,9 +194,7 @@ class ResultsGenerator:
                 df_one_country_one_indicator = df_one_country.copy()
                 df_one_country_one_indicator["Indicator"] = one_indicator
 
-                most_relevant_df = self._get_most_relevant_df(
-                    df_one_country_one_indicator, one_indicator
-                )
+                most_relevant_df = self._get_most_relevant_df(df_one_country_one_indicator, one_indicator)
 
                 final_df = pd.concat([final_df, most_relevant_df])
 
@@ -220,17 +202,11 @@ class ResultsGenerator:
                     [
                         {
                             "role": "system",
-                            "content": entry_extraction_system_prompt
-                            % (one_indicator, country),
+                            "content": entry_extraction_system_prompt % (one_indicator, country),
                         },
                         {
                             "role": "user",
-                            "content": json.dumps(
-                                {
-                                    i: sent
-                                    for i, sent in enumerate(row["Sentences Groups"])
-                                }
-                            ),
+                            "content": json.dumps({i: sent for i, sent in enumerate(row["Sentences Groups"])}),
                         },
                     ]
                     for i, row in most_relevant_df.iterrows()
@@ -278,12 +254,8 @@ class ResultsGenerator:
                if no relevant data is found.
         """
 
-        most_relevant_df = df[
-            (df["Country"] == one_country) & (df["Indicator"] == one_indicator)
-        ].copy()
-        most_relevant_df = most_relevant_df[
-            most_relevant_df["Extracted Infos"].apply(len) > 0
-        ]
+        most_relevant_df = df[(df["Country"] == one_country) & (df["Indicator"] == one_indicator)].copy()
+        most_relevant_df = most_relevant_df[most_relevant_df["Extracted Infos"].apply(len) > 0]
         most_relevant_df = most_relevant_df.explode("Extracted Infos")
 
         most_relevant_df = most_relevant_df.groupby(
@@ -301,13 +273,9 @@ class ResultsGenerator:
             }
         )
 
-        most_relevant_df["Number of Relevant Sentences"] = most_relevant_df[
-            "Extracted Infos"
-        ].apply(len)
+        most_relevant_df["Number of Relevant Sentences"] = most_relevant_df["Extracted Infos"].apply(len)
 
-        most_relevant_df = most_relevant_df[
-            most_relevant_df["Number of Relevant Sentences"] > 0
-        ]
+        most_relevant_df = most_relevant_df[most_relevant_df["Number of Relevant Sentences"] > 0]
 
         if len(most_relevant_df) > 0:
             # Extracting the law summary
@@ -327,18 +295,14 @@ class ResultsGenerator:
                 )
                 if len(word_tokenize(general_summary)) > 4:
                     most_relevant_df["General Summary"] = general_summary
-                    most_relevant_df["Laws Summary"] = (
-                        "No Law Available Within the Legal Framework"
-                    )
+                    most_relevant_df["Laws Summary"] = "No Law Available Within the Legal Framework"
                     most_relevant_df["Indicator"] = one_indicator
                 else:
                     most_relevant_df = _create_empty_df(one_indicator)
 
             else:
                 most_relevant_df["General Summary"] = law_summary
-                most_relevant_df["Laws Summary"] = (
-                    "Law Available Within the Legal Framework"
-                )
+                most_relevant_df["Laws Summary"] = "Law Available Within the Legal Framework"
                 most_relevant_df["Indicator"] = one_indicator
         else:
             most_relevant_df = _create_empty_df(one_indicator)
@@ -369,9 +333,7 @@ class ResultsGenerator:
         n_tot_indicators = len(_flatten_list_of_lists(list(tags_list.values())))
 
         df_countries = self.input_file.copy()
-        df_countries = df_countries[
-            df_countries["Country"].isin(self.processed_countries)
-        ].copy()
+        df_countries = df_countries[df_countries["Country"].isin(self.processed_countries)].copy()
 
         for one_country in self.processed_countries:
             logger.info(
@@ -381,9 +343,7 @@ class ResultsGenerator:
             final_df_one_country = pd.DataFrame()
 
             df_one_country = df_countries[df_countries["Country"] == one_country].copy()
-            df_one_country = self._create_indicator_wise_relevant_entries_df(
-                df_one_country, country=one_country
-            )
+            df_one_country = self._create_indicator_wise_relevant_entries_df(df_one_country, country=one_country)
 
             progress_bar = tqdm(
                 total=n_tot_indicators,
@@ -392,16 +352,11 @@ class ResultsGenerator:
 
             for one_tag, one_tag_indicators in tags_list.items():
                 for one_indicator_id, one_indicator in enumerate(one_tag_indicators):
-
-                    one_indicator_summary_df = self._get_law_summary(
-                        df_one_country, one_indicator, one_country
-                    )
+                    one_indicator_summary_df = self._get_law_summary(df_one_country, one_indicator, one_country)
                     one_indicator_summary_df["Tag"] = one_tag
 
                     # now all the data is ready to be saved in a csv file
-                    final_df_one_country = pd.concat(
-                        [final_df_one_country, one_indicator_summary_df]
-                    )
+                    final_df_one_country = pd.concat([final_df_one_country, one_indicator_summary_df])
 
                     saved_df = final_df_one_country.copy()
                     saved_df = saved_df.set_index(

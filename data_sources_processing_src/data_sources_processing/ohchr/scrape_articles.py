@@ -75,10 +75,7 @@ def _remove_return_to_lines_extra_spaces(input_string):
 def _get_all_extracted_text(text: List[str]) -> str:
     paragraphs = [_remove_return_to_lines_extra_spaces(s) for s in text]
     valid_sentences = " ".join(
-        [
-            " ".join([s for s in sent_tokenize(one_paragraph) if _sentence_is_valid(s)])
-            for one_paragraph in paragraphs
-        ]
+        [" ".join([s for s in sent_tokenize(one_paragraph) if _sentence_is_valid(s)]) for one_paragraph in paragraphs]
     )
     return valid_sentences
 
@@ -101,9 +98,7 @@ def get_text_from_link(row: pd.Series, data_file_path: os.PathLike) -> str:
         6. Handle any errors and provide information about the failure.
     """
     doc_type = row["doc_type"]
-    file_path = os.path.join(
-        data_file_path, f"{row['Symbol/Title'].replace('/', '-')}.{doc_type}"
-    )
+    file_path = os.path.join(data_file_path, f"{row['Symbol/Title'].replace('/', '-')}.{doc_type}")
 
     try:
         if not os.path.exists(file_path):
@@ -336,9 +331,7 @@ def main(use_sample: bool):
     """
 
     df = html_doc2df()
-    countries = pd.read_csv(
-        os.path.join(ohchr_data_path, "..", "..", "report_countries.csv"), header=None
-    )[0].tolist()
+    countries = pd.read_csv(os.path.join(ohchr_data_path, "..", "..", "report_countries.csv"), header=None)[0].tolist()
     df["Country"] = df["Country"].apply(_map_countries)
     df["Title"] = df.apply(_preprocess_title, axis=1)
     df = df[df.Country.isin(countries)]
@@ -358,9 +351,7 @@ def main(use_sample: bool):
     data_file_path = os.path.join(ohchr_data_path, "input_data", "downloaded_documents")
     os.makedirs(data_file_path, exist_ok=True)
 
-    df["extracted_text"] = df.progress_apply(
-        lambda row: get_text_from_link(row, data_file_path), axis=1
-    )
+    df["extracted_text"] = df.progress_apply(lambda row: get_text_from_link(row, data_file_path), axis=1)
     df["n_words"] = df["extracted_text"].apply(lambda x: len(word_tokenize(x)))
     df = df[df.n_words > 10]
 
@@ -368,13 +359,11 @@ def main(use_sample: bool):
 
     grouped_docs = df.groupby("Country", as_index=False).agg({"n_words": "sum"})
     # sort all_docs by n_words
-    all_docs_sorted = df.merge(
-        grouped_docs, on="Country", suffixes=("", "_country")
-    ).sort_values(["n_words_country", "Country"], ascending=[True, True])
-
-    all_docs_sorted.to_csv(
-        os.path.join(ohchr_data_path, "input_data", all_docs_name), index=False
+    all_docs_sorted = df.merge(grouped_docs, on="Country", suffixes=("", "_country")).sort_values(
+        ["n_words_country", "Country"], ascending=[True, True]
     )
+
+    all_docs_sorted.to_csv(os.path.join(ohchr_data_path, "input_data", all_docs_name), index=False)
 
 
 if __name__ == "__main__":

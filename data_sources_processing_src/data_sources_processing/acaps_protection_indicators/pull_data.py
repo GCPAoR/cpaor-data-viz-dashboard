@@ -36,9 +36,7 @@ acaps_name_to_original_name = {v: k for k, v in original_name_to_acaps_name.item
 
 
 # Function to fetch data for a given page
-def _fetch_data(
-    base_url: str, page: int, countries: List[str], start_date: str, use_sample: bool
-):
+def _fetch_data(base_url: str, page: int, countries: List[str], start_date: str, use_sample: bool):
     params = {
         "_internal_filter_date_gte": start_date,
         "page": page,
@@ -85,21 +83,14 @@ def fetch_dataset(base_url: str, start_date: str, use_sample: bool):
     results_df = pd.json_normalize(all_data)
 
     if len(results_df) > 0:
-        results_df["country"] = results_df["country"].apply(
-            lambda x: [acaps_name_to_original_name.get(c, c) for c in x]
-        )
+        results_df["country"] = results_df["country"].apply(lambda x: [acaps_name_to_original_name.get(c, c) for c in x])
 
-        results_df = results_df.drop(columns=["additional_sources", "adm1"]).dropna(
-            subset=["country", "justification"]
-        )
+        results_df = results_df.drop(columns=["additional_sources", "adm1"]).dropna(subset=["country", "justification"])
 
     return results_df
 
 
-def pull_acaps_protection_indicators(
-    datasets_metadata: Dict[str, Any], output_path: os.PathLike, use_sample: bool
-):
-
+def pull_acaps_protection_indicators(datasets_metadata: Dict[str, Any], output_path: os.PathLike, use_sample: bool):
     if os.path.exists(output_path):
         raw_pulled_data = pd.read_csv(output_path)
     else:
@@ -112,9 +103,7 @@ def pull_acaps_protection_indicators(
     else:
         start_date = "-".join(last_file_time.split("-")[::-1])
 
-    new_dataset = fetch_dataset(
-        datasets_metadata["website_url"], start_date, use_sample
-    )
+    new_dataset = fetch_dataset(datasets_metadata["website_url"], start_date, use_sample)
 
     final_dataset = pd.concat([raw_pulled_data, new_dataset], ignore_index=True)
     final_dataset.to_csv(output_path, index=False)

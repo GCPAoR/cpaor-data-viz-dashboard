@@ -1,7 +1,7 @@
-import os
 import asyncio
 import json
 import logging
+import os
 import re
 import ssl
 from ast import literal_eval
@@ -208,15 +208,11 @@ async def call_chatgpt_bulk(
 
             finally:
                 if progress_bar:
-                    progress_bar.update(
-                        1
-                    )  # Update the progress for each completed task
+                    progress_bar.update(1)  # Update the progress for each completed task
 
         # Use asyncio.TaskGroup for managing tasks
         async with asyncio.TaskGroup() as tg:
-            tasks = [
-                tg.create_task(wrapped_call(session, message)) for message in messages
-            ]
+            tasks = [tg.create_task(wrapped_call(session, message)) for message in messages]
             responses = await asyncio.gather(*tasks)
 
         # Ensure the progress bar closes properly

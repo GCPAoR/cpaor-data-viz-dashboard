@@ -1,6 +1,6 @@
-import os
 import json
 import logging
+import os
 import re
 from ast import literal_eval
 from copy import copy
@@ -61,16 +61,13 @@ def _postprocess_json_string(s):
     return _extract_and_evaluate_first(s)
 
 
-def _ai_mapping_locations(
-    country: str, acled_locations: List[str], fieldmaps_locations: List[str]
-):
+def _ai_mapping_locations(country: str, acled_locations: List[str], fieldmaps_locations: List[str]):
     openai_api_key = os.getenv("OPENAI_API_KEY")
     client = OpenAI(api_key=openai_api_key)
 
     if len(acled_locations) == 0 or len(fieldmaps_locations) == 0:
         matches = {}
     else:
-
         response = (
             client.chat.completions.create(
                 model="gpt-4o",
@@ -112,19 +109,15 @@ def _remove_exact_matches(l1: List[str], l2: List[str]):
     return exact_matches, list1, list2
 
 
-def _create_ai_based_mapping(
-    country: str, acled_locations: List[str], fieldmaps_locations: List[str]
-):
+def _create_ai_based_mapping(country: str, acled_locations: List[str], fieldmaps_locations: List[str]):
     final_matches = {}
     # Step 1: Remove exact matches
-    exact_matches, remaining_acled_locations, remaining_fieldmaps_locations = (
-        _remove_exact_matches(acled_locations, fieldmaps_locations)
+    exact_matches, remaining_acled_locations, remaining_fieldmaps_locations = _remove_exact_matches(
+        acled_locations, fieldmaps_locations
     )
 
     # Step 2: Find maximum matches based on string similarity
-    ai_based_matches = _ai_mapping_locations(
-        country, remaining_acled_locations, remaining_fieldmaps_locations
-    )
+    ai_based_matches = _ai_mapping_locations(country, remaining_acled_locations, remaining_fieldmaps_locations)
     # print(ai_based_matches)
     final_matches.update(ai_based_matches)
     return final_matches

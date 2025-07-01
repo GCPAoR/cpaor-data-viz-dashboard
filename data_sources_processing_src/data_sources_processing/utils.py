@@ -55,10 +55,7 @@ def _get_hdx_data(
         soup = BeautifulSoup(response.content, "html.parser")
 
         latest_file_info = _get_hdx_file_infos(soup, datasets_metadata["hdx_file_name"])
-        if (
-            latest_file_info["file_time"]
-            != datasets_metadata["latest_file_info"]["file_time"]
-        ):
+        if latest_file_info["file_time"] != datasets_metadata["latest_file_info"]["file_time"]:
             dir_path = os.path.join(data_output_path, data_folder)
             if not os.path.isdir(dir_path):
                 os.makedirs(dir_path)
@@ -78,9 +75,7 @@ def _get_hdx_data(
             return datasets_metadata
 
     else:
-        logger.error(
-            f"Failed to retrieve the page. Status code: {response.status_code}"
-        )
+        logger.error(f"Failed to retrieve the page. Status code: {response.status_code}")
         return None
 
 
@@ -102,16 +97,9 @@ def _get_one_ressource_infos(one_ressource: BeautifulSoup) -> Dict[str, Any]:
     6. Return the dictionary 'treated_doc'.
     """
     treated_doc = {}
-    date_str = (
-        one_ressource.find("div", class_="update-date")
-        .text.strip()
-        .replace("Modified:", "")
-        .strip()
-    )
+    date_str = one_ressource.find("div", class_="update-date").text.strip().replace("Modified:", "").strip()
 
-    treated_doc["file_time"] = datetime.strptime(date_str, "%d %B %Y").strftime(
-        "%d-%m-%Y"
-    )
+    treated_doc["file_time"] = datetime.strptime(date_str, "%d %B %Y").strftime("%d-%m-%Y")
 
     download_url = one_ressource.find("a", class_="resource-url-analytics")["href"]
 

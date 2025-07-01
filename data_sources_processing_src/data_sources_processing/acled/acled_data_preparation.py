@@ -7,9 +7,9 @@ from typing import Any, Dict
 import dotenv
 import pandas as pd
 import requests
-from data_sources_processing.acled.create_locations_mapping import \
-    _create_ai_based_mapping
 from tqdm import tqdm
+
+from data_sources_processing.acled.create_locations_mapping import _create_ai_based_mapping
 
 # API credentials
 dotenv.load_dotenv()
@@ -28,9 +28,7 @@ needed_columns = [
     "fatalities",
 ]
 # Load the list of countries
-countries_list = pd.read_csv(
-    os.path.join("/data", "report_countries.csv"), header=None
-)[0].tolist()
+countries_list = pd.read_csv(os.path.join("/data", "report_countries.csv"), header=None)[0].tolist()
 
 # Define the date range
 # start_date = "2017-01-01"
@@ -51,28 +49,31 @@ def _get_number_of_events_evolution(events_df: pd.DataFrame, save_path: os.PathL
     if os.path.exists(save_path):
         past_number_of_events_targeting_civilians_df = pd.read_csv(save_path)
     else:
-        past_number_of_events_targeting_civilians_df = pd.DataFrame(
-            columns=["country", "year", "Number of Events"]
-        )
+        past_number_of_events_targeting_civilians_df = pd.DataFrame(columns=["country", "year", "Number of Events"])
 
-    number_of_events_targeting_civilians_df = events_df.copy()[
-        ["country", "year", "fatalities"]
-    ].rename(columns={"fatalities": "Number of Events"})
+    number_of_events_targeting_civilians_df = events_df.copy()[["country", "year", "fatalities"]].rename(
+        columns={"fatalities": "Number of Events"}
+    )
 
-    number_of_events_targeting_civilians_df["Number of Events"] = number_of_events_targeting_civilians_df["Number of Events"].astype(int)
+    number_of_events_targeting_civilians_df["Number of Events"] = number_of_events_targeting_civilians_df[
+        "Number of Events"
+    ].astype(int)
 
     number_of_events_targeting_civilians_df = (
-        number_of_events_targeting_civilians_df.groupby(
-            ["country", "year"], as_index=False
-        ).agg({"Number of Events": "sum"})
+        number_of_events_targeting_civilians_df.groupby(["country", "year"], as_index=False).agg({"Number of Events": "sum"})
     ).reset_index(drop=True)
 
-    number_of_events_targeting_civilians_df = pd.concat(
-        [
-            past_number_of_events_targeting_civilians_df,
-            number_of_events_targeting_civilians_df,
-        ]
-    ).drop_duplicates(subset=["country", "year"], keep="last").sort_values(["country", "year"], ascending=True).reset_index(drop=True)
+    number_of_events_targeting_civilians_df = (
+        pd.concat(
+            [
+                past_number_of_events_targeting_civilians_df,
+                number_of_events_targeting_civilians_df,
+            ]
+        )
+        .drop_duplicates(subset=["country", "year"], keep="last")
+        .sort_values(["country", "year"], ascending=True)
+        .reset_index(drop=True)
+    )
 
     number_of_events_targeting_civilians_df.to_csv(save_path, index=False)
 
@@ -93,21 +94,15 @@ def _get_individual_events_targetting_civilians_df(
             acled_to_fieldmaps_one_country_mapping = json.load(f)
     else:
         acled_to_fieldmaps_one_country_mapping = defaultdict(dict)
-        for one_country in tqdm(
-            countries_list, desc="Processing ACLED countries mapping"
-        ):
+        for one_country in tqdm(countries_list, desc="Processing ACLED countries mapping"):
             acled_locations = (
-                initial_number_of_fatalities_df[
-                    initial_number_of_fatalities_df["country"] == one_country
-                ]["admin1"]
+                initial_number_of_fatalities_df[initial_number_of_fatalities_df["country"] == one_country]["admin1"]
                 .unique()
                 .tolist()
             )
             fieldmaps_locations = _load_adm_1_names(one_country)
-            acled_to_fieldmaps_one_country_mapping[one_country] = (
-                _create_ai_based_mapping(
-                    one_country, acled_locations, fieldmaps_locations
-                )
+            acled_to_fieldmaps_one_country_mapping[one_country] = _create_ai_based_mapping(
+                one_country, acled_locations, fieldmaps_locations
             )
             with open(mapping_acled_to_fieldmaps_path, "w") as f:
                 json.dump(acled_to_fieldmaps_one_country_mapping, f)
@@ -129,22 +124,14 @@ def _get_individual_events_targetting_civilians_df(
 
     number_of_fatalities_df = pd.DataFrame()
     for one_country in countries_list:
-        one_country_df = initial_number_of_fatalities_df[
-            initial_number_of_fatalities_df["country"] == one_country
-        ].copy()
+        one_country_df = initial_number_of_fatalities_df[initial_number_of_fatalities_df["country"] == one_country].copy()
         mapping_one_country = acled_to_fieldmaps_one_country_mapping[one_country]
-        one_country_df["admin1"] = one_country_df["admin1"].apply(
-            lambda x: mapping_one_country.get(x, x)
-        )
+        one_country_df["admin1"] = one_country_df["admin1"].apply(lambda x: mapping_one_country.get(x, x))
         number_of_fatalities_df = pd.concat([number_of_fatalities_df, one_country_df])
 
     min_year = 2023
-    number_of_fatalities_df = number_of_fatalities_df[
-        number_of_fatalities_df["year"] >= min_year
-    ]
-    number_of_fatalities_df = pd.concat(
-        [past_number_of_fatalities_df, number_of_fatalities_df]
-    )
+    number_of_fatalities_df = number_of_fatalities_df[number_of_fatalities_df["year"] >= min_year]
+    number_of_fatalities_df = pd.concat([past_number_of_fatalities_df, number_of_fatalities_df])
 
     number_of_fatalities_df = (
         number_of_fatalities_df.groupby(
@@ -160,7 +147,6 @@ def _get_individual_events_targetting_civilians_df(
 
 # Function to fetch data for a country
 def fetch_country_data(country, url, start_date: str):
-
     response = requests.get(
         url,
         params={
@@ -307,12 +293,8 @@ def _get_acled_data(datasets_metadata: Dict[str, Any], data_output_path: os.Path
         )
         _get_individual_events_targetting_civilians_df(
             events_df,
-            save_path=os.path.join(
-                data_output_path, "acled", "individual_events_targetting_civilians_new.csv"
-            ),
-            mapping_acled_to_fieldmaps_path=os.path.join(
-                data_output_path, "acled", "mapping_acled_to_fieldmaps.json"
-            ),
+            save_path=os.path.join(data_output_path, "acled", "individual_events_targetting_civilians_new.csv"),
+            mapping_acled_to_fieldmaps_path=os.path.join(data_output_path, "acled", "mapping_acled_to_fieldmaps.json"),
         )
     else:
         print("The ACLED events data is empty.")
