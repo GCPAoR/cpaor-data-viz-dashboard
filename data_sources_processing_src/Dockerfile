@@ -1,9 +1,14 @@
 FROM python:3.11.5-slim
+COPY --from=ghcr.io/astral-sh/uv:0.6.8 /uv /uvx /bin/
 
 LABEL maintainer="CPAoR dev team"
 LABEL org.opencontainers.image.source="https://github.com/GCPAoR/cpaor-data-viz-dashboard"
 
 ENV PYTHONUNBUFFERED=1
+
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_LINK_MODE=copy
+ENV UV_PROJECT_ENVIRONMENT="/usr/local/"
 
 WORKDIR /app
 
@@ -13,7 +18,7 @@ RUN apt-get update && apt-get -y install --no-install-recommends \
     tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml poetry.lock /app/
+COPY pyproject.toml uv.lock /app/
 COPY crontab /etc/cron.d/processing_cron
 RUN chmod 0644 /etc/cron.d/processing_cron
 COPY update_datasets.py /app/update_datasets.py
@@ -22,15 +27,22 @@ COPY ./data_sources_processing/datasets_metadata.json /data/datasets_metadata.js
 
 RUN crontab /etc/cron.d/processing_cron
 
-# Upgrade pip and install python packages for app
-RUN pip install --upgrade --no-cache-dir pip poetry \
-    && poetry --version \
-    && poetry config installer.max-workers 4 \
-    # Configure to use system instead of virtualenvs
-    && poetry config virtualenvs.create false \
-    && poetry install --no-root \
-    # Remove installer
-    && pip uninstall -y poetry virtualenv-clone virtualenv
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    apt-get update -y \
+    && apt-get install -y --no-install-recommends \
+        # Build required packages
+        gcc libc-dev gdal-bin libproj-dev \
+        # Helper packages
+        procps \
+        wait-for-it \
+    # FIXME: Add condition to skip dev dependencies
+    && uv sync --frozen --no-install-project --all-groups \
+    # Clean-up
+    && apt-get remove -y gcc libc-dev libproj-dev \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY . /app/
 
