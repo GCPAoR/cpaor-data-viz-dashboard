@@ -77,12 +77,11 @@ Go the [Fieldmaps website](https://fieldmaps.io/data) and download the amin leve
 
 ## - Image build and running the containers in local environment
 ### Build two images
-`docker compose build`          
+`docker compose build`
 ### Run the image containers
-`docker compose up -d`          
+`docker compose up -d`
 
 `Note that the data sources need to be manually loaded in the docker container in the /data directory if you want to instantly visualize the contents in the dashboard.`
 
 ## - Streamlit app local access
 `http://localhost:8501`
-
