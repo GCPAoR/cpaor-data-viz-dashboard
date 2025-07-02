@@ -34,6 +34,7 @@ if APP_ENVIRONMENT == "production" and GA_TRACKING_ID is not None:
 
     # Inject into the page
     components.html(ga_script, height=0, width=0)
+    print("Google Analytics Tracking is enabled.")
 # Google Analytics script ends
 
 st.session_state["base_data_folder"] = "/data"
