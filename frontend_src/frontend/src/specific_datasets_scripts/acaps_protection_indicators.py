@@ -202,5 +202,4 @@ def _display_specific_protection_indicators(selected_country: str):
             if len(tag_df) == 0:
                 st.markdown(f"No information available for this tag for {selected_country}")
             else:
-                for _, row in tag_df.iterrows():
-                    st.markdown(row["Generated Text"].replace("  ", "\n"))
+                st.markdown(tag_df.iloc[0]["Generated Text"].replace("  ", "\n"))
