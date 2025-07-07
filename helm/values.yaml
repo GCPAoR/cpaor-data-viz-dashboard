@@ -18,6 +18,9 @@ streamlit:
     limits:
       cpu: 2
       memory: 2Gi
+  secrets:
+    APP_ENVIRONMENT:
+    GA_TRACKING_ID:
 
 sharedVolume:
   persistence:

@@ -8,6 +8,9 @@ streamlit:
     name: ghcr.io/cpaor/streamlit
     tag: v1.0.1
     pullPolicy: IfNotPresent
+  secrets:
+    APP_ENVIRONMENT: FAKE_ENV
+    GA_TRACKING_ID: TRACKING_ID
 
 sharedVolume:
   persistence:
