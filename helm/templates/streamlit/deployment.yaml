@@ -43,6 +43,16 @@ spec:
               value: "0.0.0.0"
             - name: STREAMLIT_SERVER_PORT
               value: {{ .Values.streamlit.containerPort | quote }}
+            - name: GA_TRACKING_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "cpaor-data-viz-dashboard-helm.fullname" . }}-app-secrets
+                  key: GA_TRACKING_ID
+            - name: APP_ENVIRONMENT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "cpaor-data-viz-dashboard-helm.fullname" . }}-app-secrets
+                  key: APP_ENVIRONMENT
           volumeMounts:
           - mountPath: "/data"
             name: shared-volume
