@@ -20,19 +20,26 @@ st.set_page_config(page_title="CPAoR", layout="wide", page_icon=app_icon_path)
 
 # Google Analytics script starts
 if APP_ENVIRONMENT == "production" and GA_TRACKING_ID is not None:
-    ga_script = f"""
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id={GA_TRACKING_ID}"></script>
-    <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){{dataLayer.push(arguments);}}
-    gtag('js', new Date());
-    gtag('config', '{GA_TRACKING_ID}');
-    </script>
+    GA_SCRIPT = f"""
+    <html>
+    <head>
+        <script async src="https://www.googletagmanager.com/gtag/js?id={GA_TRACKING_ID}"></script>
+        <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){{dataLayer.push(arguments);}}
+        gtag('js', new Date());
+        gtag('config', '{GA_TRACKING_ID}');
+        gtag('event', 'page_view', {{
+            page_title: 'Streamlit Test',
+            page_path: '/'
+        }});
+        </script>
+    </head>
+    <body></body>
+    </html>
     """
-
-    # Inject into the page
-    components.html(ga_script, height=0, width=0)
+    components.html(GA_SCRIPT, height=0)
+    print(f"GA TRACKING ID: {GA_TRACKING_ID}")
     print("Google Analytics Tracking is enabled.")
 # Google Analytics script ends
 
