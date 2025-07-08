@@ -18,6 +18,9 @@ GA_TRACKING_ID = os.getenv("GA_TRACKING_ID", None)
 app_icon_path = os.path.join("./frontend/images", "cpaor_icon.png")
 st.set_page_config(page_title="CPAoR", layout="wide", page_icon=app_icon_path)
 
+print(f"Application environment: {APP_ENVIRONMENT}")
+print(f"GA Tracking ID: {GA_TRACKING_ID}")
+
 # Google Analytics script starts
 if APP_ENVIRONMENT == "production" and GA_TRACKING_ID is not None:
     GA_SCRIPT = f"""
