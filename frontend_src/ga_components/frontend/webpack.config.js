@@ -9,7 +9,7 @@ module.exports = {
   output: {
     filename: "main.js",
     path: path.resolve(__dirname, "build"),
-    publicPath: "/"
+    publicPath: "./"
   },
   module: {
     rules: [
@@ -25,7 +25,7 @@ module.exports = {
       templateContent: `
         <!DOCTYPE html>
         <html>
-          <head><meta charset="utf-8"><title>GA Component</title></head>
+          <head><meta charset="utf-8"><title>CPAoR Data Platform</title></head>
           <body><div id="root"></div></body>
         </html>
       `,
