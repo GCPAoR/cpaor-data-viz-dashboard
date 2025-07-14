@@ -6,17 +6,17 @@ authors = [{ name = "CPAoR developers", email = "ranjan.shrestha@togglecorp.com"
 requires-python = ">=3.11,<3.12"
 readme = "README.md"
 dependencies = [
-    "pandas==2.2.2",
+    "pandas==2.2.3",
     "plotly==5.19.0",
     "python-dotenv==1.0.1",
-    "streamlit==1.41.0",
+    "streamlit==1.46.1",
     "tqdm==4.66.2",
-    "matplotlib==3.8.0",
+    "matplotlib==3.10.3",
     "fiona==1.9.5",
     "geopandas==0.14.3",
     "openpyxl==3.1.2",
     "streamlit-local-storage==0.0.25",
-    "numpy<=2",
+    "numpy>=2.2.1",
 ]
 
 [tool.pyright]
