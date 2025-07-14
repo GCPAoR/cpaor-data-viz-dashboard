@@ -4,11 +4,11 @@ import os
 import dotenv
 import pandas as pd
 import streamlit as st
-import streamlit.components.v1 as components
 from streamlit_local_storage import LocalStorage
 
 from frontend.src.disclaimer.message import show_disclaimer
 from frontend.src.utils.utils_functions import _custom_title
+from ga_components.ga_component import inject_google_analytics
 
 dotenv.load_dotenv()
 
@@ -23,26 +23,7 @@ print(f"GA Tracking ID: {GA_TRACKING_ID}")
 
 # Google Analytics script starts
 if APP_ENVIRONMENT == "production" and GA_TRACKING_ID is not None:
-    GA_SCRIPT = f"""
-    <html>
-    <head>
-        <script async src="https://www.googletagmanager.com/gtag/js?id={GA_TRACKING_ID}"></script>
-        <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){{dataLayer.push(arguments);}}
-        gtag('js', new Date());
-        gtag('config', '{GA_TRACKING_ID}');
-        gtag('event', 'page_view', {{
-            page_title: 'Streamlit Test',
-            page_path: '/'
-        }});
-        </script>
-    </head>
-    <body></body>
-    </html>
-    """
-    components.html(GA_SCRIPT, height=0)
-    print(f"GA TRACKING ID: {GA_TRACKING_ID}")
+    inject_google_analytics(measurement_id=GA_TRACKING_ID, key="key1")
     print("Google Analytics Tracking is enabled.")
 # Google Analytics script ends
 
