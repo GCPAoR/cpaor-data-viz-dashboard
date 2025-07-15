@@ -1,5 +1,6 @@
 import json
 import os
+from time import sleep
 
 import dotenv
 import pandas as pd
@@ -31,7 +32,11 @@ st.session_state["base_data_folder"] = "/data"
 
 st.session_state["tabular_data_data_path"] = os.path.join(st.session_state["base_data_folder"], "datasources")
 
+sleep(0.3)  # To allow local storage to laod the data
 local_storage = LocalStorage()
+
+if local_storage.storedItems is None:
+    local_storage.storedItems = {}
 
 cached_disclaimer_data = local_storage.getItem("cpaor_consent_confirm")
 USER_CONSENT = cached_disclaimer_data == "true"
