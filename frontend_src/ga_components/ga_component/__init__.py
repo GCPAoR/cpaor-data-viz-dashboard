@@ -1,10 +1,8 @@
 import os
 
-import streamlit as st
 import streamlit.components.v1 as components
 
 build_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../frontend/build"))
-st.write(build_dir)
 
 _component_func = components.declare_component(
     "ga_component",
