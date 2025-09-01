@@ -4,6 +4,8 @@ from typing import Any, Dict, List, Union
 
 import pandas as pd
 
+from datetime import date, timedelta
+
 from data_sources_processing.acaps_protection_indicators.pull_data import pull_acaps_protection_indicators
 from data_sources_processing.acaps_protection_indicators.sources_extraction_reliefweb.extract_map_sources_reliefweb import (
     get_reliefweb_organisations,
@@ -182,6 +184,18 @@ def _prepare_inference_dataset(all_df: pd.DataFrame, one_country: str):
                 continue
 
             processed_df["source_date"] = pd.to_datetime(processed_df["source_date"])
+
+            two_years_ago = date.today() - timedelta(days=2*365)
+
+            # Get all the rows (evidences) from the last two years
+            temp_processed_df = processed_df[processed_df["source_date"].dt.date >= two_years_ago]
+
+            if len(temp_processed_df):
+                processed_df = temp_processed_df.copy().reset_index()
+            else:
+                continue
+
+            # Get maximum of latest 20 rows (evidences) sorted by source_date
             processed_df = processed_df.sort_values(by="source_date", ascending=False).head(20)
 
             to_be_processed_entries = []
