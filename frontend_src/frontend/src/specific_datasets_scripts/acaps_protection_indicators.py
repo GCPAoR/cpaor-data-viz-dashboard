@@ -29,6 +29,7 @@ def _display_main_summary(selected_country: str, display_evidence: bool = True):
     if len(general_summary_df) == 0:
         st.markdown(f"No information available for the protection summary for {selected_country}")
         return
+    general_summary_df = general_summary_df.drop_duplicates(subset="Source Original Text", keep="first").reset_index()
     main_statement = general_summary_df["Generated Text"].values[0]
 
     with st.container():
@@ -78,6 +79,7 @@ def _display_detailed_summaries(selected_country: str, breakdown: str):
     for one_value in values:
         _custom_title(one_value, font_size=st.session_state["subsubtitle_size"])
         df_one_value = detailed_summary_df[detailed_summary_df["Value"] == one_value]
+        df_one_value = df_one_value.drop_duplicates(subset=["Source Original Text"], keep="first").reset_index()
         with st.container():
             statement_col, _, evidence_col = st.columns([0.4, 0.02, 0.58])
             with statement_col:
