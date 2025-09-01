@@ -69,7 +69,7 @@ def generate_summaries(
     with open(protection_indicators_data_path, "r") as file:
         protection_indicators_data = json.load(file)
 
-    latest_inference_date = pd.to_datetime(datasets_metadata["latest_file_info"]["file_time"], format="%d-%m-%Y")
+    # latest_inference_date = pd.to_datetime(datasets_metadata["latest_file_info"]["file_time"], format="%d-%m-%Y")
 
     protection_indicators_original_dataset = _load_dataset(
         datasets_metadata, raw_dataset_path, use_sample, protection_indicators_data
@@ -83,6 +83,12 @@ def generate_summaries(
 
     # to_be_processed_countries = [c for c in to_be_processed_countries if c not in already_processed_countries]
 
+    country_to_last_infer_date = os.path.join("/data", "datasources", "acaps_protection_indicators", "raw_datasets", "country_to_last_infer_date.csv")
+    df_country_to_last_infer_date = pd.read_csv(country_to_last_infer_date)
+
+    if len(df_country_to_last_infer_date):
+        df_country_to_last_infer_date["last_infer_date"] = pd.to_datetime(df_country_to_last_infer_date["last_infer_date"], format="%d-%m-%Y")
+
     n_processed_countries = len(to_be_processed_countries)
 
     # print(protection_indicators_original_dataset.source_reliability.unique())
@@ -90,19 +96,16 @@ def generate_summaries(
 
     for i, one_country in enumerate(to_be_processed_countries):
         country_output_path = os.path.join(processed_data_folder_name, f"{one_country}.csv")
-        # if os.path.exists(country_output_path):
-        #     print(
-        #         f"------------------------------ {i+1}/{n_processed_countries} - {one_country} already processed------------------------------"  # noqa
-        #     )
-        #     continue
+
+        df_temp = df_country_to_last_infer_date[df_country_to_last_infer_date["country"] == one_country]
+
+        latest_inference_date = df_temp["last_infer_date"].iloc[0].date().strftime("%Y-%m-%d")
 
         logger.info(
             f"------------------------------ {i + 1}/{n_processed_countries} - {one_country} processing------------------------------"  # noqa
         )
 
         inference_dataset = _prepare_inference_dataset(protection_indicators_original_dataset, one_country)
-        # print(inference_dataset[needed_cols_for_filter])
-        # print("first inference datset", inference_dataset.shape)
 
         if os.path.exists(country_output_path):
             past_summaries_one_country = pd.read_csv(
@@ -127,10 +130,7 @@ def generate_summaries(
             #     ):
             #         same_rows_df = same_rows_df._append(row)
 
-            inference_dataset = inference_dataset[inference_dataset["Last Date"] >= latest_inference_date]
-            # print("second inference datset", inference_dataset.shape)
-
-            # print("already processed df", already_processed_df.shape)
+            inference_dataset = inference_dataset[inference_dataset["Last Date"] > latest_inference_date]
         else:
             already_processed_df = pd.DataFrame()
 
