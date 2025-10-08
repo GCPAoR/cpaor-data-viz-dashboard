@@ -87,7 +87,7 @@ def generate_summaries(
     df_country_to_last_infer_date = pd.read_csv(country_to_last_infer_date)
 
     if len(df_country_to_last_infer_date):
-        df_country_to_last_infer_date["last_infer_date"] = pd.to_datetime(df_country_to_last_infer_date["last_infer_date"], format="%d-%m-%Y")
+        df_country_to_last_infer_date["last_infer_date"] = pd.to_datetime(df_country_to_last_infer_date["last_infer_date"], format="%Y-%m-%d")
 
     n_processed_countries = len(to_be_processed_countries)
 
