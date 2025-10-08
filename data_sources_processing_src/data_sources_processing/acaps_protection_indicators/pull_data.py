@@ -40,7 +40,7 @@ def _fetch_data(base_url: str, page: int, country: str, start_date: str, use_sam
     params = {
         "_internal_filter_date_gte": start_date,
         "page": page,
-        "country": country,
+        "country": [country],
     }
     if use_sample:
         params["_internal_filter_date_lte"] = "2023-09-02"
@@ -96,7 +96,7 @@ def fetch_dataset(base_url: str, raw_pulled_data: pd.DataFrame, ref_start_date: 
     for country in acaps_countries:
         df_temp = raw_data_df[raw_data_df["country"] == country]
         if len(df_temp):
-            start_date = df_temp["source_date"].iloc[0].date().strftime("%d-%m-%Y")
+            start_date = df_temp["source_date"].iloc[0].date().strftime("%Y-%m-%d")
         else:
             start_date = ref_start_date
 
@@ -114,6 +114,7 @@ def fetch_dataset(base_url: str, raw_pulled_data: pd.DataFrame, ref_start_date: 
 
             data = _fetch_data(base_url, page, country, start_date, use_sample)
             if len(data.get("results", [])) > 0:
+                logger.info(f"Total of {data['count']} new records found for the country {country}.")
                 all_data.extend(data["results"])
                 page += 1
             else:
