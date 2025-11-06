@@ -59,7 +59,9 @@ def _get_hdx_data(
             dir_path = os.path.join(data_output_path, data_folder)
             if not os.path.isdir(dir_path):
                 os.makedirs(dir_path)
-
+            # Note: Little hack as hdx page from where the download_url is fetched
+            # still using data from 2023 (2024 data already published)
+            latest_file_info["download_url"] = latest_file_info["download_url"].replace("2023", str(datetime.now().year - 1))
             _dl_hdx_file(
                 latest_file_info["download_url"],
                 os.path.join(
