@@ -3,7 +3,7 @@ import os
 from collections import defaultdict
 from difflib import SequenceMatcher
 from typing import Any, Dict
-
+import logging
 import dotenv
 import pandas as pd
 import requests
@@ -14,8 +14,14 @@ from data_sources_processing.acled.create_locations_mapping import _create_ai_ba
 # API credentials
 dotenv.load_dotenv()
 
-api_key = os.getenv("ACLED_API_KEY")
-email = os.getenv("CPAOR_EMAIL")
+logging.basicConfig(
+    level=logging.DEBUG,  # Set the logging level
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",  # Log message format
+)
+logger = logging.getLogger(__name__)
+
+ACLED_USERNAME = os.getenv("ACLED_USERNAME")
+ACLED_PASSWORD = os.getenv("ACLED_PASSWORD")
 
 needed_columns = [
     "year",
@@ -150,20 +156,40 @@ def _get_individual_events_targetting_civilians_df(
     number_of_fatalities_df_grp.to_csv(save_path, index=False)
 
 
+def get_acled_token(timeout: int = 60):
+    """Fetch the ACLED auth token"""
+    auth_url = "https://acleddata.com/oauth/token"
+    data = {
+        "username": ACLED_USERNAME,
+        "password": ACLED_PASSWORD,
+        "grant_type": "password",
+        "client_id": "acled",
+    }
 
-def fetch_country_data(country, url, start_date: str):
+    response = requests.post(url=auth_url, data=data, timeout=timeout)
+    if response.status_code == 200:
+        output = response.json()
+        return output["access_token"]
+    return None
+
+
+def fetch_country_data(auth_token, country, url, start_date: str, timeout: int = 60):
     """Fetch data for a country"""
+    headers = {
+        "Authorization": f"Bearer {auth_token}"
+    }
+
     response = requests.get(
-        url,
+        url=url,
         params={
-            "key": api_key,
-            "email": email,
             "country": mapping_countries.get(country, country),
             "event_date_where": "BETWEEN",
             "event_date": f"{start_date}|{end_date}",
             "limit": 0,  # Fetch all data
-            "variables": "year,country,admin1,event_type,event_date,latitude,longitude,fatalities",
+            "variables": "year|country|admin1|event_type|event_date|latitude|longitude|fatalities",
         },
+        headers=headers,
+        timeout=timeout
     )
     return response.json()
 
@@ -279,9 +305,15 @@ def _get_acled_data(datasets_metadata: Dict[str, Any], data_output_path: os.Path
         start_date = "2017-01-01"
     else:
         start_date = "-".join(datasets_metadata["last_update_time"].split("-")[::-1])
+
     # Fetch data for all countries and combine
+    auth_token = get_acled_token()
+    if not auth_token:
+        logger.error("ACLED: auth token not found. Cannot get ACLED updates.")
+        return
+
     for country in tqdm(countries_list, desc="Processing ACLED countries"):
-        data = fetch_country_data(country, datasets_metadata["website_url"], start_date)
+        data = fetch_country_data(auth_token, country, datasets_metadata["website_url"], start_date)
 
         if "data" in data and data["data"]:
             one_country_df = pd.DataFrame(data["data"])[needed_columns]
