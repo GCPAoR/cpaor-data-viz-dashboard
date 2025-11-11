@@ -42,16 +42,20 @@
           "valueFrom": "${openai_api_key_arn}"
         },
         {
-          "name": "ACLED_API_KEY",
-          "valueFrom": "${acled_api_key_arn}"
-        },
-        {
           "name": "CPAOR_EMAIL",
           "valueFrom": "${cpaor_email_arn}"
         },
         {
           "name": "ACAPS_PASSWORD",
           "valueFrom": "${acaps_password_arn}"
+        },
+        {
+          "name": "ACLED_USERNAME",
+          "valueFrom": "${acled_username_arn}"
+        },
+        {
+          "name": "ACLED_PASSWORD",
+          "valueFrom": "${acled_password_arn}"
         }
       ]
     }

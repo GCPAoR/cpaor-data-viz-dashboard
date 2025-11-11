@@ -50,6 +50,7 @@ variable "efs_volume_id" {}
 
 # secrets
 variable "openai_api_key_arn" {}
-variable "acled_api_key_arn" {}
 variable "cpaor_email_arn" {}
 variable "acaps_password_arn" {}
+variable "acled_username_arn" {}
+variable "acled_password_arn" {}

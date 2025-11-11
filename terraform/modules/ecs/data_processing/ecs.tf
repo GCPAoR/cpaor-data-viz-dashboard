@@ -17,9 +17,10 @@ data "template_file" "config" {
 
     # secrets
     openai_api_key_arn = var.openai_api_key_arn
-    acled_api_key_arn  = var.acled_api_key_arn
     cpaor_email_arn    = var.cpaor_email_arn
     acaps_password_arn = var.acaps_password_arn
+    acled_username_arn = var.acled_username_arn
+    acled_password_arn = var.acled_password_arn
   }
 }
 
