@@ -17,16 +17,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Get the authentication token
-auth_response = requests.post(
-    url="https://api.acaps.org/api/v1/token-auth/",
-    data={"username": username, "password": password},
-)
-auth_token = auth_response.json().get("token")
-
-# Base URL for API requests
-headers = {"Authorization": f"Token {auth_token}"}
-
 original_name_to_acaps_name = {
     "Congo DRC": "DRC",
     "Central African Republic": "CAR",
@@ -35,8 +25,21 @@ original_name_to_acaps_name = {
 acaps_name_to_original_name = {v: k for k, v in original_name_to_acaps_name.items()}
 
 
+def get_auth_token(timeout: int = 30):
+    # Get the authentication token
+    auth_response = requests.post(
+        url="https://api.acaps.org/api/v1/token-auth/",
+        data={"username": username, "password": password},
+        timeout=timeout
+    )
+    if auth_response.status_code == 200:
+        return auth_response.json().get("token")
+    return None
+
+
 # Function to fetch data for a given page
-def _fetch_data(base_url: str, page: int, country: str, start_date: str, use_sample: bool, timeout: int = 120):
+def _fetch_data(base_url: str, auth_token: str, page: int, country: str, start_date: str, use_sample: bool, timeout: int = 120):
+    headers = {"Authorization": f"Token {auth_token}"}
     params = {
         "_internal_filter_date_gte": start_date,
         "page": page,
@@ -93,6 +96,11 @@ def fetch_dataset(base_url: str, raw_pulled_data: pd.DataFrame, ref_start_date: 
 
     country_last_infer_date = []
 
+    auth_token = get_auth_token()
+    if not auth_token:
+        logger.error("Cannot fetch auth token. Cannot pull the data")
+        return pd.DataFrame()
+
     for country in acaps_countries:
         df_temp = raw_data_df[raw_data_df["country"] == country]
         if len(df_temp):
@@ -112,7 +120,7 @@ def fetch_dataset(base_url: str, raw_pulled_data: pd.DataFrame, ref_start_date: 
             if page % 10 == 0:
                 logger.info(f"Scraping acaps protection indicators page {page} for the country {country}")
 
-            data = _fetch_data(base_url, page, country, start_date, use_sample)
+            data = _fetch_data(base_url, auth_token, page, country, start_date, use_sample)
             if len(data.get("results", [])) > 0:
                 logger.info(f"Total of {data['count']} new records found for the country {country}.")
                 all_data.extend(data["results"])
