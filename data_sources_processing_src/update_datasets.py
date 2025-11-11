@@ -107,7 +107,7 @@ if __name__ == "__main__":
 
             # save datasets metadata
             with open(datasets_metadata_path, "w") as file:
-                json.dump(datasets_metadata, file)
+                json.dump(datasets_metadata, file, indent=4)
             # except Exception as e:
             #     logger.error(f"Error processing {dataset_name}: {e}")
 
