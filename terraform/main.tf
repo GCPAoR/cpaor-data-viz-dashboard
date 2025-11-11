@@ -109,7 +109,8 @@ module "dataprocessing" {
 
   # secrets
   openai_api_key_arn = module.secrets.openai_api_key_arn
-  acled_api_key_arn  = module.secrets.acled_api_key_arn
   cpaor_email_arn    = module.secrets.cpaor_email_arn
   acaps_password_arn = module.secrets.acaps_password_arn
+  acled_username_arn = module.secrets.acled_username_arn
+  acled_password_arn = module.secrets.acled_password_arn
 }
