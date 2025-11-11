@@ -52,3 +52,5 @@ dataProcessing:
     ACLED_API_KEY:
     CPAOR_EMAIL:
     ACAPS_PASSWORD:
+    ACLED_USERNAME:
+    ACLED_PASSWORD:
