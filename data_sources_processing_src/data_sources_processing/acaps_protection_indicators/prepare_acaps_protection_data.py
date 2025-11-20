@@ -141,6 +141,7 @@ def generate_summaries(
             continue
 
         # try:
+        inference_dataset.reset_index(drop=True, inplace=True)
         final_results = _generate_general_summary(inference_dataset)
 
         results_one_country = _get_final_results(inference_dataset, final_results)
