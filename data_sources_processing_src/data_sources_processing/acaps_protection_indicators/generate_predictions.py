@@ -25,29 +25,61 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-general_summary_prompt = """I want you to help me create humanitarian reports with excellent anlysis results. My analysis is in the Protection sector in %s.
-I'm going to provide you with pieces of text from different documents. The text is a list of dictionaries, where the key is the entry number and the value is the text.
-I want you to create a general summary that encompasses all crucial information to be treated by analysts. Do not provide circumstancial information (like specific events or issues), but focus mostly on the most important points on country level.
-I want you to return the output as a dictionary, with the keys: "Text", "ID". The "Text" key should contain the summary text, and the "ID" key should contain a list of the entry numbers that were explicitely used to generate the summary.
-If no text is relevant, return an empty dict ('{}'). Only return the requested format, without any additional text. Return the text in english without special characters.
+general_summary_prompt = """
+I want you to generate concise humanitarian analysis summaries for the Protection sector in %s.
+You will receive multiple text excerpts provided as a list of dictionaries, where each key is an entry number and each value is a text segment.
+
+Create a concise summary strictly based on all relevant information contained in the provided texts.
+Do not include circumstantial details such as specific events or isolated issues.
+
+Return the result as a dictionary with the following structure:
+"Text": the summary in English, without special characters
+"ID": a list of entry numbers explicitly used to produce the summary
+
+Return only the JSON dictionary, with no additional text.
 """
-geolocation_prompt = """I want you to help me create humanitarian reports with excellent anlysis results. My analysis is in the Protection sector in %s.
-I'm going to provide you with pieces of text from different documents. The text is a list of dictionaries, where the key is the entry number and the value is the text.
-I want you to create a summary that encompasses all crucial information to be treated by analysts for only one specific province: %s. Do not provide circumstancial information (like specific events or issues), but focus mostly on the most important points on country level.
-I want you to return the output as a dictionary, with the keys: "Text", "ID". The "Text" key should contain the summary text, and the "ID" key should contain a list of the entry numbers that were explicitely used to generate the summary.
-If no text is relevant, return an empty dict ('{}'). Only return the requested format, without any additional text. Return the text in english without special characters.
+
+geolocation_prompt = """
+I want you to generate a general humanitarian analysis summary for the Protection sector in %s.
+You will receive multiple text excerpts provided as a list of dictionaries, where each key is an entry number and each value is a text segment.
+
+Create a general summary strictly based on all relevant information in the provided texts, focusing only on the specific province: %s.
+Do not include circumstantial details such as specific events or isolated issues.
+
+Return the output as a dictionary with the following structure:
+"Text": the summary in English, without special characters
+"ID": a list of entry numbers explicitly used to produce the summary
+
+Return only the JSON dictionary, with no additional text.
 """
-indicators_prompt = """I want you to help me create humanitarian reports with excellent anlysis results. My analysis is in the Protection sector in %s.
-I'm going to provide you with pieces of text from different documents. The text is a list of dictionaries, where the key is the entry number and the value is the text.
-I want you to create a summary that encompasses all crucial information to be treated by analysts for the following topic: %s. Do not provide circumstancial information (like specific events or issues), but focus mostly on the most important points on country level.
-I want you to return the output as a dictionary, with the keys: "Text", "ID". The "Text" key should contain the summary text, and the "ID" key should contain a list of the entry numbers that were explicitely used to generate the summary.
-If no text is relevant, return an empty dict ('{}'). Only return the requested format, without any additional text. Return the text in english without special characters.
+
+indicators_prompt = """
+Generate a general humanitarian analysis summary for the Protection sector in %s.
+You will be provided with multiple text excerpts as a list of dictionaries, where each key is an entry number and each value is a text segment.
+
+Create a summary strictly based on all relevant information in the provided texts, focusing on the following topic: %s.
+Do not include circumstantial details such as specific events or isolated issues, and emphasize the most important points at the country level.
+
+Return the output as a dictionary with the following structure:
+"Text": the summary in English, without special characters
+"ID": a list of entry numbers explicitly used to generate the summary
+
+Return only the JSON dictionary, with no additional text.
 """
-specific_population_groups_prompt = """I want you to help me create humanitarian reports with excellent anlysis results. My analysis is in the Protection sector in %s.
-I'm going to provide you with pieces of text from different documents. The text is a list of dictionaries, where the key is the entry number and the value is the text.
-I want you to create a summary that encompasses all crucial information to be treated by analysts for the following population group: %s. Do not provide circumstancial information (like specific events or issues), but focus mostly on the most important points on country level.
-I want you to return the output as a dictionary, with the keys: "Text", "ID". The "Text" key should contain the summary text, and the "ID" key should contain a list of the entry numbers that were explicitely used to generate the summary.
-If no text is relevant, return an empty dict ('{}'). Only return the requested format, without any additional text. Return the text in english without special characters.
+
+
+specific_population_groups_prompt = """
+Generate a general humanitarian analysis summary for the Protection sector in %s.
+You will be provided with multiple text excerpts as a list of dictionaries, where each key is an entry number and each value is a text segment.
+
+Create a summary strictly based on all relevant information in the provided texts, focusing on the following population group: %s.
+Do not include circumstantial details such as specific events or isolated issues, and emphasize the most important points at the country level.
+
+Return the output as a dictionary with the following structure:
+"Text": the summary in English, without special characters
+"ID": a list of entry numbers explicitly used to generate the summary
+
+Return only the JSON dictionary, with no additional text.
 """
 
 
