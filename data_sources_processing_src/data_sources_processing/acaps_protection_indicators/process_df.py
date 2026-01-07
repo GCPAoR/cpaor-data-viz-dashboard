@@ -1,6 +1,7 @@
 import os
 from ast import literal_eval
 from typing import Any, Dict, List, Union
+from numpy import isin
 
 import pandas as pd
 
@@ -300,8 +301,11 @@ def _get_final_results(df: pd.DataFrame, final_results: List[Dict[str, Union[str
     if len(postprocessed_results_df):
         postprocessed_results = postprocessed_results_df.explode("Evidence")
 
+        postprocessed_results = postprocessed_results[postprocessed_results["Evidence"].notna() & postprocessed_results["Evidence"].apply(lambda x: isinstance(x, dict))]
+
+
         postprocessed_results["Source Original Text"] = postprocessed_results["Evidence"].apply(
-            lambda x: x["text"].replace("\n", " ")
+            lambda x: x["text"].replace("\n", " ") if isinstance(x, dict) and "text" in x else x
         )
         postprocessed_results["Source Name"] = postprocessed_results["Evidence"].apply(lambda x: x["source_name"])
         postprocessed_results["Source Date"] = postprocessed_results["Evidence"].apply(lambda x: x["source_date"])
