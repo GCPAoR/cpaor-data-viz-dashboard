@@ -1,0 +1,24 @@
+ingress:
+  className: traefik
+  streamlit:
+    enabled: true
+    host: cpaor.k8s.dev.example.com
+
+sharedVolume:
+  persistence:
+    storageClassName: local-path
+    size: "1Gi"
+
+dataProcessing:
+  secrets:
+    OPENAI_API_KEY: XYZ
+    ACLED_API_KEY: XYZ
+    ACLED_USERNAME: XYZ
+    ACLED_PASSWORD: XYZ
+    CPAOR_EMAIL: xyz@example.com
+    ACAPS_PASSWORD: XYZ
+
+streamlit:
+  secrets:
+    APP_ENVIRONMENT: production
+    GA_TRACKING_ID: G-XYZ
