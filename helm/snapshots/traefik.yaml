@@ -1,0 +1,210 @@
+---
+# Source: cpaor-data-viz-dashboard-helm/templates/data-processing/secrets.yaml
+kind: Secret
+apiVersion: v1
+metadata:
+  name: release-name-cpaor-data-viz-dashboard-helm-dp-secrets
+  labels:
+    component: data-processing
+    environment: 
+    release: release-name
+type: Opaque
+stringData:
+  OPENAI_API_KEY: "XYZ"
+  ACLED_API_KEY: "XYZ"
+  CPAOR_EMAIL: "xyz@example.com"
+  ACAPS_PASSWORD: "XYZ"
+  ACLED_USERNAME: "XYZ"
+  ACLED_PASSWORD: "XYZ"
+
+---
+# Source: cpaor-data-viz-dashboard-helm/templates/streamlit/secrets.yaml
+kind: Secret
+apiVersion: v1
+metadata:
+  name: release-name-cpaor-data-viz-dashboard-helm-app-secrets
+  labels:
+    component: streamlit
+    environment: 
+    release: release-name
+type: Opaque
+stringData:
+  APP_ENVIRONMENT: "production"
+  GA_TRACKING_ID: "G-XYZ"
+
+---
+# Source: cpaor-data-viz-dashboard-helm/templates/data-processing/pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: release-name-cpaor-data-viz-dashboard-helm-shared-volume
+  labels:
+    environment: 
+    release: release-name
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+# Source: cpaor-data-viz-dashboard-helm/templates/streamlit/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: release-name-cpaor-data-viz-dashboard-helm-streamlit
+  labels:
+    app: release-name-cpaor-data-viz-dashboard-helm
+    component: streamlit
+    environment: 
+    release: release-name
+spec:
+  type: ClusterIP
+  selector:
+    app: release-name-cpaor-data-viz-dashboard-helm
+    run: streamlit
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8501
+      nodePort: null
+
+---
+# Source: cpaor-data-viz-dashboard-helm/templates/streamlit/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: release-name-cpaor-data-viz-dashboard-helm-streamlit
+  labels:
+    app: release-name-cpaor-data-viz-dashboard-helm
+    component: streamlit
+    environment: 
+    release: release-name
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: release-name-cpaor-data-viz-dashboard-helm
+      run: streamlit
+  template:
+    metadata:
+      labels:
+        app: release-name-cpaor-data-viz-dashboard-helm
+        run: streamlit
+    spec:
+      containers:
+        - name: streamlit
+          image: "SET-BY-CICD-IMAGE-STREAMLIT:SET-BY-CICD-TAG-STREAMLIT"
+          imagePullPolicy: IfNotPresent
+          command: ["streamlit", "run", "/app/app.py", "--server.address", "0.0.0.0"]
+          ports:
+            - name: http
+              containerPort: 8501
+              protocol: TCP
+          livenessProbe: # FIXME: Fix Liveness Probe
+            httpGet:
+              path: /  # TODO
+              port: 8501
+            initialDelaySeconds: 10180  # TODO:?
+            periodSeconds: 5  # TODO:?
+          resources:
+            limits:
+              cpu: 2
+              memory: 2Gi
+            requests:
+              cpu: 200m
+              memory: 1Gi
+          env:
+            - name: STREAMLIT_SERVER_ADDRESS
+              value: "0.0.0.0"
+            - name: STREAMLIT_SERVER_PORT
+              value: "8501"
+            - name: GA_TRACKING_ID
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-cpaor-data-viz-dashboard-helm-app-secrets
+                  key: GA_TRACKING_ID
+            - name: APP_ENVIRONMENT
+              valueFrom:
+                secretKeyRef:
+                  name: release-name-cpaor-data-viz-dashboard-helm-app-secrets
+                  key: APP_ENVIRONMENT
+          volumeMounts:
+          - mountPath: "/data"
+            name: shared-volume
+      volumes:
+        - name: shared-volume
+          persistentVolumeClaim:
+            claimName: release-name-cpaor-data-viz-dashboard-helm-shared-volume
+
+---
+# Source: cpaor-data-viz-dashboard-helm/templates/data-processing/cronjob.yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: "release-name-cpaor-data-viz-dashboard-helm-update-datasets"
+  labels:
+    app: release-name-cpaor-data-viz-dashboard-helm
+    component: data-processing
+    environment: 
+    release: release-name
+spec:
+  schedule: "0 1 * * *"
+  concurrencyPolicy: "Forbid"
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 7200
+      template:
+        spec:
+          restartPolicy: "Never"
+          containers:
+            - name: task
+              image: "SET-BY-CICD-IMAGE-DATA-PROCESSING:SET-BY-CICD-TAG-DATA-PROCESSING"
+              imagePullPolicy: IfNotPresent
+              command: 
+                - /usr/local/bin/python
+                - /app/update_datasets.py
+              resources:
+                limits:
+                  cpu: 2
+                  memory: 2Gi
+                requests:
+                  cpu: 200m
+                  memory: 1Gi
+              envFrom:
+                - secretRef:
+                    name: release-name-cpaor-data-viz-dashboard-helm-secrets
+              volumeMounts:
+              - mountPath: "/data"
+                name: shared-volume
+          volumes:
+            - name: shared-volume
+              persistentVolumeClaim:
+                claimName: release-name-cpaor-data-viz-dashboard-helm-shared-volume
+
+---
+# Source: cpaor-data-viz-dashboard-helm/templates/streamlit/ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: release-name-cpaor-data-viz-dashboard-helm-streamlit
+  labels:
+    app: release-name-cpaor-data-viz-dashboard-helm
+    component: streamlit
+    environment: 
+    release: release-name
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: "cpaor.k8s.dev.example.com"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: release-name-cpaor-data-viz-dashboard-helm-streamlit
+                port:
+                  number: 80
