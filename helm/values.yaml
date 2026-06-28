@@ -1,7 +1,18 @@
+# Environment name. Drives the `environment` label on every resource and the
+# global ConfigMap's APP_ENVIRONMENT value (read by the app via os.getenv).
+environment: production
+
 ingress:
+  # No default ingress class — set it per environment.
+  className:
   streamlit:
     enabled: true
     host:
+    # No default TLS — provide hosts + secretName per environment to enable HTTPS.
+    tls: []
+      # - hosts:
+      #     - cpaor.example.com
+      #   secretName: cpaor-streamlit-tls
 
 streamlit:
   enabled: true
@@ -10,7 +21,12 @@ streamlit:
     name: SET-BY-CICD-IMAGE-STREAMLIT
     tag: SET-BY-CICD-TAG-STREAMLIT
     pullPolicy: IfNotPresent
-  containerPort: "8501"
+  containerPort: 8501
+  # Deployment update strategy. Leave unset for the Kubernetes default
+  # (RollingUpdate). Use Recreate with a ReadWriteOnce shared volume so the old
+  # pod releases the volume before the new one starts.
+  strategy: {}
+    # type: Recreate
   resources:
     requests:
       cpu: "200m"
@@ -18,14 +34,51 @@ streamlit:
     limits:
       cpu: 2
       memory: 2Gi
-  secrets:
-    APP_ENVIRONMENT:
-    GA_TRACKING_ID:
+  livenessProbe:
+    httpGet:
+      path: /_stcore/health
+      port: 8501
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readinessProbe:
+    httpGet:
+      path: /_stcore/health
+      port: 8501
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  # Plain, non-secret environment variables rendered as literal name/value pairs.
+  env: {}
+    # GA_TRACKING_ID: "G-XXXXXXX"
+  # Sensitive values rendered into a chart-managed Secret (consumed via envFrom).
+  # The Secret is only created when at least one key has a value; leave empty to
+  # rely entirely on externalSecrets.
+  secrets: {}
+    # STREAMLIT_USER_PASSWORD:
+  # Reference Secrets that already exist in the namespace (managed externally).
+  externalSecrets:
+    # Bulk-import every key of the named Secret(s) as env vars.
+    envFrom: []
+      # - shared-streamlit-secrets
+    # Map specific keys of an external Secret to specific env var names.
+    env: []
+      # - name: STREAMLIT_USER_PASSWORD
+      #   secretName: shared-streamlit-secrets
+      #   secretKey: streamlit_user_password
 
 sharedVolume:
   persistence:
     storageClassName:
     size: "1Gi"
+    # Required (a PVC must declare an access mode). Match it to the storage
+    # class: multi-node classes (e.g. longhorn) need ReadWriteMany; single-node
+    # classes (e.g. local-path) only support ReadWriteOnce. Do NOT set this to
+    # null/empty — that produces an unprovisionable PVC.
+    accessModes:
+      - ReadWriteMany
 
 dataProcessing:
   enabled: true
@@ -47,10 +100,24 @@ dataProcessing:
       timeLimit: 7200  # 2 hours
       schedule: "0 1 * * *"
       command: ["/usr/local/bin/python", "/app/update_datasets.py"]
-  secrets:
-    OPENAI_API_KEY:
-    ACLED_API_KEY:
-    CPAOR_EMAIL:
-    ACAPS_PASSWORD:
-    ACLED_USERNAME:
-    ACLED_PASSWORD:
+  # Plain, non-secret environment variables rendered as literal name/value pairs.
+  env: {}
+  # Sensitive values rendered into a chart-managed Secret (consumed via envFrom).
+  # The Secret is only created when at least one key has a value; leave empty to
+  # rely entirely on externalSecrets.
+  secrets: {}
+    # OPENAI_API_KEY:
+    # ACLED_USERNAME:
+    # ACLED_PASSWORD:
+    # CPAOR_EMAIL:
+    # ACAPS_PASSWORD:
+  # Reference Secrets that already exist in the namespace (managed externally).
+  externalSecrets:
+    # Bulk-import every key of the named Secret(s) as env vars.
+    envFrom: []
+      # - shared-data-processing-secrets
+    # Map specific keys of an external Secret to specific env var names.
+    env: []
+      # - name: OPENAI_API_KEY
+      #   secretName: shared-data-processing-secrets
+      #   secretKey: openai_api_key

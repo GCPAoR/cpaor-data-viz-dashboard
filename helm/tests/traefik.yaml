@@ -1,24 +1,51 @@
+environment: production
+
 ingress:
   className: traefik
   streamlit:
     enabled: true
     host: cpaor.k8s.dev.example.com
+    tls:
+      - hosts:
+          - cpaor.k8s.dev.example.com
+        secretName: cpaor-streamlit-tls
 
 sharedVolume:
   persistence:
     storageClassName: local-path
     size: "1Gi"
+    accessModes:
+      - ReadWriteOnce
+
+# Exercises chart-managed inline secrets AND externally-managed secrets at the
+# same time (envFrom bulk import + explicit per-key mapping).
+streamlit:
+  # local-path is ReadWriteOnce, so use Recreate to release the volume on rollout.
+  strategy:
+    type: Recreate
+  env:
+    GA_TRACKING_ID: G-XYZ
+  secrets:
+    STREAMLIT_USER_PASSWORD: XYZ
+  externalSecrets:
+    envFrom:
+      - shared-streamlit-secrets
+    env:
+      - name: GA_TRACKING_ID
+        secretName: shared-streamlit-secrets
+        secretKey: ga_tracking_id
 
 dataProcessing:
   secrets:
     OPENAI_API_KEY: XYZ
-    ACLED_API_KEY: XYZ
     ACLED_USERNAME: XYZ
     ACLED_PASSWORD: XYZ
     CPAOR_EMAIL: xyz@example.com
     ACAPS_PASSWORD: XYZ
-
-streamlit:
-  secrets:
-    APP_ENVIRONMENT: production
-    GA_TRACKING_ID: G-XYZ
+  externalSecrets:
+    envFrom:
+      - shared-data-processing-secrets
+    env:
+      - name: OPENAI_API_KEY
+        secretName: shared-data-processing-secrets
+        secretKey: openai_api_key

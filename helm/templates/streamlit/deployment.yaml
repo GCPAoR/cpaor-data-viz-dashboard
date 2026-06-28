@@ -11,6 +11,10 @@ metadata:
     release: {{ .Release.Name }}
 spec:
   replicas: {{ .Values.streamlit.replicaCount }}
+  {{- with .Values.streamlit.strategy }}
+  strategy:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     matchLabels:
       app: {{ template "cpaor-data-viz-dashboard-helm.fullname" . }}
@@ -30,12 +34,10 @@ spec:
             - name: http
               containerPort: {{ .Values.streamlit.containerPort }}
               protocol: TCP
-          livenessProbe: # FIXME: Fix Liveness Probe
-            httpGet:
-              path: /  # TODO
-              port: {{ .Values.streamlit.containerPort }}
-            initialDelaySeconds: 10180  # TODO:?
-            periodSeconds: 5  # TODO:?
+          livenessProbe:
+            {{- toYaml .Values.streamlit.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.streamlit.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.streamlit.resources | nindent 12 }}
           env:
@@ -43,16 +45,12 @@ spec:
               value: "0.0.0.0"
             - name: STREAMLIT_SERVER_PORT
               value: {{ .Values.streamlit.containerPort | quote }}
-            - name: GA_TRACKING_ID
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "cpaor-data-viz-dashboard-helm.fullname" . }}-app-secrets
-                  key: GA_TRACKING_ID
-            - name: APP_ENVIRONMENT
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "cpaor-data-viz-dashboard-helm.fullname" . }}-app-secrets
-                  key: APP_ENVIRONMENT
+            {{- include "cpaor-data-viz-dashboard-helm.workloadEnv" (dict "configName" (printf "%s-config" (include "cpaor-data-viz-dashboard-helm.fullname" .)) "workload" .Values.streamlit) | trim | nindent 12 }}
+          {{- $envFrom := include "cpaor-data-viz-dashboard-helm.workloadEnvFrom" (dict "secretName" (printf "%s-streamlit-secrets" (include "cpaor-data-viz-dashboard-helm.fullname" .)) "workload" .Values.streamlit) }}
+          {{- if trim $envFrom }}
+          envFrom:
+            {{- $envFrom | trim | nindent 12 }}
+          {{- end }}
           volumeMounts:
           - mountPath: "/data"
             name: shared-volume

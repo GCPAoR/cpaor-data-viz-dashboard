@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "cpaor-data-viz-dashboard-helm.fullname" . }}-config
+  labels:
+    app: {{ template "cpaor-data-viz-dashboard-helm.fullname" . }}
+    environment: {{ .Values.environment }}
+    release: {{ .Release.Name }}
+data:
+  APP_ENVIRONMENT: {{ .Values.environment | quote }}

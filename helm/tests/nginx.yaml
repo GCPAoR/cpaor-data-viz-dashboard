@@ -1,3 +1,5 @@
+environment: staging
+
 ingress:
   className: nginx
   streamlit:
@@ -8,9 +10,10 @@ streamlit:
     name: ghcr.io/cpaor/streamlit
     tag: v1.0.1
     pullPolicy: IfNotPresent
-  secrets:
-    APP_ENVIRONMENT: FAKE_ENV
+  env:
     GA_TRACKING_ID: TRACKING_ID
+  secrets:
+    STREAMLIT_USER_PASSWORD: FAKE_USER_PASSWORD
 
 sharedVolume:
   persistence:
@@ -23,7 +26,6 @@ dataProcessing:
     tag: v1.0.1
   secrets:
     OPENAI_API_KEY: FAKE_OPENAI_API_KEY
-    ACLED_API_KEY: FAKE_ACLED_API_KEY
     CPAOR_EMAIL: FAKE_CPAOR@EMAIL.COM
     ACAPS_PASSWORD: FAKE_ACAPS_PASSWORD
     ACLED_USERNAME: FAKE_ACLED_USERNAME

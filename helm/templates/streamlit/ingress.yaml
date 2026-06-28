@@ -11,6 +11,10 @@ metadata:
     release: {{ .Release.Name }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
+  {{- with .Values.ingress.streamlit.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   rules:
     - host: {{ required "ingress.streamlit.host" .Values.ingress.streamlit.host | quote }}
       http:
