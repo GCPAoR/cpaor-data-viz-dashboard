@@ -30,9 +30,13 @@ spec:
               command: {{ toYaml $job.command | trim | nindent 16 }}
               resources:
                 {{- toYaml (default $.Values.dataProcessing.global.resources $job.resources) | nindent 16 }}
+              env:
+                {{- include "cpaor-data-viz-dashboard-helm.workloadEnv" (dict "configName" (printf "%s-config" (include "cpaor-data-viz-dashboard-helm.fullname" $)) "workload" $.Values.dataProcessing) | trim | nindent 16 }}
+              {{- $envFrom := include "cpaor-data-viz-dashboard-helm.workloadEnvFrom" (dict "secretName" (printf "%s-data-processing-secrets" (include "cpaor-data-viz-dashboard-helm.fullname" $)) "workload" $.Values.dataProcessing) }}
+              {{- if trim $envFrom }}
               envFrom:
-                - secretRef:
-                    name: {{ include "cpaor-data-viz-dashboard-helm.fullname" $ }}-secrets
+                {{- $envFrom | trim | nindent 16 }}
+              {{- end }}
               volumeMounts:
               - mountPath: "/data"
                 name: shared-volume

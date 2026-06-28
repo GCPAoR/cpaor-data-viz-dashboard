@@ -3,34 +3,47 @@
 kind: Secret
 apiVersion: v1
 metadata:
-  name: release-name-cpaor-data-viz-dashboard-helm-dp-secrets
+  name: release-name-cpaor-data-viz-dashboard-helm-data-processing-secrets
   labels:
+    app: release-name-cpaor-data-viz-dashboard-helm
     component: data-processing
-    environment: 
+    environment: staging
     release: release-name
 type: Opaque
 stringData:
-  OPENAI_API_KEY: "FAKE_OPENAI_API_KEY"
-  ACLED_API_KEY: "FAKE_ACLED_API_KEY"
-  CPAOR_EMAIL: "FAKE_CPAOR@EMAIL.COM"
   ACAPS_PASSWORD: "FAKE_ACAPS_PASSWORD"
-  ACLED_USERNAME: "FAKE_ACLED_USERNAME"
   ACLED_PASSWORD: "FAKE_ACLED_PASSWORD"
+  ACLED_USERNAME: "FAKE_ACLED_USERNAME"
+  CPAOR_EMAIL: "FAKE_CPAOR@EMAIL.COM"
+  OPENAI_API_KEY: "FAKE_OPENAI_API_KEY"
 
 ---
 # Source: cpaor-data-viz-dashboard-helm/templates/streamlit/secrets.yaml
 kind: Secret
 apiVersion: v1
 metadata:
-  name: release-name-cpaor-data-viz-dashboard-helm-app-secrets
+  name: release-name-cpaor-data-viz-dashboard-helm-streamlit-secrets
   labels:
+    app: release-name-cpaor-data-viz-dashboard-helm
     component: streamlit
-    environment: 
+    environment: staging
     release: release-name
 type: Opaque
 stringData:
-  APP_ENVIRONMENT: "FAKE_ENV"
-  GA_TRACKING_ID: "TRACKING_ID"
+  STREAMLIT_USER_PASSWORD: "FAKE_USER_PASSWORD"
+
+---
+# Source: cpaor-data-viz-dashboard-helm/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: release-name-cpaor-data-viz-dashboard-helm-config
+  labels:
+    app: release-name-cpaor-data-viz-dashboard-helm
+    environment: staging
+    release: release-name
+data:
+  APP_ENVIRONMENT: "staging"
 
 ---
 # Source: cpaor-data-viz-dashboard-helm/templates/data-processing/pvc.yaml
@@ -39,7 +52,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: release-name-cpaor-data-viz-dashboard-helm-shared-volume
   labels:
-    environment: 
+    environment: staging
     release: release-name
 spec:
   accessModes:
@@ -58,7 +71,7 @@ metadata:
   labels:
     app: release-name-cpaor-data-viz-dashboard-helm
     component: streamlit
-    environment: 
+    environment: staging
     release: release-name
 spec:
   type: ClusterIP
@@ -80,7 +93,7 @@ metadata:
   labels:
     app: release-name-cpaor-data-viz-dashboard-helm
     component: streamlit
-    environment: 
+    environment: staging
     release: release-name
 spec:
   replicas: 1
@@ -103,12 +116,22 @@ spec:
             - name: http
               containerPort: 8501
               protocol: TCP
-          livenessProbe: # FIXME: Fix Liveness Probe
+          livenessProbe:
+            failureThreshold: 3
             httpGet:
-              path: /  # TODO
+              path: /_stcore/health
               port: 8501
-            initialDelaySeconds: 10180  # TODO:?
-            periodSeconds: 5  # TODO:?
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /_stcore/health
+              port: 8501
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             limits:
               cpu: 2
@@ -121,16 +144,16 @@ spec:
               value: "0.0.0.0"
             - name: STREAMLIT_SERVER_PORT
               value: "8501"
-            - name: GA_TRACKING_ID
-              valueFrom:
-                secretKeyRef:
-                  name: release-name-cpaor-data-viz-dashboard-helm-app-secrets
-                  key: GA_TRACKING_ID
             - name: APP_ENVIRONMENT
               valueFrom:
-                secretKeyRef:
-                  name: release-name-cpaor-data-viz-dashboard-helm-app-secrets
+                configMapKeyRef:
+                  name: release-name-cpaor-data-viz-dashboard-helm-config
                   key: APP_ENVIRONMENT
+            - name: GA_TRACKING_ID
+              value: "TRACKING_ID"
+          envFrom:
+            - secretRef:
+                name: release-name-cpaor-data-viz-dashboard-helm-streamlit-secrets
           volumeMounts:
           - mountPath: "/data"
             name: shared-volume
@@ -148,7 +171,7 @@ metadata:
   labels:
     app: release-name-cpaor-data-viz-dashboard-helm
     component: data-processing
-    environment: 
+    environment: staging
     release: release-name
 spec:
   schedule: "0 1 * * *"
@@ -173,9 +196,15 @@ spec:
                 requests:
                   cpu: 200m
                   memory: 1Gi
+              env:
+                - name: APP_ENVIRONMENT
+                  valueFrom:
+                    configMapKeyRef:
+                      name: release-name-cpaor-data-viz-dashboard-helm-config
+                      key: APP_ENVIRONMENT
               envFrom:
                 - secretRef:
-                    name: release-name-cpaor-data-viz-dashboard-helm-secrets
+                    name: release-name-cpaor-data-viz-dashboard-helm-data-processing-secrets
               volumeMounts:
               - mountPath: "/data"
                 name: shared-volume
@@ -193,7 +222,7 @@ metadata:
   labels:
     app: release-name-cpaor-data-viz-dashboard-helm
     component: streamlit
-    environment: 
+    environment: staging
     release: release-name
 spec:
   ingressClassName: nginx
