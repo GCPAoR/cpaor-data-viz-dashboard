@@ -229,7 +229,7 @@ async def call_chatgpt_async(
             output_text = clean_response["choices"][0]["message"]["content"]
             # print("Worked")
         except Exception as e:
-            logger.error("GPT running failed", e, clean_response)
+            logger.error("GPT running failed: %s | response=%s", e, clean_response)
             output_text = "{}"
 
         output_text = _postprocess_json_string(output_text)
@@ -240,7 +240,7 @@ async def call_chatgpt_async(
             try:
                 gpt_extracted_infos = json.loads(output_text)
             except Exception as e:
-                logger.error("formatting failed", e, output_text)
+                logger.error("formatting failed: %s | output_text=%s", e, output_text)
                 gpt_extracted_infos = {}
 
     return gpt_extracted_infos

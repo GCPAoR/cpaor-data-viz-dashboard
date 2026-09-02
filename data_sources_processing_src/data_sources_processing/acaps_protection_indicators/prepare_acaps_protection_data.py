@@ -107,6 +107,12 @@ def generate_summaries(
 
         inference_dataset = _prepare_inference_dataset(protection_indicators_original_dataset, one_country)
 
+        if len(inference_dataset) == 0:
+            logger.info(
+                f"------------------------------ {i + 1}/{n_processed_countries} - {one_country} no new data------------------------------"  # noqa
+            )
+            continue
+
         if os.path.exists(country_output_path):
             past_summaries_one_country = pd.read_csv(
                 country_output_path  # , engine="openpyxl"
