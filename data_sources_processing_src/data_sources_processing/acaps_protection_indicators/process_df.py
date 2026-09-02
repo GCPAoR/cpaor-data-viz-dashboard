@@ -165,7 +165,7 @@ def _prepare_inference_dataset(all_df: pd.DataFrame, one_country: str):
     4. Return 'final_outputs'.
     """
 
-    final_outputs = pd.DataFrame()
+    final_outputs = pd.DataFrame(columns=["country", "Breakdown Column", "Value", "entries", "n_entries", "Last Date"])
 
     df_one_country = all_df[all_df["country"] == one_country].copy()
 
