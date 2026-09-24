@@ -8,6 +8,20 @@ ingress:
   streamlit:
     enabled: true
     host:
+    # Extra labels on the Ingress. Use the `app.togglecorp.com/*` deployment
+    # metadata vocabulary (structured identity). Values must be label-legal
+    # strings — quote numbers.
+    labels: {}
+      # app.togglecorp.com/part-of: CPAOR
+      # app.togglecorp.com/name: Dashboard
+      # app.togglecorp.com/component: frontend
+      # app.togglecorp.com/tier: production
+    # Extra annotations on the Ingress (free text / paths, controller config).
+    # CI (helm-publish) writes `app.togglecorp.com/*` provenance keys here at
+    # publish time, so this node must stay present.
+    annotations: {}
+      # app.togglecorp.com/description: "Production"
+      # app.togglecorp.com/url: /
     # No default TLS — provide hosts + secretName per environment to enable HTTPS.
     tls: []
       # - hosts:

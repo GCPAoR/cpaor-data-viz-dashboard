@@ -4,7 +4,10 @@ on:
   workflow_dispatch:
 
 permissions:
+  contents: read
   packages: write
+  # Resolve the PR from the commit for provenance annotations.
+  pull-requests: read
 
 jobs:
   dockerbuild:
@@ -46,6 +49,82 @@ jobs:
         sed -i "s|SET-BY-CICD-IMAGE-DATA-PROCESSING|$DP_IMAGE_NAME|" helm/values.yaml
         sed -i "s/SET-BY-CICD-TAG-DATA-PROCESSING/$DP_IMAGE_TAG/" helm/values.yaml
 
+    - name: Write provenance annotations to Helm Chart values.yaml
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ANNOTATIONS_PATH: .ingress.streamlit.annotations
+        STREAMLIT_IMAGE_NAME: ${{ needs.dockerbuild.outputs.streamlit_docker_image_name }}
+        STREAMLIT_IMAGE_TAG: ${{ needs.dockerbuild.outputs.streamlit_docker_image_tag }}
+        STREAMLIT_IMAGE: ${{ needs.dockerbuild.outputs.streamlit_docker_image }}
+        DP_IMAGE_NAME: ${{ needs.dockerbuild.outputs.dp_docker_image_name }}
+        DP_IMAGE_TAG: ${{ needs.dockerbuild.outputs.dp_docker_image_tag }}
+        DP_IMAGE: ${{ needs.dockerbuild.outputs.dp_docker_image }}
+      run: |
+        set -euo pipefail
+        VALUES=helm/values.yaml
+
+        # Fail loudly if the chart does not follow the expected convention,
+        # rather than letting yq silently create a bogus nested tree.
+        PARENT="${ANNOTATIONS_PATH%.*}"
+        if ! yq -e "$PARENT" "$VALUES" >/dev/null 2>&1; then
+          echo "::error::Annotations parent '$PARENT' does not exist in $VALUES."
+          exit 1
+        fi
+
+        # -- Provenance values (exported so yq strenv() can read them safely) --
+        export REPO_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+        export COMMIT="${GITHUB_SHA}"
+        export REF="${GITHUB_REF}"
+        export DATETIME COMMIT_MESSAGE
+        DATETIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        COMMIT_MESSAGE="$(git log -1 --pretty=%s)"
+        # Repo-scoped GHCR package page (package name = last segment of image name)
+        export STREAMLIT_DOCKER_IMAGE_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/pkgs/container/${STREAMLIT_IMAGE_NAME##*/}?tag=${STREAMLIT_IMAGE_TAG}"
+        export DP_DOCKER_IMAGE_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/pkgs/container/${DP_IMAGE_NAME##*/}?tag=${DP_IMAGE_TAG}"
+        export ACTOR="${GITHUB_ACTOR}"
+        export ACTOR_IMAGE_URL="https://github.com/${GITHUB_ACTOR}.png"
+        export CI_RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+        export REPO_OWNER_IMAGE_URL="https://github.com/${GITHUB_REPOSITORY_OWNER}.png"
+
+        P="$ANNOTATIONS_PATH"
+        A="app.togglecorp.com"
+        EXPR="${P}.\"${A}/repo-url\" = strenv(REPO_URL)"
+        EXPR="${EXPR} | ${P}.\"${A}/commit\" = strenv(COMMIT)"
+        EXPR="${EXPR} | ${P}.\"${A}/ref\" = strenv(REF)"
+        EXPR="${EXPR} | ${P}.\"${A}/datetime\" = strenv(DATETIME)"
+        EXPR="${EXPR} | ${P}.\"${A}/commit-message\" = strenv(COMMIT_MESSAGE)"
+        EXPR="${EXPR} | ${P}.\"${A}/streamlit-docker-image-label\" = strenv(STREAMLIT_IMAGE)"
+        EXPR="${EXPR} | ${P}.\"${A}/streamlit-docker-image-url\" = strenv(STREAMLIT_DOCKER_IMAGE_URL)"
+        EXPR="${EXPR} | ${P}.\"${A}/data-processing-docker-image-label\" = strenv(DP_IMAGE)"
+        EXPR="${EXPR} | ${P}.\"${A}/data-processing-docker-image-url\" = strenv(DP_DOCKER_IMAGE_URL)"
+        EXPR="${EXPR} | ${P}.\"${A}/actor\" = strenv(ACTOR)"
+        EXPR="${EXPR} | ${P}.\"${A}/actor-image-url\" = strenv(ACTOR_IMAGE_URL)"
+        EXPR="${EXPR} | ${P}.\"${A}/ci-run-url\" = strenv(CI_RUN_URL)"
+        EXPR="${EXPR} | ${P}.\"${A}/repo-owner-image-url\" = strenv(REPO_OWNER_IMAGE_URL)"
+
+        # PR metadata: helm publishes on dispatch (no PR context), so resolve
+        # the PR from the commit. Omit these keys when the commit has no PR.
+        if PR_JSON="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" --jq '.[0] // empty' 2>/tmp/gh_pr_err)"; then
+          if [ -n "$PR_JSON" ]; then
+            export PR_NUMBER PR_AUTHOR PR_AUTHOR_IMAGE_URL
+            PR_NUMBER="$(echo "$PR_JSON" | jq -r '.number')"
+            PR_AUTHOR="$(echo "$PR_JSON" | jq -r '.user.login')"
+            PR_AUTHOR_IMAGE_URL="https://github.com/${PR_AUTHOR}.png"
+            EXPR="${EXPR} | ${P}.\"${A}/pr-number\" = strenv(PR_NUMBER)"
+            EXPR="${EXPR} | ${P}.\"${A}/pr-author\" = strenv(PR_AUTHOR)"
+            EXPR="${EXPR} | ${P}.\"${A}/pr-author-image-url\" = strenv(PR_AUTHOR_IMAGE_URL)"
+          else
+            echo "::notice::No PR associated with ${GITHUB_SHA}; skipping pr-* annotations."
+          fi
+        else
+          echo "::warning::Could not query PRs for ${GITHUB_SHA} (does the token have 'pull-requests: read'?); skipping pr-* annotations. $(cat /tmp/gh_pr_err)"
+        fi
+
+        yq -i "$EXPR" "$VALUES"
+
+        echo "Wrote provenance annotations under ${P}:"
+        yq "${P}" "$VALUES"
+
     - name: Package Helm Chart
       id: set-variables
       env:
@@ -55,20 +134,37 @@ jobs:
         helm package ./helm -d .helm-charts
 
     - name: Push Helm Chart
+      id: push
       env:
         STREAMLIT_IMAGE: ${{ needs.dockerbuild.outputs.streamlit_docker_image }}
         DP_IMAGE: ${{ needs.dockerbuild.outputs.dp_docker_image }}
         OCI_REPO: oci://ghcr.io/${{ github.repository }}
       run: |
-        OCI_REPO=$(echo $OCI_REPO | tr '[:upper:]' '[:lower:]')
-        PACKAGE_FILE=$(ls .helm-charts/*.tgz | head -n 1)
-        echo "# Helm Chart" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Tagged Image (Streamlit): **$STREAMLIT_IMAGE**" >> $GITHUB_STEP_SUMMARY
-        echo "Tagged Image (Data Processing): **$DP_IMAGE**" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Helm push output" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo '```bash' >> $GITHUB_STEP_SUMMARY
-        helm push "$PACKAGE_FILE" $OCI_REPO >> $GITHUB_STEP_SUMMARY
-        echo '```' >> $GITHUB_STEP_SUMMARY
+        # Ensure OCI_REPO is lowercase
+        OCI_REPO="${OCI_REPO,,}"
+
+        # Safely get the first .tgz file
+        PACKAGE_FILE=$(find .helm-charts -maxdepth 1 -name '*.tgz' | head -n 1)
+
+        HELM_CHART=$(helm show chart "$PACKAGE_FILE" | grep '^name:' | awk '{print $2}')
+        HELM_TARGET_REVISION=$(helm show chart "$PACKAGE_FILE" | grep '^version:' | awk '{print $2}')
+
+        {
+          echo "# Helm Chart"
+          echo ""
+          echo '```yaml'
+          helm push "$PACKAGE_FILE" "$OCI_REPO" 2>&1
+          echo '```'
+
+          echo "> [!IMPORTANT]"
+          echo "> Helm Repo URL: **$OCI_REPO**"
+          echo "> Helm Chart: **$HELM_CHART**"
+          echo "> Helm Target Revision: **$HELM_TARGET_REVISION**"
+          echo "> Docker image (Streamlit): **$STREAMLIT_IMAGE**"
+          echo "> Docker image (Data Processing): **$DP_IMAGE**"
+        } >> "$GITHUB_STEP_SUMMARY"
+
+        # Annotations
+        echo "::notice::Helm Repo URL: $OCI_REPO"
+        echo "::notice::Helm Chart: $HELM_CHART"
+        echo "::notice::Helm Target Revision: $HELM_TARGET_REVISION"

@@ -9,6 +9,13 @@ metadata:
     component: streamlit
     environment: {{ .Values.environment }}
     release: {{ .Release.Name }}
+    {{- with .Values.ingress.streamlit.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.ingress.streamlit.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   {{- with .Values.ingress.streamlit.tls }}

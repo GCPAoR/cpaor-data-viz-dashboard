@@ -240,6 +240,13 @@ metadata:
     component: streamlit
     environment: production
     release: release-name
+    app.togglecorp.com/component: frontend
+    app.togglecorp.com/name: Dashboard
+    app.togglecorp.com/part-of: CPAOR
+    app.togglecorp.com/tier: production
+  annotations:
+    app.togglecorp.com/description: Production — release branch
+    app.togglecorp.com/url: /
 spec:
   ingressClassName: traefik
   tls:
