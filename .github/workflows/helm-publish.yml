@@ -134,20 +134,37 @@ jobs:
         helm package ./helm -d .helm-charts
 
     - name: Push Helm Chart
+      id: push
       env:
         STREAMLIT_IMAGE: ${{ needs.dockerbuild.outputs.streamlit_docker_image }}
         DP_IMAGE: ${{ needs.dockerbuild.outputs.dp_docker_image }}
         OCI_REPO: oci://ghcr.io/${{ github.repository }}
       run: |
-        OCI_REPO=$(echo $OCI_REPO | tr '[:upper:]' '[:lower:]')
-        PACKAGE_FILE=$(ls .helm-charts/*.tgz | head -n 1)
-        echo "# Helm Chart" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Tagged Image (Streamlit): **$STREAMLIT_IMAGE**" >> $GITHUB_STEP_SUMMARY
-        echo "Tagged Image (Data Processing): **$DP_IMAGE**" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Helm push output" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo '```bash' >> $GITHUB_STEP_SUMMARY
-        helm push "$PACKAGE_FILE" $OCI_REPO >> $GITHUB_STEP_SUMMARY
-        echo '```' >> $GITHUB_STEP_SUMMARY
+        # Ensure OCI_REPO is lowercase
+        OCI_REPO="${OCI_REPO,,}"
+
+        # Safely get the first .tgz file
+        PACKAGE_FILE=$(find .helm-charts -maxdepth 1 -name '*.tgz' | head -n 1)
+
+        HELM_CHART=$(helm show chart "$PACKAGE_FILE" | grep '^name:' | awk '{print $2}')
+        HELM_TARGET_REVISION=$(helm show chart "$PACKAGE_FILE" | grep '^version:' | awk '{print $2}')
+
+        {
+          echo "# Helm Chart"
+          echo ""
+          echo '```yaml'
+          helm push "$PACKAGE_FILE" "$OCI_REPO" 2>&1
+          echo '```'
+
+          echo "> [!IMPORTANT]"
+          echo "> Helm Repo URL: **$OCI_REPO**"
+          echo "> Helm Chart: **$HELM_CHART**"
+          echo "> Helm Target Revision: **$HELM_TARGET_REVISION**"
+          echo "> Docker image (Streamlit): **$STREAMLIT_IMAGE**"
+          echo "> Docker image (Data Processing): **$DP_IMAGE**"
+        } >> "$GITHUB_STEP_SUMMARY"
+
+        # Annotations
+        echo "::notice::Helm Repo URL: $OCI_REPO"
+        echo "::notice::Helm Chart: $HELM_CHART"
+        echo "::notice::Helm Target Revision: $HELM_TARGET_REVISION"
