@@ -5,6 +5,14 @@ ingress:
   streamlit:
     enabled: true
     host: cpaor.k8s.dev.example.com
+    labels:
+      app.togglecorp.com/part-of: CPAOR
+      app.togglecorp.com/name: Dashboard
+      app.togglecorp.com/component: frontend
+      app.togglecorp.com/tier: production
+    annotations:
+      app.togglecorp.com/description: "Production — release branch"
+      app.togglecorp.com/url: /
     tls:
       - hosts:
           - cpaor.k8s.dev.example.com
