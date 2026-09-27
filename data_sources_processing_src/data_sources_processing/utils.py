@@ -81,6 +81,39 @@ def _get_hdx_data(
         return None
 
 
+HDX_BASE_URL = "https://data.humdata.org"
+
+
+def _to_absolute_hdx_url(url: str) -> str:
+    if url.startswith("/"):
+        return f"{HDX_BASE_URL}{url}"
+    return url
+
+
+def _get_hdx_resource_last_modified(resource_page_url: str) -> str:
+    """
+    Inputs:
+    - resource_page_url (str): URL of the HDX resource page.
+
+    Outputs:
+    - date_str (str): The "Last modified" date of the resource, e.g. '17 September 2026'.
+
+    Operation:
+    1. Send a GET request to the resource page (the dataset page no longer shows per-resource dates).
+    2. Find the page header metadata item labelled 'Last modified' and return its value.
+    """
+    response = requests.get(resource_page_url)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.content, "html.parser")
+
+    for meta_item in soup.find_all("div", class_="c-page-header__meta-item"):
+        label = meta_item.find("span", class_="c-page-header__meta-label")
+        if label is not None and label.text.strip() == "Last modified":
+            return meta_item.find("div", class_="c-page-header__meta-value").text.strip()
+
+    raise ValueError(f"'Last modified' date not found in {resource_page_url}")
+
+
 def _get_one_ressource_infos(one_ressource: BeautifulSoup) -> Dict[str, Any]:
     """
 
@@ -92,25 +125,21 @@ def _get_one_ressource_infos(one_ressource: BeautifulSoup) -> Dict[str, Any]:
 
     Operation:
     1. Initialize an empty dictionary 'treated_doc'.
-    2. Extract the update date from the resource item, clean it, and convert it to the format 'dd-mm-yyyy'.
+    2. Extract the update date from the resource page, and convert it to the format 'dd-mm-yyyy'.
     3. Find the download URL of the resource.
     4. If the download URL is relative, prepend the base URL 'https://data.humdata.org' to it.
     5. Store the formatted date and the final download URL in 'treated_doc'.
     6. Return the dictionary 'treated_doc'.
     """
     treated_doc = {}
-    date_str = one_ressource.find("div", class_="update-date").text.strip().replace("Modified:", "").strip()
+    resource_page_url = _to_absolute_hdx_url(one_ressource.find("a", class_="c-resource-card__title")["href"])
+    date_str = _get_hdx_resource_last_modified(resource_page_url)
 
     treated_doc["file_time"] = datetime.strptime(date_str, "%d %B %Y").strftime("%d-%m-%Y")
 
     download_url = one_ressource.find("a", class_="resource-url-analytics")["href"]
 
-    if download_url.startswith("/"):
-        final_dl_url = f"https://data.humdata.org{download_url}"
-    else:
-        final_dl_url = download_url
-
-    treated_doc["download_url"] = final_dl_url
+    treated_doc["download_url"] = _to_absolute_hdx_url(download_url)
     return treated_doc
 
 
@@ -125,26 +154,29 @@ def _get_hdx_file_infos(soup: BeautifulSoup, file_name: str):
 
     Operation:
     1. Find all elements with the class 'resource-item' in the HTML document.
-    2. If a specific file name is provided, iterate through the resource items to find the one with the matching title.
-    3. If a matching resource item is found, extract its information using the '_get_one_ressource_infos' function.
-    4. If no specific file name is provided, use the first resource item and extract its information.
+    2. If a specific file name is provided, find the last resource item with the matching title.
+    3. If no specific file name is provided, use the first resource item.
+    4. Extract its information using the '_get_one_ressource_infos' function.
     5. Return the extracted information as a dictionary.
     """
 
-    resource_items = soup.find_all("li", class_="resource-item")
+    resource_items = soup.find_all("div", class_="resource-item")
+    if not resource_items:
+        raise ValueError("No resource items found in the HDX dataset page")
 
     if file_name != "-":
-        for one_ressource in resource_items:
-            doc_title = one_ressource.find("a", class_="heading")["title"]
-            if doc_title == file_name:
-                # treated_doc["title"] = doc_title
-                treated_doc = _get_one_ressource_infos(one_ressource)
-
+        matching_resources = [
+            one_ressource
+            for one_ressource in resource_items
+            if one_ressource.find("a", class_="c-resource-card__title")["title"] == file_name
+        ]
+        if not matching_resources:
+            raise ValueError(f"HDX resource {file_name!r} not found in the dataset page")
+        one_ressource = matching_resources[-1]
     else:
         one_ressource = resource_items[0]
-        treated_doc = _get_one_ressource_infos(one_ressource)
 
-    return treated_doc
+    return _get_one_ressource_infos(one_ressource)
 
 
 def _dl_hdx_file(url, file_path):
